@@ -835,7 +835,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
                 <MapView
                   posts={[selectedPostForMap]}
                   selectedPost={selectedPostForMap}
-                  onPostSelect={() => {}}
+                  onPostSelect={(post) => sendMatchRequest(post)}
                   showUserLocation={true}
                 />
               </div>

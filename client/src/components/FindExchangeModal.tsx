@@ -26,6 +26,7 @@ import {
 import { ExchangePost } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocation } from '@/contexts/LocationContext';
+import { useMatchingSystem } from '@/hooks/useMatchingSystem';
 import { collection, query, where, orderBy, onSnapshot, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { distance } from '@/lib/geohash';
@@ -52,6 +53,7 @@ interface FilterOptions {
 export function FindExchangeModal({ isOpen, onClose, onSelectPost }: FindExchangeModalProps) {
   const { user } = useAuth();
   const { location } = useLocation();
+  const { sendMatchRequest } = useMatchingSystem();
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [allPosts, setAllPosts] = useState<ExchangePost[]>([]);
@@ -190,7 +192,8 @@ export function FindExchangeModal({ isOpen, onClose, onSelectPost }: FindExchang
     setSearchTerm('');
   };
 
-  const handleSelectPost = (post: ExchangePost) => {
+  const handleSelectPost = async (post: ExchangePost) => {
+    await sendMatchRequest(post);
     onSelectPost(post);
     onClose();
   };
@@ -471,7 +474,7 @@ export function FindExchangeModal({ isOpen, onClose, onSelectPost }: FindExchang
                 <MapView
                   posts={[selectedPostForMap]}
                   selectedPost={selectedPostForMap}
-                  onPostSelect={() => {}}
+                  onPostSelect={(post) => sendMatchRequest(post)}
                   showUserLocation={true}
                 />
               </div>
