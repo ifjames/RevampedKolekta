@@ -24,6 +24,11 @@ import { CreatePostModal } from './CreatePostModal';
 import { ChatModal } from './ChatModal';
 import { ProfileModal } from './ProfileModal';
 import { ExchangeCard } from './ExchangeCard';
+import { NotificationSystem, useNotificationCount } from './NotificationSystem';
+import { BusinessAccountModal } from './BusinessAccountModal';
+import { SafeMeetupModal } from './SafeMeetupModal';
+import { VerificationModal } from './VerificationModal';
+import { ReportModal } from './ReportModal';
 import { getGreeting } from '@/utils/timeUtils';
 import { toastInfo } from '@/utils/notifications';
 
@@ -34,17 +39,21 @@ interface DashboardProps {
 export function Dashboard({ onLogout }: DashboardProps) {
   const { user, userProfile } = useAuth();
   const { location, hasPermission } = useLocation();
-  const { nearbyPosts, incomingRequests, loading, requestMatch } = useMatching();
+  const { matches: nearbyPosts = [], matchRequests: incomingRequests = [], isSearching: loading, requestMatch } = useMatching();
   
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showBusinessAccount, setShowBusinessAccount] = useState(false);
+  const [showSafeMeetup, setShowSafeMeetup] = useState(false);
+  const [showVerification, setShowVerification] = useState(false);
+  const [showReport, setShowReport] = useState(false);
   const [activeTab, setActiveTab] = useState('home');
-  const [notificationCount, setNotificationCount] = useState(0);
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  
+  const notificationCount = useNotificationCount();
 
-  useEffect(() => {
-    setNotificationCount(incomingRequests.length);
-  }, [incomingRequests]);
 
   const stats = [
     {
@@ -254,7 +263,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
                 <ExchangeCard
                   key={post.id}
                   post={post}
-                  onMatch={() => requestMatch(post.id)}
+                  onMatch={() => requestMatch(post, nearbyPosts[0])}
                 />
               ))
             ) : (
@@ -324,6 +333,36 @@ export function Dashboard({ onLogout }: DashboardProps) {
         isOpen={showProfile} 
         onClose={() => setShowProfile(false)}
         onLogout={onLogout}
+      />
+
+      <NotificationSystem
+        isOpen={showNotifications}
+        onClose={() => setShowNotifications(false)}
+      />
+
+      <BusinessAccountModal
+        isOpen={showBusinessAccount}
+        onClose={() => setShowBusinessAccount(false)}
+      />
+
+      <SafeMeetupModal
+        isOpen={showSafeMeetup}
+        onClose={() => setShowSafeMeetup(false)}
+        onLocationSelect={(location) => {
+          setSelectedLocation(location);
+          setShowSafeMeetup(false);
+        }}
+        userLocation={location}
+      />
+
+      <VerificationModal
+        isOpen={showVerification}
+        onClose={() => setShowVerification(false)}
+      />
+
+      <ReportModal
+        isOpen={showReport}
+        onClose={() => setShowReport(false)}
       />
     </div>
   );

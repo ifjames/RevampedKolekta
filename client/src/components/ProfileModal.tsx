@@ -92,7 +92,7 @@ export function ProfileModal({ isOpen, onClose, onLogout }: ProfileModalProps) {
               </Badge>
             )}
             <p className="text-blue-100 text-sm">
-              Member since {userProfile?.createdAt ? formatDate(userProfile.createdAt) : 'recently'}
+              Member since {userProfile?.createdAt ? formatDate(new Date(userProfile.createdAt)) : 'recently'}
             </p>
           </div>
         </DialogHeader>

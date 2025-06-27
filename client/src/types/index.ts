@@ -47,10 +47,12 @@ export interface UserProfile {
 
 export interface ChatMessage {
   id: string;
+  matchId: string;
   sender: string;
   text: string;
   timestamp: Date;
   read: boolean;
+  systemMessage?: boolean;
 }
 
 export interface Match {
