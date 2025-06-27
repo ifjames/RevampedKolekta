@@ -23,7 +23,7 @@ import { formatTimeAgo } from '@/utils/timeUtils';
 interface Notification {
   id: string;
   userId: string;
-  type: 'match_found' | 'match_confirmed' | 'meetup_reminder' | 'exchange_completed' | 'rating_received' | 'no_show_reported' | 'verification_approved';
+  type: 'match_found' | 'match_confirmed' | 'match_declined' | 'meetup_reminder' | 'exchange_completed' | 'rating_received' | 'no_show_reported' | 'verification_approved';
   title: string;
   message: string;
   data?: Record<string, any>;
@@ -47,6 +47,13 @@ export function NotificationSystem({ isOpen, onClose }: NotificationSystemProps)
     orderBy('createdAt', 'desc'),
     limit(20)
   ] : []);
+
+  // Debug logging
+  console.log('NotificationSystem Debug:', {
+    user: user?.uid,
+    allNotifications: allNotifications.length,
+    loading
+  });
 
   // Filter out deleted notifications
   const notifications = allNotifications.filter(n => !(n as any).deleted);

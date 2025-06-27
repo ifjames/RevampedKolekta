@@ -25,6 +25,7 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocation } from '@/contexts/LocationContext';
 import { useMatching } from '@/hooks/useMatching';
+import { useMatchingSystem } from '@/hooks/useMatchingSystem';
 import { CreatePostModal } from './CreatePostModal';
 import { ChatModal } from './ChatModal';
 import { ProfileModal } from './ProfileModal';
@@ -78,7 +79,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
   
   const notificationCount = useNotificationCount();
 
-
+  const { sendMatchRequest, acceptMatchRequest, declineMatchRequest } = useMatchingSystem();
 
   // Fetch user's posts from Firebase
   useEffect(() => {
@@ -241,19 +242,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
               <ExchangeCard 
                 key={post.id} 
                 post={post} 
-                onMatch={() => {
-                  requestMatch(post, post).then(() => {
-                    toast({
-                      title: "Match Request Sent!",
-                      description: "You'll be notified when they respond."
-                    });
-                  }).catch(() => {
-                    toast({
-                      title: "Error",
-                      description: "Failed to send match request"
-                    });
-                  });
-                }}
+                onMatch={() => sendMatchRequest(post)}
                 onViewMap={() => {
                   setSelectedPostForMap(post);
                   setShowMapView(true);
@@ -407,28 +396,14 @@ export function Dashboard({ onLogout }: DashboardProps) {
                           <Button 
                             size="sm" 
                             className="bg-green-500 hover:bg-green-600 text-white"
-                            onClick={() => {
-                              // Accept match logic
-                              toast({
-                                title: "Match Accepted!",
-                                description: "You can now chat with your exchange partner."
-                              });
-                              // Here you would handle the actual match acceptance
-                            }}
+                            onClick={() => acceptMatchRequest(request.id, request.userA)}
                           >
                             Accept
                           </Button>
                           <Button 
                             size="sm" 
                             className="bg-red-500 hover:bg-red-600 text-white border-red-500"
-                            onClick={() => {
-                              // Decline match logic
-                              toast({
-                                title: "Match Declined",
-                                description: "The match request has been declined."
-                              });
-                              // Here you would handle the actual match decline
-                            }}
+                            onClick={() => declineMatchRequest(request.id, request.userA)}
                           >
                             Decline
                           </Button>

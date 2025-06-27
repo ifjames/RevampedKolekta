@@ -122,7 +122,8 @@ export const notificationSchema = z.object({
   userId: z.string(),
   type: z.enum([
     "match_found",
-    "match_confirmed", 
+    "match_confirmed",
+    "match_declined",
     "meetup_reminder",
     "exchange_completed",
     "rating_received",
