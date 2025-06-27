@@ -28,6 +28,7 @@ import { CreatePostModal } from './CreatePostModal';
 import { ChatModal } from './ChatModal';
 import { ProfileModal } from './ProfileModal';
 import { MyPostsModal } from './MyPostsModal';
+import { FindExchangeModal } from './FindExchangeModal';
 import { ExchangeCard } from './ExchangeCard';
 import { NotificationSystem, useNotificationCount } from './NotificationSystem';
 
@@ -55,6 +56,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
   const [showProfile, setShowProfile] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showMyPosts, setShowMyPosts] = useState(false);
+  const [showFindExchange, setShowFindExchange] = useState(false);
 
   const [showSafeMeetup, setShowSafeMeetup] = useState(false);
   const [showVerification, setShowVerification] = useState(false);
@@ -248,7 +250,14 @@ export function Dashboard({ onLogout }: DashboardProps) {
     >
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-white">Your Exchanges</h2>
-        <div className="flex space-x-3">
+        <div className="flex flex-wrap gap-2">
+          <Button
+            onClick={() => setShowFindExchange(true)}
+            className="bg-blue-500 hover:bg-blue-600 text-white"
+          >
+            <Users className="mr-2 h-4 w-4" />
+            Find Exchanges
+          </Button>
           <Button
             onClick={() => setShowMyPosts(true)}
             variant="outline"
@@ -320,11 +329,43 @@ export function Dashboard({ onLogout }: DashboardProps) {
           </CardContent>
         </Card>
 
-        {/* Match Requests */}
+        {/* Quick Actions */}
         <Card className="glass-effect border-white/20">
           <CardContent className="p-6">
             <h3 className="text-white font-semibold mb-4 flex items-center">
               <Users className="mr-2 h-5 w-5 text-blue-400" />
+              Find Safe Exchange
+            </h3>
+            <div className="mb-6">
+              <p className="text-blue-100 text-sm mb-4">
+                Search for specific exchanges with advanced filters instead of waiting for nearby matches.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Button
+                  onClick={() => setShowFindExchange(true)}
+                  className="bg-blue-500 hover:bg-blue-600 text-white"
+                >
+                  <Users className="mr-2 h-4 w-4" />
+                  Browse All Exchanges
+                </Button>
+                <Button
+                  onClick={() => setShowCreatePost(true)}
+                  variant="outline"
+                  className="glass-dark text-white border-white/20 hover:bg-white/10"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create New Post
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Match Requests */}
+        <Card className="glass-effect border-white/20">
+          <CardContent className="p-6">
+            <h3 className="text-white font-semibold mb-4 flex items-center">
+              <MessageSquare className="mr-2 h-5 w-5 text-green-400" />
               Match Requests
             </h3>
             <div className="space-y-4">
@@ -695,6 +736,16 @@ export function Dashboard({ onLogout }: DashboardProps) {
         onEditPost={(post) => {
           setShowMyPosts(false);
           setShowCreatePost(true);
+        }}
+      />
+
+      <FindExchangeModal
+        isOpen={showFindExchange}
+        onClose={() => setShowFindExchange(false)}
+        onSelectPost={(post) => {
+          setShowFindExchange(false);
+          // Handle post selection - could open chat or match request
+          console.log('Selected post:', post);
         }}
       />
     </div>

@@ -119,6 +119,14 @@ Changelog:
   * Real-time Firebase listeners for matches and notifications
   * Complete glass morphism UI implementation
   * All features from requirements document implemented
+- June 27, 2025. Map improvements and Find Safe Exchange feature:
+  * Fixed map tile loading with proper Leaflet CSS integration
+  * Added real safe zone markers for Metro Manila locations
+  * Implemented comprehensive Find Safe Exchange modal with advanced filtering
+  * Added user post management (My Posts) with edit/delete functionality
+  * Enhanced map controls with center location and zoom buttons
+  * Fixed mobile responsiveness for location picker
+  * Added sample exchange posts for demonstration
 ```
 
 ## User Preferences
