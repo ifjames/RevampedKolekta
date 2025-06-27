@@ -215,7 +215,7 @@ export function LandingPage({ onGetStarted, onLogin }: LandingPageProps) {
                 transition={{ delay: index * 0.2 }}
                 whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
               >
-                <Card className="glass-effect rounded-2xl p-8 text-center hover:bg-opacity-20 transition-all duration-300 border-white/20">
+                <Card className="glass-effect rounded-2xl p-8 text-center hover:bg-white/10 transition-all duration-300 border-white/20">
                   <div className={`w-16 h-16 ${step.color} rounded-full flex items-center justify-center mx-auto mb-6`}>
                     <span className="text-2xl font-bold text-white">{step.number}</span>
                   </div>
@@ -252,7 +252,7 @@ export function LandingPage({ onGetStarted, onLogin }: LandingPageProps) {
                 transition={{ delay: index * 0.1 }}
                 whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
               >
-                <Card className="glass-effect rounded-xl p-6 text-center hover:bg-opacity-20 transition-all duration-300 border-white/20">
+                <Card className="glass-effect rounded-xl p-6 text-center hover:bg-white/10 transition-all duration-300 border-white/20">
                   <type.icon className={`h-10 w-10 ${type.color} mb-4 mx-auto`} />
                   <h3 className="text-lg font-semibold text-white mb-2">{type.title}</h3>
                   <p className="text-blue-100 text-sm">{type.description}</p>
