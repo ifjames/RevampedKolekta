@@ -239,15 +239,39 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
       markersRef.current.push(marker);
     });
 
-    // Add safe zone markers if user location is available
+    // Add real safe zone markers in Metro Manila area
     if (location) {
-      const safeZones = [
-        { name: '7-Eleven', type: 'store', lat: location.lat + 0.005, lng: location.lng + 0.003, color: '#22c55e' },
-        { name: 'AlfaMart', type: 'store', lat: location.lat - 0.003, lng: location.lng + 0.007, color: '#22c55e' },
-        { name: 'University of Manila', type: 'school', lat: location.lat + 0.008, lng: location.lng - 0.004, color: '#3b82f6' },
-        { name: 'SM City Center', type: 'mall', lat: location.lat - 0.006, lng: location.lng - 0.002, color: '#8b5cf6' },
-        { name: 'BDO Bank', type: 'bank', lat: location.lat + 0.002, lng: location.lng - 0.008, color: '#f59e0b' },
+      const realSafeZones = [
+        // Major Universities
+        { name: 'University of the Philippines Manila', type: 'school', lat: 14.5776, lng: 120.9889, color: '#3b82f6' },
+        { name: 'De La Salle University Manila', type: 'school', lat: 14.5647, lng: 120.9930, color: '#3b82f6' },
+        { name: 'Polytechnic University of the Philippines', type: 'school', lat: 14.5986, lng: 121.0117, color: '#3b82f6' },
+        
+        // Major Shopping Malls
+        { name: 'SM Mall of Asia', type: 'mall', lat: 14.5354, lng: 120.9819, color: '#8b5cf6' },
+        { name: 'Robinsons Place Manila', type: 'mall', lat: 14.6042, lng: 120.9822, color: '#8b5cf6' },
+        { name: 'SM City Manila', type: 'mall', lat: 14.5991, lng: 120.9822, color: '#8b5cf6' },
+        
+        // Banks
+        { name: 'BDO Ermita Branch', type: 'bank', lat: 14.5833, lng: 120.9833, color: '#f59e0b' },
+        { name: 'BPI Taft Avenue', type: 'bank', lat: 14.5647, lng: 120.9930, color: '#f59e0b' },
+        { name: 'Metrobank Malate', type: 'bank', lat: 14.5724, lng: 120.9933, color: '#f59e0b' },
+        
+        // Government Buildings
+        { name: 'Manila City Hall', type: 'government', lat: 14.5936, lng: 120.9713, color: '#10b981' },
+        { name: 'Department of Health', type: 'government', lat: 14.5813, lng: 120.9850, color: '#10b981' },
+        
+        // 7-Eleven Stores (real locations)
+        { name: '7-Eleven Taft Avenue', type: 'store', lat: 14.5701, lng: 120.9914, color: '#22c55e' },
+        { name: '7-Eleven Ermita', type: 'store', lat: 14.5825, lng: 120.9845, color: '#22c55e' },
+        { name: '7-Eleven UN Avenue', type: 'store', lat: 14.5789, lng: 120.9944, color: '#22c55e' },
       ];
+
+      // Filter safe zones within 5km radius of user location
+      const safeZones = realSafeZones.filter(zone => {
+        const dist = distance(location.lat, location.lng, zone.lat, zone.lng);
+        return dist <= 5; // Only show zones within 5km
+      });
 
       safeZones.forEach((zone) => {
         const safeZoneIcon = L.divIcon({
@@ -310,17 +334,33 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
       <div ref={mapRef} className="h-full w-full" />
       
       {/* Map Controls */}
-      <div className="absolute top-4 right-4 space-y-2">
+      <div className="absolute top-4 right-4 flex flex-col space-y-2 z-[1000]">
         {location && (
           <Button
             onClick={centerOnUser}
             size="sm"
-            className="glass-effect text-white hover:bg-white/20 border-white/20"
-            variant="outline"
+            className="bg-blue-500/90 hover:bg-blue-600 text-white shadow-lg backdrop-blur-sm border border-white/20"
+            title="Center on my location"
           >
             <Navigation className="h-4 w-4" />
           </Button>
         )}
+        <Button
+          onClick={() => mapInstanceRef.current?.zoomIn()}
+          size="sm"
+          className="bg-white/20 hover:bg-white/30 text-white shadow-lg backdrop-blur-sm border border-white/30"
+          title="Zoom in"
+        >
+          +
+        </Button>
+        <Button
+          onClick={() => mapInstanceRef.current?.zoomOut()}
+          size="sm"
+          className="bg-white/20 hover:bg-white/30 text-white shadow-lg backdrop-blur-sm border border-white/30"
+          title="Zoom out"
+        >
+          -
+        </Button>
       </div>
 
       {/* Map Legend */}

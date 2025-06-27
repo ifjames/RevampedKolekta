@@ -27,6 +27,7 @@ import { useMatching } from '@/hooks/useMatching';
 import { CreatePostModal } from './CreatePostModal';
 import { ChatModal } from './ChatModal';
 import { ProfileModal } from './ProfileModal';
+import { MyPostsModal } from './MyPostsModal';
 import { ExchangeCard } from './ExchangeCard';
 import { NotificationSystem, useNotificationCount } from './NotificationSystem';
 
@@ -53,6 +54,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
   const [showChat, setShowChat] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showMyPosts, setShowMyPosts] = useState(false);
 
   const [showSafeMeetup, setShowSafeMeetup] = useState(false);
   const [showVerification, setShowVerification] = useState(false);
@@ -246,13 +248,23 @@ export function Dashboard({ onLogout }: DashboardProps) {
     >
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-white">Your Exchanges</h2>
-        <Button
-          onClick={() => setShowCreatePost(true)}
-          className="bg-green-500 hover:bg-green-600 text-white"
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Create Exchange
-        </Button>
+        <div className="flex space-x-3">
+          <Button
+            onClick={() => setShowMyPosts(true)}
+            variant="outline"
+            className="glass-dark text-white border-white/20 hover:bg-white/10"
+          >
+            <History className="mr-2 h-4 w-4" />
+            My Posts
+          </Button>
+          <Button
+            onClick={() => setShowCreatePost(true)}
+            className="bg-green-500 hover:bg-green-600 text-white"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Create Exchange
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-6">
@@ -675,6 +687,15 @@ export function Dashboard({ onLogout }: DashboardProps) {
       <ReportModal
         isOpen={showReport}
         onClose={() => setShowReport(false)}
+      />
+
+      <MyPostsModal
+        isOpen={showMyPosts}
+        onClose={() => setShowMyPosts(false)}
+        onEditPost={(post) => {
+          setShowMyPosts(false);
+          setShowCreatePost(true);
+        }}
       />
     </div>
   );
