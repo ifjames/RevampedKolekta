@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFirestoreOperations } from './useFirestore';
 import { ExchangePost, Match } from '@/types';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'react-hot-toast';
 
 export function useMatchingSystem() {
   const { user } = useAuth();
@@ -11,10 +11,7 @@ export function useMatchingSystem() {
   // Send a match request
   const sendMatchRequest = async (targetPost: ExchangePost) => {
     if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please log in to send match requests."
-      });
+      toast.error("Please log in to send match requests.");
       return;
     }
 
@@ -22,11 +19,7 @@ export function useMatchingSystem() {
       // Check if user already sent a request to this post
       const existingMatch = await checkExistingMatch(user.uid, targetPost.userId, targetPost.id);
       if (existingMatch) {
-        toast({
-          title: "Request Already Sent",
-          description: "You've already sent a match request to this user.",
-          variant: "destructive"
-        });
+        toast.error("You've already sent a match request to this user.");
         return;
       }
 
@@ -42,6 +35,9 @@ export function useMatchingSystem() {
 
       const matchRef = await addDocument('matches', matchData);
       console.log('Match created:', matchRef);
+      
+      // Add console log to track the success path
+      console.log('About to show success toast for match request');
 
       // Create notification for the target user
       const notificationData = {
@@ -62,19 +58,12 @@ export function useMatchingSystem() {
       const notificationRef = await addDocument('notifications', notificationData);
       console.log('Notification created:', notificationRef);
 
-      toast({
-        title: "Match Request Sent!",
-        description: "You'll be notified when they respond.",
-        variant: "default"
-      });
+      toast.success("Match request sent! You'll be notified when they respond.");
 
       return matchRef;
     } catch (error) {
       console.error('Error sending match request:', error);
-      toast({
-        title: "Error",
-        description: "Failed to send match request. Please try again."
-      });
+      toast.error("Failed to send match request. Please try again.");
     }
   };
 
@@ -110,16 +99,10 @@ export function useMatchingSystem() {
         createdAt: new Date()
       });
 
-      toast({
-        title: "Match Accepted!",
-        description: "You can now chat with your exchange partner."
-      });
+      toast.success("Match accepted! You can now chat with your exchange partner.");
     } catch (error) {
       console.error('Error accepting match:', error);
-      toast({
-        title: "Error",
-        description: "Failed to accept match. Please try again."
-      });
+      toast.error("Failed to accept match. Please try again.");
     }
   };
 
@@ -144,16 +127,10 @@ export function useMatchingSystem() {
         createdAt: new Date()
       });
 
-      toast({
-        title: "Match Declined",
-        description: "The match request has been declined."
-      });
+      toast.success("Match request has been declined.");
     } catch (error) {
       console.error('Error declining match:', error);
-      toast({
-        title: "Error",
-        description: "Failed to decline match. Please try again."
-      });
+      toast.error("Failed to decline match. Please try again.");
     }
   };
 
