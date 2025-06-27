@@ -41,12 +41,31 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
       attributionControl: false,
     });
 
-    // Add tile layer with proper styling
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    // Use reliable tile provider
+    const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      subdomains: ['a', 'b', 'c'],
       maxZoom: 19,
-      crossOrigin: true
-    }).addTo(map);
+      detectRetina: true,
+      updateWhenIdle: false,
+      keepBuffer: 2
+    });
+
+    tileLayer.addTo(map);
+    
+    // Add loading event handlers
+    tileLayer.on('loading', () => {
+      console.log('Map tiles loading...');
+    });
+    
+    tileLayer.on('load', () => {
+      console.log('Map tiles loaded successfully');
+      map.invalidateSize();
+    });
+    
+    tileLayer.on('tileerror', (error) => {
+      console.warn('Tile loading error:', error);
+    });
 
     // Force map to invalidate size after creation
     setTimeout(() => {
@@ -111,34 +130,39 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
     const userIcon = L.divIcon({
       html: `
         <div style="
-          width: 20px; 
-          height: 20px; 
+          width: 24px; 
+          height: 24px; 
           background: #3b82f6; 
-          border: 3px solid white; 
+          border: 4px solid white; 
           border-radius: 50%; 
-          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+          box-shadow: 0 3px 10px rgba(0,0,0,0.4);
           position: relative;
+          z-index: 1000;
         ">
           <div style="
             position: absolute;
-            top: -15px;
-            left: -15px;
-            width: 50px;
-            height: 50px;
-            background: rgba(59, 130, 246, 0.2);
+            top: -20px;
+            left: -20px;
+            width: 64px;
+            height: 64px;
+            background: rgba(59, 130, 246, 0.3);
             border-radius: 50%;
             animation: pulse 2s infinite;
+            z-index: 999;
           "></div>
         </div>
       `,
       className: 'user-location-marker',
-      iconSize: [20, 20],
-      iconAnchor: [10, 10],
+      iconSize: [24, 24],
+      iconAnchor: [12, 12],
     });
 
-    const userMarker = L.marker([location.lat, location.lng], { icon: userIcon })
+    const userMarker = L.marker([location.lat, location.lng], { 
+      icon: userIcon,
+      zIndexOffset: 1000
+    })
       .addTo(mapInstanceRef.current)
-      .bindPopup('Your Location');
+      .bindPopup('<div style="color: #1f2937; font-weight: bold;">📍 Your Location</div>');
 
     return () => {
       userMarker.remove();
@@ -162,31 +186,32 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
       const markerIcon = L.divIcon({
         html: `
           <div style="
-            width: 40px; 
-            height: 40px; 
+            width: 45px; 
+            height: 45px; 
             background: ${isSelected ? '#10b981' : '#ef4444'}; 
-            border: 3px solid white; 
+            border: 4px solid white; 
             border-radius: 50%; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             color: white;
             font-weight: bold;
-            font-size: 10px;
+            font-size: 11px;
             cursor: pointer;
-            transform: ${isSelected ? 'scale(1.2)' : 'scale(1)'};
+            transform: ${isSelected ? 'scale(1.3)' : 'scale(1)'};
             transition: transform 0.2s ease;
             position: relative;
+            z-index: 500;
           ">
-            <div style="font-size: 12px;">${currencyIcon}</div>
-            <div style="font-size: 8px; line-height: 1;">₱${post.giveAmount}</div>
+            <div style="font-size: 14px; line-height: 1;">${currencyIcon}</div>
+            <div style="font-size: 9px; line-height: 1; text-shadow: 1px 1px 2px rgba(0,0,0,0.7);">₱${post.giveAmount}</div>
           </div>
         `,
         className: 'exchange-marker',
-        iconSize: [40, 40],
-        iconAnchor: [20, 20],
+        iconSize: [45, 45],
+        iconAnchor: [22, 22],
       });
 
       const marker = L.marker([post.location.lat, post.location.lng], { icon: markerIcon })
@@ -414,7 +439,9 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
         .leaflet-container {
           height: 100% !important;
           width: 100% !important;
-          background: transparent !important;
+          background: #f0f0f0 !important;
+          border-radius: 8px;
+          overflow: hidden;
         }
         
         .leaflet-tile-pane {
@@ -423,6 +450,23 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
         
         .leaflet-control-container {
           display: none;
+        }
+        
+        .leaflet-marker-icon {
+          z-index: 1000 !important;
+        }
+        
+        .exchange-marker {
+          z-index: 1000 !important;
+        }
+        
+        .user-location-marker {
+          z-index: 1001 !important;
+        }
+        
+        .leaflet-tile {
+          filter: none !important;
+          opacity: 1 !important;
         }
       `}</style>
     </div>

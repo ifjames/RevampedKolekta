@@ -341,14 +341,14 @@ export function CreatePostModal({ isOpen, onClose }: CreatePostModalProps) {
       {/* Location Picker Modal */}
       {showLocationPicker && (
         <Dialog open={showLocationPicker} onOpenChange={setShowLocationPicker}>
-          <DialogContent className="sm:max-w-4xl glass-effect border-white/20 bg-blue-900/95 max-h-[90vh]">
-            <DialogHeader>
-              <DialogTitle className="text-white">Choose Exchange Location</DialogTitle>
-              <DialogDescription className="text-blue-100">
+          <DialogContent className="sm:max-w-4xl w-[95vw] glass-effect border-white/20 bg-blue-900/95 max-h-[90vh] p-3 sm:p-6">
+            <DialogHeader className="pb-3">
+              <DialogTitle className="text-white text-lg sm:text-xl">Choose Exchange Location</DialogTitle>
+              <DialogDescription className="text-blue-100 text-sm">
                 Click on the map to select where you want to make the exchange
               </DialogDescription>
             </DialogHeader>
-            <div className="h-96 w-full rounded-lg overflow-hidden">
+            <div className="h-[50vh] sm:h-96 w-full rounded-lg overflow-hidden border border-white/10">
               <MapView
                 posts={[]}
                 onLocationSelect={(location) => {
@@ -358,17 +358,17 @@ export function CreatePostModal({ isOpen, onClose }: CreatePostModalProps) {
                 showUserLocation={true}
               />
             </div>
-            <div className="flex justify-end space-x-2">
+            <div className="flex justify-end space-x-2 mt-4 pt-3 border-t border-white/10">
               <Button
                 variant="outline"
                 onClick={() => setShowLocationPicker(false)}
-                className="glass-dark text-white border-white/20 hover:bg-white/10"
+                className="bg-white/10 text-white border-white/30 hover:bg-white/20 backdrop-blur-sm"
               >
                 Cancel
               </Button>
               <Button
                 onClick={() => setShowLocationPicker(false)}
-                className="bg-green-500 hover:bg-green-600"
+                className="bg-green-500 hover:bg-green-600 text-white disabled:bg-gray-500 disabled:opacity-50"
                 disabled={!selectedLocation}
               >
                 Use Selected Location

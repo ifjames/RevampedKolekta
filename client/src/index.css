@@ -2,6 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Leaflet map fixes */
+.leaflet-container {
+  height: 100% !important;
+  width: 100% !important;
+  background: #f8f9fa !important;
+  z-index: 1;
+}
+
+.leaflet-tile-pane {
+  opacity: 1 !important;
+}
+
+.leaflet-tile {
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+.leaflet-marker-pane {
+  z-index: 600 !important;
+}
+
+.leaflet-popup-pane {
+  z-index: 700 !important;
+}
+
+/* Mobile map fixes */
+@media (max-width: 768px) {
+  .leaflet-container {
+    height: 100% !important;
+    min-height: 300px !important;
+  }
+}
+
 :root {
   --background: hsl(210, 100%, 98%);
   --foreground: hsl(222, 84%, 5%);
