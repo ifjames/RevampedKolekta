@@ -56,7 +56,7 @@ interface CreatePostModalProps {
 }
 
 export function CreatePostModal({ isOpen, onClose }: CreatePostModalProps) {
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   const { location, requestLocation } = useLocation();
   const { addDocument } = useFirestoreOperations();
   const [loading, setLoading] = useState(false);
@@ -97,6 +97,12 @@ export function CreatePostModal({ isOpen, onClose }: CreatePostModalProps) {
 
       const postData = {
         userId: user.uid,
+        userInfo: {
+          name: userProfile?.name || user.displayName || 'Anonymous User',
+          rating: userProfile?.rating || 5.0,
+          verified: userProfile?.verified || false,
+          completedExchanges: userProfile?.completedExchanges || 0
+        },
         giveAmount: data.giveAmount,
         giveType: data.giveType,
         needAmount: data.needAmount,
