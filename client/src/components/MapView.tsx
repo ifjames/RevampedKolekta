@@ -216,36 +216,38 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
       const isSelected = selectedPost?.id === post.id;
       const dist = location ? distance(location.lat, location.lng, post.location.lat, post.location.lng) : 0;
       
-      const currencyIcon = post.giveType === 'bill' ? '💵' : '🪙';
       const markerIcon = L.divIcon({
         html: `
           <div style="
-            width: 45px; 
-            height: 45px; 
-            background: ${isSelected ? '#10b981' : '#ef4444'}; 
-            border: 4px solid white; 
-            border-radius: 50%; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            width: 55px; 
+            height: 40px; 
+            background: ${isSelected ? '#10b981' : '#3b82f6'}; 
+            border: 3px solid white; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 16px rgba(0,0,0,0.6);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             color: white;
             font-weight: bold;
-            font-size: 11px;
+            font-size: 12px;
             cursor: pointer;
-            transform: ${isSelected ? 'scale(1.3)' : 'scale(1)'};
-            transition: transform 0.2s ease;
+            transform: ${isSelected ? 'scale(1.2)' : 'scale(1)'};
+            transition: all 0.2s ease;
             position: relative;
             z-index: 500;
+            font-family: system-ui, -apple-system, sans-serif;
           ">
-            <div style="font-size: 14px; line-height: 1;">${currencyIcon}</div>
-            <div style="font-size: 9px; line-height: 1; text-shadow: 1px 1px 2px rgba(0,0,0,0.7);">₱${post.giveAmount}</div>
+            <div style="font-size: 14px; line-height: 1; margin-bottom: 1px;">₱${post.giveAmount}</div>
+            <div style="font-size: 9px; line-height: 1; opacity: 0.9; text-transform: uppercase;">
+              ${post.giveType === 'bill' ? 'Bills' : 'Coins'}
+            </div>
           </div>
         `,
         className: 'exchange-marker',
-        iconSize: [45, 45],
-        iconAnchor: [22, 22],
+        iconSize: [55, 40],
+        iconAnchor: [27, 20],
       });
 
       const marker = L.marker([post.location.lat, post.location.lng], { icon: markerIcon })
@@ -274,107 +276,107 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
     });
 
     // Add real safe zone markers in Metro Manila area
-    if (location) {
-      const realSafeZones = [
-        // Major Universities
-        { name: 'University of the Philippines Manila', type: 'school', lat: 14.5776, lng: 120.9889, color: '#3b82f6' },
-        { name: 'De La Salle University Manila', type: 'school', lat: 14.5647, lng: 120.9930, color: '#3b82f6' },
-        { name: 'Polytechnic University of the Philippines', type: 'school', lat: 14.5986, lng: 121.0117, color: '#3b82f6' },
-        
-        // Major Shopping Malls
-        { name: 'SM Mall of Asia', type: 'mall', lat: 14.5354, lng: 120.9819, color: '#8b5cf6' },
-        { name: 'Robinsons Place Manila', type: 'mall', lat: 14.6042, lng: 120.9822, color: '#8b5cf6' },
-        { name: 'SM City Manila', type: 'mall', lat: 14.5991, lng: 120.9822, color: '#8b5cf6' },
-        
-        // Banks
-        { name: 'BDO Ermita Branch', type: 'bank', lat: 14.5833, lng: 120.9833, color: '#f59e0b' },
-        { name: 'BPI Taft Avenue', type: 'bank', lat: 14.5647, lng: 120.9930, color: '#f59e0b' },
-        { name: 'Metrobank Malate', type: 'bank', lat: 14.5724, lng: 120.9933, color: '#f59e0b' },
-        
-        // Government Buildings
-        { name: 'Manila City Hall', type: 'government', lat: 14.5936, lng: 120.9713, color: '#10b981' },
-        { name: 'Department of Health', type: 'government', lat: 14.5813, lng: 120.9850, color: '#10b981' },
-        
-        // 7-Eleven Stores (real locations)
-        { name: '7-Eleven Taft Avenue', type: 'store', lat: 14.5701, lng: 120.9914, color: '#22c55e' },
-        { name: '7-Eleven Ermita', type: 'store', lat: 14.5825, lng: 120.9845, color: '#22c55e' },
-        { name: '7-Eleven UN Avenue', type: 'store', lat: 14.5789, lng: 120.9944, color: '#22c55e' },
-      ];
+    const currentLocation = location || { lat: 14.5995, lng: 120.9842 }; // Default to Manila
+    
+    const realSafeZones = [
+      // Major Universities
+      { name: 'University of the Philippines Manila', type: 'school', lat: 14.5776, lng: 120.9889, color: '#3b82f6' },
+      { name: 'De La Salle University Manila', type: 'school', lat: 14.5647, lng: 120.9930, color: '#3b82f6' },
+      { name: 'Polytechnic University of the Philippines', type: 'school', lat: 14.5986, lng: 121.0117, color: '#3b82f6' },
+      
+      // Major Shopping Malls
+      { name: 'SM Mall of Asia', type: 'mall', lat: 14.5354, lng: 120.9819, color: '#8b5cf6' },
+      { name: 'Robinsons Place Manila', type: 'mall', lat: 14.6042, lng: 120.9822, color: '#8b5cf6' },
+      { name: 'SM City Manila', type: 'mall', lat: 14.5991, lng: 120.9822, color: '#8b5cf6' },
+      
+      // Banks
+      { name: 'BDO Ermita Branch', type: 'bank', lat: 14.5833, lng: 120.9833, color: '#f59e0b' },
+      { name: 'BPI Taft Avenue', type: 'bank', lat: 14.5647, lng: 120.9930, color: '#f59e0b' },
+      { name: 'Metrobank Malate', type: 'bank', lat: 14.5724, lng: 120.9933, color: '#f59e0b' },
+      
+      // Government Buildings
+      { name: 'Manila City Hall', type: 'government', lat: 14.5936, lng: 120.9713, color: '#10b981' },
+      { name: 'Department of Health', type: 'government', lat: 14.5813, lng: 120.9850, color: '#10b981' },
+      
+      // 7-Eleven Stores (real locations)
+      { name: '7-Eleven Taft Avenue', type: 'store', lat: 14.5701, lng: 120.9914, color: '#22c55e' },
+      { name: '7-Eleven Ermita', type: 'store', lat: 14.5825, lng: 120.9845, color: '#22c55e' },
+      { name: '7-Eleven UN Avenue', type: 'store', lat: 14.5789, lng: 120.9944, color: '#22c55e' },
+    ];
 
-      // Filter safe zones within 3km radius of user location for better accuracy
-      const safeZones = realSafeZones.filter(zone => {
-        const dist = distance(location.lat, location.lng, zone.lat, zone.lng);
-        return dist <= 3; // Only show zones within 3km for accuracy
-      });
+    // Show all safe zones within 15km radius for better visibility
+    const safeZones = realSafeZones.filter(zone => {
+      const dist = distance(currentLocation.lat, currentLocation.lng, zone.lat, zone.lng);
+      return dist <= 15; // Show zones within 15km for better coverage
+    });
 
-      console.log(`Found ${safeZones.length} safe zones near user location`);
+    console.log(`Found ${safeZones.length} safe zones near user location`);
 
-      safeZones.forEach((zone) => {
-        const iconMap: Record<string, string> = {
-          'store': '🏪',
-          'school': '🏫', 
-          'mall': '🏬',
-          'bank': '🏦',
-          'government': '🏛️'
-        };
-        
-        const safeZoneIcon = L.divIcon({
-          html: `
-            <div style="
-              width: 32px; 
-              height: 32px; 
-              background: ${zone.color}; 
-              border: 3px solid white; 
-              border-radius: 6px; 
-              box-shadow: 0 3px 10px rgba(0,0,0,0.4);
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              color: white;
-              font-weight: bold;
-              font-size: 16px;
-              cursor: pointer;
-              z-index: 600;
-            ">
-              ${iconMap[zone.type as keyof typeof iconMap] || '🏢'}
-            </div>
-          `,
-          className: 'safe-zone-marker',
-          iconSize: [32, 32],
-          iconAnchor: [16, 16],
-        });
-
-        const safeMarker = L.marker([zone.lat, zone.lng], { 
-          icon: safeZoneIcon,
-          zIndexOffset: 600
-        })
-          .addTo(mapInstanceRef.current!);
-
-        const dist = distance(location.lat, location.lng, zone.lat, zone.lng);
-        const safePopupContent = `
-          <div style="min-width: 180px; color: #1f2937; font-family: system-ui;">
-            <div style="font-weight: bold; margin-bottom: 4px; color: ${zone.color};">🛡️ Safe Zone</div>
-            <div style="font-weight: 600; margin-bottom: 2px;">${zone.name}</div>
-            <div style="font-size: 12px; color: #6b7280; text-transform: uppercase; margin-bottom: 4px;">
-              ${zone.type.replace('_', ' ')}
-            </div>
-            <div style="color: #3b82f6; font-size: 11px;">
-              📍 ${dist.toFixed(1)}km away
-            </div>
+    safeZones.forEach((zone) => {
+      const iconMap: Record<string, string> = {
+        'store': '🏪',
+        'school': '🏫', 
+        'mall': '🏬',
+        'bank': '🏦',
+        'government': '🏛️'
+      };
+      
+      const safeZoneIcon = L.divIcon({
+        html: `
+          <div style="
+            width: 32px; 
+            height: 32px; 
+            background: ${zone.color}; 
+            border: 3px solid white; 
+            border-radius: 6px; 
+            box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            z-index: 600;
+          ">
+            ${iconMap[zone.type as keyof typeof iconMap] || '🏢'}
           </div>
-        `;
-
-        safeMarker.bindPopup(safePopupContent);
-        markersRef.current.push(safeMarker);
-        console.log(`Added safe zone marker: ${zone.name} at ${zone.lat}, ${zone.lng}`);
+        `,
+        className: 'safe-zone-marker',
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
       });
-    }
+
+      const safeMarker = L.marker([zone.lat, zone.lng], { 
+        icon: safeZoneIcon,
+        zIndexOffset: 600
+      })
+        .addTo(mapInstanceRef.current!);
+
+      const dist = distance(currentLocation.lat, currentLocation.lng, zone.lat, zone.lng);
+      const safePopupContent = `
+        <div style="min-width: 180px; color: #1f2937; font-family: system-ui;">
+          <div style="font-weight: bold; margin-bottom: 4px; color: ${zone.color};">🛡️ Safe Zone</div>
+          <div style="font-weight: 600; margin-bottom: 2px;">${zone.name}</div>
+          <div style="font-size: 12px; color: #6b7280; text-transform: uppercase; margin-bottom: 4px;">
+            ${zone.type.replace('_', ' ')}
+          </div>
+          <div style="color: #3b82f6; font-size: 11px;">
+            📍 ${dist.toFixed(1)}km away
+          </div>
+        </div>
+      `;
+
+      safeMarker.bindPopup(safePopupContent);
+      markersRef.current.push(safeMarker);
+      console.log(`Added safe zone marker: ${zone.name} at ${zone.lat}, ${zone.lng}`);
+    });
 
     return () => {
       markersRef.current.forEach(marker => marker.remove());
       markersRef.current = [];
     };
-  }, [posts, selectedPost, location, isMapReady, onPostSelect]);
+  }, [posts, selectedPost, location, isMapReady, onPostSelect, isLocationPicker]);
 
   const centerOnUser = () => {
     if (mapInstanceRef.current && location) {
@@ -417,21 +419,21 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
       </div>
 
       {/* Map Legend */}
-      <div className="absolute top-4 left-4">
+      <div className="absolute top-4 left-4 z-[1000]">
         <Card className="glass-effect border-white/20">
           <CardContent className="p-3">
             <h4 className="text-white font-medium mb-2 text-sm">Legend</h4>
-            <div className="space-y-1 text-xs">
+            <div className="space-y-1.5 text-xs">
               <div className="flex items-center space-x-2">
                 <div className="w-4 h-4 bg-blue-500 rounded-full border border-white"></div>
                 <span className="text-white">Your Location</span>
               </div>
               <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 bg-red-500 rounded-full border border-white"></div>
-                <span className="text-white">Exchange Request</span>
+                <div className="w-5 h-3 bg-blue-500 rounded border border-white flex items-center justify-center text-white text-[8px] font-bold">₱</div>
+                <span className="text-white">Exchange Posts</span>
               </div>
               <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 bg-green-500 rounded border border-white text-center leading-none">🏪</div>
+                <div className="w-4 h-4 bg-green-500 rounded border border-white flex items-center justify-center text-[10px]">🏪</div>
                 <span className="text-white">Safe Zones</span>
               </div>
             </div>
@@ -445,123 +447,56 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
-          className="absolute bottom-4 left-4 right-4"
+          className="absolute bottom-4 left-4 right-4 z-[1000]"
         >
           <Card className="glass-effect border-white/20">
             <CardContent className="p-4">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center space-x-2">
-                  <MapPin className="h-4 w-4 text-red-400" />
-                  <span className="text-white font-medium">Exchange Details</span>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onPostSelect?.(null as any)}
-                  className="text-white hover:bg-white/10 p-1"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4 mb-3">
-                <div>
-                  <Badge variant="outline" className="text-green-400 border-green-400/50 mb-1">
-                    Give
-                  </Badge>
-                  <p className="text-white font-bold">₱{selectedPost.giveAmount}</p>
-                  <p className="text-blue-100 text-sm capitalize">{selectedPost.giveType}</p>
-                </div>
-                <div>
-                  <Badge variant="outline" className="text-blue-400 border-blue-400/50 mb-1">
-                    Need
-                  </Badge>
-                  <p className="text-white font-bold">₱{selectedPost.needAmount}</p>
-                  <p className="text-blue-100 text-sm capitalize">{selectedPost.needType}</p>
-                </div>
-              </div>
-
-              {selectedPost.needBreakdown && selectedPost.needBreakdown.length > 0 && (
-                <div className="mb-3">
-                  <p className="text-blue-100 text-sm">
-                    <span className="font-medium">Breakdown:</span> {selectedPost.needBreakdown.join(' + ')}
-                  </p>
-                </div>
-              )}
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center text-blue-100 text-sm">
-                  <Users className="h-4 w-4 mr-1" />
-                  <span>{selectedPost.userInfo?.name || 'Anonymous'}</span>
-                  {selectedPost.userInfo?.verified && (
-                    <Badge className="ml-2 bg-green-500 text-white text-xs">Verified</Badge>
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
+                      {selectedPost.userInfo?.name?.[0] || 'U'}
+                    </div>
+                    <div>
+                      <h3 className="text-white font-semibold">{selectedPost.userInfo?.name || 'Anonymous User'}</h3>
+                      <div className="flex items-center space-x-2">
+                        <div className="flex items-center">
+                          <span className="text-yellow-400 text-sm">⭐</span>
+                          <span className="text-blue-100 text-sm ml-1">{selectedPost.userInfo?.rating || 0}</span>
+                        </div>
+                        {selectedPost.userInfo?.verified && (
+                          <Badge className="bg-green-500 text-white text-xs">Verified</Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 mb-3">
+                    <div>
+                      <p className="text-green-400 text-sm font-medium">Giving</p>
+                      <p className="text-white">₱{selectedPost.giveAmount} {selectedPost.giveType}</p>
+                    </div>
+                    <div>
+                      <p className="text-blue-400 text-sm font-medium">Needs</p>
+                      <p className="text-white">₱{selectedPost.needAmount} {selectedPost.needType}</p>
+                    </div>
+                  </div>
+                  {selectedPost.distance && (
+                    <p className="text-blue-200 text-sm">📍 {selectedPost.distance.toFixed(1)}km away</p>
                   )}
                 </div>
-                {location && (
-                  <span className="text-blue-100 text-sm">
-                    {distance(location.lat, location.lng, selectedPost.location.lat, selectedPost.location.lng).toFixed(1)}km away
-                  </span>
-                )}
+                <Button
+                  onClick={() => onPostSelect?.(selectedPost)}
+                  size="sm"
+                  className="ml-4"
+                >
+                  <Users className="h-4 w-4 mr-2" />
+                  Connect
+                </Button>
               </div>
             </CardContent>
           </Card>
         </motion.div>
       )}
-
-      {!isMapReady && (
-        <div className="absolute inset-0 bg-blue-900/90 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
-            <p className="text-white text-sm">Loading map...</p>
-          </div>
-        </div>
-      )}
-
-      <style>{`
-        @keyframes pulse {
-          0% {
-            transform: scale(1);
-            opacity: 1;
-          }
-          100% {
-            transform: scale(2);
-            opacity: 0;
-          }
-        }
-        
-        .leaflet-container {
-          height: 100% !important;
-          width: 100% !important;
-          background: #f0f0f0 !important;
-          border-radius: 8px;
-          overflow: hidden;
-        }
-        
-        .leaflet-tile-pane {
-          filter: none !important;
-        }
-        
-        .leaflet-control-container {
-          display: none;
-        }
-        
-        .leaflet-marker-icon {
-          z-index: 1000 !important;
-        }
-        
-        .exchange-marker {
-          z-index: 1000 !important;
-        }
-        
-        .user-location-marker {
-          z-index: 1001 !important;
-        }
-        
-        .leaflet-tile {
-          filter: none !important;
-          opacity: 1 !important;
-        }
-      `}</style>
     </div>
   );
 }
