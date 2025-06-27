@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -29,8 +29,7 @@ export function MyPostsModal({ isOpen, onClose, onEditPost }: MyPostsModalProps)
     const postsQuery = query(
       collection(db, 'posts'),
       where('userId', '==', user.uid),
-      where('status', 'in', ['active', 'matched']),
-      orderBy('timestamp', 'desc')
+      where('status', 'in', ['active', 'matched'])
     );
 
     const unsubscribe = onSnapshot(postsQuery, (snapshot) => {
@@ -43,6 +42,8 @@ export function MyPostsModal({ isOpen, onClose, onEditPost }: MyPostsModalProps)
           timestamp: data.timestamp?.toDate() || new Date(),
         } as ExchangePost);
       });
+      // Sort posts by timestamp on client side
+      posts.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
       setUserPosts(posts);
       setLoading(false);
     });
@@ -93,6 +94,9 @@ export function MyPostsModal({ isOpen, onClose, onEditPost }: MyPostsModalProps)
       <DialogContent className="sm:max-w-2xl w-[95vw] glass-effect border-white/20 bg-blue-900/95 max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-white text-xl">My Exchange Posts</DialogTitle>
+          <DialogDescription className="text-blue-100">
+            Manage your active exchange posts and track their status
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">

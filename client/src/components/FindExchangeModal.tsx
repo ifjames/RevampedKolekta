@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -190,6 +190,9 @@ export function FindExchangeModal({ isOpen, onClose, onSelectPost }: FindExchang
             <Search className="mr-2 h-5 w-5" />
             Find Safe Exchange
           </DialogTitle>
+          <DialogDescription className="text-blue-100">
+            Search for nearby exchange opportunities and filter by your preferences
+          </DialogDescription>
         </DialogHeader>
 
         {/* Search and Filter Controls */}
