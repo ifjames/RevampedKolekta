@@ -291,20 +291,20 @@ export function FindExchangeModal({ isOpen, onClose, onSelectPost }: FindExchang
     <>
       {/* Main Find Exchange Dialog */}
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-4xl w-[95vw] glass-effect border-white/20 bg-blue-900/95 max-h-[85vh] overflow-hidden flex flex-col">
-          <DialogHeader className="pb-4">
-            <DialogTitle className="text-white text-xl flex items-center">
-              <Search className="mr-2 h-5 w-5" />
+        <DialogContent className="sm:max-w-6xl w-[95vw] h-[95vh] sm:h-auto glass-effect border-white/20 bg-blue-900/95 max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader className="pb-6 border-b border-white/10">
+            <DialogTitle className="text-white text-2xl flex items-center">
+              <Search className="mr-3 h-6 w-6" />
               Find Safe Exchange
             </DialogTitle>
-            <DialogDescription className="text-blue-100">
+            <DialogDescription className="text-blue-100 text-base mt-2">
               Search for nearby exchange opportunities and filter by your preferences
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex flex-col md:flex-row gap-4 flex-1 min-h-0">
+          <div className="flex flex-col lg:flex-row gap-6 flex-1 min-h-0 py-4">
             {/* Search and Filters */}
-            <div className="md:w-80 space-y-4">
+            <div className="lg:w-80 space-y-6">
               {/* Search */}
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-blue-300" />
@@ -312,7 +312,7 @@ export function FindExchangeModal({ isOpen, onClose, onSelectPost }: FindExchang
                   placeholder="Search by user name or notes..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-blue-300"
+                  className="pl-10 h-12 bg-white/10 border-white/20 text-white placeholder:text-blue-300 text-base"
                 />
               </div>
 
@@ -320,19 +320,19 @@ export function FindExchangeModal({ isOpen, onClose, onSelectPost }: FindExchang
               <Button
                 variant="outline"
                 onClick={() => setShowFilters(!showFilters)}
-                className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20"
+                className="w-full h-12 bg-white/10 border-white/20 text-white hover:bg-white/20 text-base"
               >
                 <Filter className="mr-2 h-4 w-4" />
-                Filters
+                {showFilters ? 'Hide Filters' : 'Show Filters'}
               </Button>
 
               {/* Filters */}
               {showFilters && (
                 <Card className="glass-dark border-white/10">
-                  <CardContent className="p-4 space-y-4">
+                  <CardContent className="p-6 space-y-6">
                     {/* Distance Filter */}
-                    <div className="space-y-2">
-                      <Label className="text-white">Max Distance: {filters.maxDistance}km</Label>
+                    <div className="space-y-3">
+                      <Label className="text-white text-sm font-medium">Max Distance: {filters.maxDistance}km</Label>
                       <Slider
                         value={[filters.maxDistance]}
                         onValueChange={(value) => setFilters(prev => ({ ...prev, maxDistance: value[0] }))}
@@ -344,62 +344,68 @@ export function FindExchangeModal({ isOpen, onClose, onSelectPost }: FindExchang
                     </div>
 
                     {/* Amount Range */}
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="space-y-1">
-                        <Label className="text-white text-xs">Min Amount</Label>
-                        <Input
-                          type="number"
-                          value={filters.minAmount}
-                          onChange={(e) => setFilters(prev => ({ ...prev, minAmount: Number(e.target.value) }))}
-                          className="bg-white/10 border-white/20 text-white"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-white text-xs">Max Amount</Label>
-                        <Input
-                          type="number"
-                          value={filters.maxAmount}
-                          onChange={(e) => setFilters(prev => ({ ...prev, maxAmount: Number(e.target.value) }))}
-                          className="bg-white/10 border-white/20 text-white"
-                        />
+                    <div className="space-y-3">
+                      <Label className="text-white text-sm font-medium">Amount Range</Label>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                          <Label className="text-blue-200 text-xs">Min Amount</Label>
+                          <Input
+                            type="number"
+                            value={filters.minAmount}
+                            onChange={(e) => setFilters(prev => ({ ...prev, minAmount: Number(e.target.value) }))}
+                            className="h-10 bg-white/10 border-white/20 text-white"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-blue-200 text-xs">Max Amount</Label>
+                          <Input
+                            type="number"
+                            value={filters.maxAmount}
+                            onChange={(e) => setFilters(prev => ({ ...prev, maxAmount: Number(e.target.value) }))}
+                            className="h-10 bg-white/10 border-white/20 text-white"
+                          />
+                        </div>
                       </div>
                     </div>
 
                     {/* Type Filters */}
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="space-y-1">
-                        <Label className="text-white text-xs">Give Type</Label>
-                        <Select value={filters.giveType} onValueChange={(value) => setFilters(prev => ({ ...prev, giveType: value as any }))}>
-                          <SelectTrigger className="bg-white/10 border-white/20 text-white">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All Types</SelectItem>
-                            <SelectItem value="bill">Bills</SelectItem>
-                            <SelectItem value="coins">Coins</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-white text-xs">Need Type</Label>
-                        <Select value={filters.needType} onValueChange={(value) => setFilters(prev => ({ ...prev, needType: value as any }))}>
-                          <SelectTrigger className="bg-white/10 border-white/20 text-white">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All Types</SelectItem>
-                            <SelectItem value="bill">Bills</SelectItem>
-                            <SelectItem value="coins">Coins</SelectItem>
-                          </SelectContent>
-                        </Select>
+                    <div className="space-y-3">
+                      <Label className="text-white text-sm font-medium">Exchange Types</Label>
+                      <div className="grid grid-cols-1 gap-3">
+                        <div className="space-y-2">
+                          <Label className="text-blue-200 text-xs">Give Type</Label>
+                          <Select value={filters.giveType} onValueChange={(value) => setFilters(prev => ({ ...prev, giveType: value as any }))}>
+                            <SelectTrigger className="h-10 bg-white/10 border-white/20 text-white">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All Types</SelectItem>
+                              <SelectItem value="bill">Bills</SelectItem>
+                              <SelectItem value="coins">Coins</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-blue-200 text-xs">Need Type</Label>
+                          <Select value={filters.needType} onValueChange={(value) => setFilters(prev => ({ ...prev, needType: value as any }))}>
+                            <SelectTrigger className="h-10 bg-white/10 border-white/20 text-white">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All Types</SelectItem>
+                              <SelectItem value="bill">Bills</SelectItem>
+                              <SelectItem value="coins">Coins</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
                     </div>
 
                     {/* Sort By */}
-                    <div className="space-y-1">
-                      <Label className="text-white text-xs">Sort By</Label>
+                    <div className="space-y-2">
+                      <Label className="text-white text-sm font-medium">Sort By</Label>
                       <Select value={filters.sortBy} onValueChange={(value) => setFilters(prev => ({ ...prev, sortBy: value as any }))}>
-                        <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                        <SelectTrigger className="h-10 bg-white/10 border-white/20 text-white">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -411,139 +417,178 @@ export function FindExchangeModal({ isOpen, onClose, onSelectPost }: FindExchang
                       </Select>
                     </div>
 
-                    <div className="flex items-center justify-between pt-2 border-t border-white/10">
-                      <div className="flex items-center space-x-2">
+                    {/* Additional Options */}
+                    <div className="space-y-4 pt-4 border-t border-white/10">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-white text-sm">Verified users only</Label>
                         <Switch
                           checked={filters.verifiedOnly}
                           onCheckedChange={(checked) => setFilters(prev => ({ ...prev, verifiedOnly: checked }))}
                         />
-                        <Label className="text-white">Verified users only</Label>
                       </div>
                       
-                      <div className="flex items-center space-x-2">
-                        <Label className="text-white">Min Rating:</Label>
+                      <div className="space-y-2">
+                        <Label className="text-white text-sm">Minimum Rating</Label>
                         <Select value={filters.minRating.toString()} onValueChange={(value) => setFilters(prev => ({ ...prev, minRating: Number(value) }))}>
-                          <SelectTrigger className="w-20 bg-white/10 border-white/20 text-white">
+                          <SelectTrigger className="h-10 bg-white/10 border-white/20 text-white">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="0">Any</SelectItem>
-                            <SelectItem value="3">3.0+</SelectItem>
-                            <SelectItem value="4">4.0+</SelectItem>
-                            <SelectItem value="4.5">4.5+</SelectItem>
+                            <SelectItem value="0">Any Rating</SelectItem>
+                            <SelectItem value="3">3.0+ Stars</SelectItem>
+                            <SelectItem value="4">4.0+ Stars</SelectItem>
+                            <SelectItem value="4.5">4.5+ Stars</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                     </div>
+
+                    {/* Reset Filters Button */}
+                    <Button
+                      variant="outline"
+                      onClick={resetFilters}
+                      className="w-full h-10 bg-white/5 border-white/20 text-blue-200 hover:bg-white/10"
+                    >
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                      Reset Filters
+                    </Button>
                   </CardContent>
                 </Card>
               )}
             </div>
 
             {/* Results */}
-            <div className="flex-1 overflow-y-auto space-y-3 pr-2">
+            <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+              {/* Results Header */}
+              <div className="flex items-center justify-between sticky top-0 bg-blue-900/95 backdrop-blur-sm p-2 rounded-lg border border-white/10">
+                <div className="text-white font-medium">
+                  {loading ? 'Searching...' : `${filteredPosts.length} exchange${filteredPosts.length !== 1 ? 's' : ''} found`}
+                </div>
+                {filteredPosts.length > 0 && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={resetFilters}
+                    className="text-blue-200 hover:text-white hover:bg-white/10"
+                  >
+                    <RefreshCw className="h-3 w-3 mr-1" />
+                    Reset
+                  </Button>
+                )}
+              </div>
+
               {loading ? (
-                <div className="text-center py-8">
-                  <div className="text-blue-200">Finding exchanges...</div>
+                <div className="text-center py-12">
+                  <div className="text-blue-200 text-lg">Finding exchanges...</div>
                 </div>
               ) : filteredPosts.length === 0 ? (
-                <div className="text-center py-8">
-                  <Users className="h-12 w-12 text-blue-300 mx-auto mb-3" />
-                  <div className="text-blue-200 mb-2">No exchanges found</div>
-                  <div className="text-blue-300 text-sm">Try adjusting your filters or search terms</div>
+                <div className="text-center py-12">
+                  <Users className="h-16 w-16 text-blue-300 mx-auto mb-4" />
+                  <div className="text-blue-200 mb-2 text-lg">No exchanges found</div>
+                  <div className="text-blue-300">Try adjusting your filters or search terms</div>
                 </div>
               ) : (
                 filteredPosts.map((post) => {
                   const dist = location ? distance(location.lat, location.lng, post.location.lat, post.location.lng) : 0;
                   return (
-                    <Card key={post.id} className="glass-dark border-white/10 hover:border-white/20 transition-colors cursor-pointer">
-                      <CardContent className="p-4" onClick={() => handleSelectPost(post)}>
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex items-center space-x-2">
-                            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                              <span className="text-white text-sm font-bold">
+                    <Card key={post.id} className="glass-dark border-white/10 hover:border-white/20 transition-all duration-200 cursor-pointer hover:scale-[1.02]">
+                      <CardContent className="p-6" onClick={() => handleSelectPost(post)}>
+                        {/* Header */}
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                              <span className="text-white font-bold">
                                 {post.userInfo?.name?.charAt(0) || 'U'}
                               </span>
                             </div>
                             <div>
-                              <div className="flex items-center space-x-2">
-                                <span className="text-white font-medium">{post.userInfo?.name || 'User'}</span>
+                              <div className="flex items-center space-x-2 mb-1">
+                                <span className="text-white font-medium text-base">{post.userInfo?.name || 'User'}</span>
                                 {post.userInfo?.verified && (
-                                  <Shield className="h-3 w-3 text-green-400" />
+                                  <Shield className="h-4 w-4 text-green-400" />
                                 )}
                               </div>
-                              <div className="flex items-center space-x-2 text-xs text-blue-200">
-                                <Star className="h-3 w-3" />
-                                <span>{(post.userInfo?.rating || 0).toFixed(1)}</span>
-                                <MapPin className="h-3 w-3 ml-2" />
-                                <span>{dist.toFixed(1)}km away</span>
+                              <div className="flex items-center space-x-3 text-sm text-blue-200">
+                                <div className="flex items-center space-x-1">
+                                  <Star className="h-3 w-3" />
+                                  <span>{(post.userInfo?.rating || 0).toFixed(1)}</span>
+                                </div>
+                                <div className="flex items-center space-x-1">
+                                  <MapPin className="h-3 w-3" />
+                                  <span>{dist.toFixed(1)}km away</span>
+                                </div>
                               </div>
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className="text-xs text-blue-200 flex items-center">
+                            <div className="text-sm text-blue-200 flex items-center">
                               <Clock className="h-3 w-3 mr-1" />
                               {formatTimeAgo(post.timestamp)}
                             </div>
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4 mb-3">
-                          <div className="space-y-1">
-                            <div className="text-green-400 text-sm font-medium flex items-center">
-                              <DollarSign className="h-3 w-3 mr-1" />
-                              Gives: ₱{post.giveAmount} {post.giveType}
+                        {/* Exchange Details */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                          <div className="p-3 bg-green-500/10 rounded-lg border border-green-500/20">
+                            <div className="text-green-400 font-medium flex items-center mb-1">
+                              <DollarSign className="h-4 w-4 mr-1" />
+                              Gives
                             </div>
+                            <div className="text-white text-lg font-bold">₱{post.giveAmount}</div>
+                            <div className="text-green-300 text-sm">{post.giveType}</div>
                           </div>
-                          <div className="space-y-1">
-                            <div className="text-blue-400 text-sm font-medium flex items-center">
-                              <DollarSign className="h-3 w-3 mr-1" />
-                              Needs: ₱{post.needAmount} {post.needType}
+                          <div className="p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                            <div className="text-blue-400 font-medium flex items-center mb-1">
+                              <DollarSign className="h-4 w-4 mr-1" />
+                              Needs
                             </div>
+                            <div className="text-white text-lg font-bold">₱{post.needAmount}</div>
+                            <div className="text-blue-300 text-sm">{post.needType}</div>
                           </div>
                         </div>
 
+                        {/* Notes */}
                         {post.notes && (
-                          <div className="p-2 bg-white/5 rounded border border-white/10 mb-3">
-                            <p className="text-blue-100 text-sm">{post.notes}</p>
+                          <div className="p-3 bg-white/5 rounded-lg border border-white/10 mb-4">
+                            <p className="text-blue-100">{post.notes}</p>
                           </div>
                         )}
 
-                        <div className="space-y-3">
-                          <div className="flex space-x-2">
-                            <Badge variant="outline" className="text-green-400 border-green-400">
-                              {post.giveType === 'bill' ? '💵' : '🪙'} {post.giveType}
-                            </Badge>
-                            <Badge variant="outline" className="text-blue-400 border-blue-400">
-                              Wants {post.needType === 'bill' ? '💵' : '🪙'}
-                            </Badge>
-                          </div>
-                          <div className="flex items-center justify-between space-x-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="bg-white/10 text-white border-white/30 hover:bg-white/20"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedPostForMap(post);
-                                setShowMapView(true);
-                              }}
-                            >
-                              <Map className="h-3 w-3 mr-1" />
-                              View Location/Map
-                            </Button>
-                            <Button
-                              size="sm"
-                              className="bg-blue-500 hover:bg-blue-600 text-white"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleSelectPost(post);
-                              }}
-                            >
-                              <MessageSquare className="h-3 w-3 mr-1" />
-                              Request Exchange
-                            </Button>
-                          </div>
+                        {/* Tags */}
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          <Badge variant="outline" className="text-green-400 border-green-400/50 bg-green-500/10">
+                            {post.giveType === 'bill' ? '💵' : '🪙'} {post.giveType}
+                          </Badge>
+                          <Badge variant="outline" className="text-blue-400 border-blue-400/50 bg-blue-500/10">
+                            Wants {post.needType === 'bill' ? '💵' : '🪙'}
+                          </Badge>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex flex-col sm:flex-row gap-3">
+                          <Button
+                            variant="outline"
+                            className="flex-1 h-11 bg-white/10 text-white border-white/30 hover:bg-white/20"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedPostForMap(post);
+                              setShowMapView(true);
+                            }}
+                          >
+                            <Map className="h-4 w-4 mr-2" />
+                            View Location
+                          </Button>
+                          <Button
+                            className="flex-1 h-11 bg-blue-500 hover:bg-blue-600 text-white"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSelectPost(post);
+                            }}
+                          >
+                            <MessageSquare className="h-4 w-4 mr-2" />
+                            Request Exchange
+                          </Button>
                         </div>
                       </CardContent>
                     </Card>
