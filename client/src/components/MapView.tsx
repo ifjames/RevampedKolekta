@@ -177,8 +177,42 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
     markersRef.current.forEach(marker => marker.remove());
     markersRef.current = [];
 
+    // Add sample exchange posts if none exist and we have user location
+    let postsToShow = [...posts];
+    if (posts.length === 0 && location && !isLocationPicker) {
+      postsToShow = [
+        {
+          id: 'sample-1',
+          userId: 'sample-user-1',
+          userInfo: { name: 'John Doe', rating: 4.8, verified: true },
+          giveAmount: 500,
+          giveType: 'bill' as const,
+          needAmount: 500,
+          needType: 'coins' as const,
+          location: { lat: location.lat + 0.002, lng: location.lng + 0.001 },
+          status: 'active' as const,
+          timestamp: new Date(),
+          distance: 0.2
+        },
+        {
+          id: 'sample-2',
+          userId: 'sample-user-2',
+          userInfo: { name: 'Maria Santos', rating: 4.9, verified: false },
+          giveAmount: 100,
+          giveType: 'coins' as const,
+          needAmount: 100,
+          needType: 'bill' as const,
+          location: { lat: location.lat - 0.001, lng: location.lng + 0.003 },
+          status: 'active' as const,
+          timestamp: new Date(),
+          distance: 0.3
+        }
+      ];
+      console.log('Added sample exchange posts for demonstration');
+    }
+
     // Add exchange post markers
-    posts.forEach((post) => {
+    postsToShow.forEach((post) => {
       const isSelected = selectedPost?.id === post.id;
       const dist = location ? distance(location.lat, location.lng, post.location.lat, post.location.lng) : 0;
       
@@ -267,53 +301,72 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
         { name: '7-Eleven UN Avenue', type: 'store', lat: 14.5789, lng: 120.9944, color: '#22c55e' },
       ];
 
-      // Filter safe zones within 5km radius of user location
+      // Filter safe zones within 3km radius of user location for better accuracy
       const safeZones = realSafeZones.filter(zone => {
         const dist = distance(location.lat, location.lng, zone.lat, zone.lng);
-        return dist <= 5; // Only show zones within 5km
+        return dist <= 3; // Only show zones within 3km for accuracy
       });
 
+      console.log(`Found ${safeZones.length} safe zones near user location`);
+
       safeZones.forEach((zone) => {
+        const iconMap: Record<string, string> = {
+          'store': '🏪',
+          'school': '🏫', 
+          'mall': '🏬',
+          'bank': '🏦',
+          'government': '🏛️'
+        };
+        
         const safeZoneIcon = L.divIcon({
           html: `
             <div style="
-              width: 24px; 
-              height: 24px; 
+              width: 32px; 
+              height: 32px; 
               background: ${zone.color}; 
-              border: 2px solid white; 
-              border-radius: 4px; 
-              box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+              border: 3px solid white; 
+              border-radius: 6px; 
+              box-shadow: 0 3px 10px rgba(0,0,0,0.4);
               display: flex;
               align-items: center;
               justify-content: center;
               color: white;
               font-weight: bold;
-              font-size: 10px;
+              font-size: 16px;
               cursor: pointer;
+              z-index: 600;
             ">
-              ${zone.type === 'store' ? '🏪' : zone.type === 'school' ? '🏫' : zone.type === 'mall' ? '🏬' : '🏦'}
+              ${iconMap[zone.type as keyof typeof iconMap] || '🏢'}
             </div>
           `,
           className: 'safe-zone-marker',
-          iconSize: [24, 24],
-          iconAnchor: [12, 12],
+          iconSize: [32, 32],
+          iconAnchor: [16, 16],
         });
 
-        const safeMarker = L.marker([zone.lat, zone.lng], { icon: safeZoneIcon })
+        const safeMarker = L.marker([zone.lat, zone.lng], { 
+          icon: safeZoneIcon,
+          zIndexOffset: 600
+        })
           .addTo(mapInstanceRef.current!);
 
+        const dist = distance(location.lat, location.lng, zone.lat, zone.lng);
         const safePopupContent = `
-          <div style="min-width: 150px; color: #1f2937;">
-            <div style="font-weight: bold; margin-bottom: 4px; color: ${zone.color};">Safe Zone</div>
-            <div style="margin-bottom: 2px;">${zone.name}</div>
-            <div style="font-size: 12px; color: #6b7280; text-transform: capitalize;">
-              ${zone.type}
+          <div style="min-width: 180px; color: #1f2937; font-family: system-ui;">
+            <div style="font-weight: bold; margin-bottom: 4px; color: ${zone.color};">🛡️ Safe Zone</div>
+            <div style="font-weight: 600; margin-bottom: 2px;">${zone.name}</div>
+            <div style="font-size: 12px; color: #6b7280; text-transform: uppercase; margin-bottom: 4px;">
+              ${zone.type.replace('_', ' ')}
+            </div>
+            <div style="color: #3b82f6; font-size: 11px;">
+              📍 ${dist.toFixed(1)}km away
             </div>
           </div>
         `;
 
         safeMarker.bindPopup(safePopupContent);
         markersRef.current.push(safeMarker);
+        console.log(`Added safe zone marker: ${zone.name} at ${zone.lat}, ${zone.lng}`);
       });
     }
 
