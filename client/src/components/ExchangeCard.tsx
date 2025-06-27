@@ -29,7 +29,7 @@ export function ExchangeCard({ post, onMatch }: ExchangeCardProps) {
                 </span>
               </div>
               <div>
-                <span className="text-white font-medium">Exchange Request</span>
+                <span className="text-white font-medium">{post.userInfo?.name || 'User'}</span>
                 <div className="flex items-center space-x-1">
                   {post.userInfo?.verified && (
                     <Shield className="h-3 w-3 text-green-400" />

@@ -112,7 +112,8 @@ export function FindExchangeModal({ isOpen, onClose, onSelectPost }: FindExchang
             needType: 'coins',
             location: { 
               lat: location.lat + 0.002, 
-              lng: location.lng + 0.001 
+              lng: location.lng + 0.001,
+              geohash: 'demo1'
             },
             status: 'active',
             timestamp: new Date(Date.now() - 300000),
@@ -133,7 +134,8 @@ export function FindExchangeModal({ isOpen, onClose, onSelectPost }: FindExchang
             needType: 'coins',
             location: { 
               lat: location.lat - 0.001, 
-              lng: location.lng + 0.003 
+              lng: location.lng + 0.003,
+              geohash: 'demo2'
             },
             status: 'active',
             timestamp: new Date(Date.now() - 1800000),
@@ -292,8 +294,8 @@ export function FindExchangeModal({ isOpen, onClose, onSelectPost }: FindExchang
       {/* Main Find Exchange Dialog */}
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-6xl w-[95vw] h-[95vh] sm:h-auto glass-effect border-white/20 bg-blue-900/95 max-h-[90vh] overflow-hidden flex flex-col">
-          <DialogHeader className="pb-6 border-b border-white/10">
-            <DialogTitle className="text-white text-2xl flex items-center">
+          <DialogHeader className="pb-6 border-b border-white/10 relative">
+            <DialogTitle className="text-white text-2xl flex items-center pr-10">
               <Search className="mr-3 h-6 w-6" />
               Find Safe Exchange
             </DialogTitle>
@@ -530,21 +532,21 @@ export function FindExchangeModal({ isOpen, onClose, onSelectPost }: FindExchang
 
                         {/* Exchange Details */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                          <div className="p-3 bg-green-500/10 rounded-lg border border-green-500/20">
-                            <div className="text-green-400 font-medium flex items-center mb-1">
+                          <div className="p-3 bg-green-500/5 rounded-lg border border-green-500/10">
+                            <div className="text-green-300 font-medium flex items-center mb-1">
                               <DollarSign className="h-4 w-4 mr-1" />
                               Gives
                             </div>
                             <div className="text-white text-lg font-bold">₱{post.giveAmount}</div>
-                            <div className="text-green-300 text-sm">{post.giveType}</div>
+                            <div className="text-green-200 text-sm">{post.giveType}</div>
                           </div>
-                          <div className="p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
-                            <div className="text-blue-400 font-medium flex items-center mb-1">
+                          <div className="p-3 bg-blue-500/5 rounded-lg border border-blue-500/10">
+                            <div className="text-blue-300 font-medium flex items-center mb-1">
                               <DollarSign className="h-4 w-4 mr-1" />
                               Needs
                             </div>
                             <div className="text-white text-lg font-bold">₱{post.needAmount}</div>
-                            <div className="text-blue-300 text-sm">{post.needType}</div>
+                            <div className="text-blue-200 text-sm">{post.needType}</div>
                           </div>
                         </div>
 
@@ -557,10 +559,10 @@ export function FindExchangeModal({ isOpen, onClose, onSelectPost }: FindExchang
 
                         {/* Tags */}
                         <div className="flex flex-wrap gap-2 mb-4">
-                          <Badge variant="outline" className="text-green-400 border-green-400/50 bg-green-500/10">
+                          <Badge variant="outline" className="text-green-300 border-green-300/30 bg-green-500/5">
                             {post.giveType === 'bill' ? '💵' : '🪙'} {post.giveType}
                           </Badge>
-                          <Badge variant="outline" className="text-blue-400 border-blue-400/50 bg-blue-500/10">
+                          <Badge variant="outline" className="text-blue-300 border-blue-300/30 bg-blue-500/5">
                             Wants {post.needType === 'bill' ? '💵' : '🪙'}
                           </Badge>
                         </div>
@@ -597,18 +599,11 @@ export function FindExchangeModal({ isOpen, onClose, onSelectPost }: FindExchang
               )}
             </div>
 
-            {/* Footer */}
-            <div className="flex justify-between items-center pt-4 border-t border-white/10">
+            {/* Results Summary */}
+            <div className="text-center pt-4 border-t border-white/10">
               <div className="text-blue-200 text-sm">
                 {filteredPosts.length} exchange{filteredPosts.length !== 1 ? 's' : ''} found
               </div>
-              <Button
-                onClick={onClose}
-                variant="outline"
-                className="bg-white/10 text-white border-white/30 hover:bg-white/20"
-              >
-                Close
-              </Button>
             </div>
           </div>
         </DialogContent>
