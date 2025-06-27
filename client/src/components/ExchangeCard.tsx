@@ -1,0 +1,112 @@
+import { motion } from 'framer-motion';
+import { MapPin, ArrowLeftRight, Handshake, Star, Shield } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { ExchangePost } from '@/types';
+import { formatTimeAgo } from '@/utils/timeUtils';
+
+interface ExchangeCardProps {
+  post: ExchangePost;
+  onMatch: () => void;
+}
+
+export function ExchangeCard({ post, onMatch }: ExchangeCardProps) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ scale: 1.02 }}
+      transition={{ duration: 0.2 }}
+    >
+      <Card className="glass-effect rounded-xl hover:bg-opacity-20 transition-all duration-300 border-white/20">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-sm font-semibold">
+                  {post.userInfo?.name?.charAt(0) || 'U'}
+                </span>
+              </div>
+              <div>
+                <span className="text-white font-medium">Exchange Request</span>
+                <div className="flex items-center space-x-1">
+                  {post.userInfo?.verified && (
+                    <Shield className="h-3 w-3 text-green-400" />
+                  )}
+                  {post.userInfo?.rating && (
+                    <div className="flex items-center">
+                      <Star className="h-3 w-3 text-yellow-400 fill-current" />
+                      <span className="text-blue-100 text-xs ml-1">
+                        {post.userInfo.rating.toFixed(1)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            <span className="text-blue-100 text-sm">
+              {formatTimeAgo(post.timestamp)}
+            </span>
+          </div>
+          
+          <div className="grid grid-cols-3 gap-4 items-center mb-4">
+            <div className="text-center">
+              <p className="text-green-400 font-bold text-lg">₱{post.giveAmount}</p>
+              <p className="text-blue-100 text-sm capitalize">{post.giveType}</p>
+              <Badge variant="outline" className="text-xs border-green-400/50 text-green-400">
+                Give
+              </Badge>
+            </div>
+            <div className="text-center">
+              <ArrowLeftRight className="h-6 w-6 text-cyan-400 mx-auto" />
+            </div>
+            <div className="text-center">
+              <p className="text-blue-400 font-bold text-lg">₱{post.needAmount}</p>
+              <p className="text-blue-100 text-sm capitalize">{post.needType}</p>
+              <Badge variant="outline" className="text-xs border-blue-400/50 text-blue-400">
+                Need
+              </Badge>
+            </div>
+          </div>
+          
+          {post.needBreakdown && post.needBreakdown.length > 0 && (
+            <div className="mb-3">
+              <p className="text-blue-100 text-sm">
+                <span className="font-medium">Breakdown:</span> {post.needBreakdown.join(' + ')}
+              </p>
+            </div>
+          )}
+
+          {post.notes && (
+            <div className="mb-4">
+              <p className="text-blue-100 text-sm">
+                <span className="font-medium">Notes:</span> {post.notes}
+              </p>
+            </div>
+          )}
+          
+          <div className="flex items-center justify-between">
+            <div className="flex items-center text-blue-100 text-sm">
+              <MapPin className="h-4 w-4 mr-1" />
+              <span>
+                {post.distance 
+                  ? `${post.distance.toFixed(1)}km away`
+                  : 'Nearby'
+                }
+              </span>
+            </div>
+            <Button
+              onClick={onMatch}
+              size="sm"
+              className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white"
+            >
+              <Handshake className="mr-1 h-4 w-4" />
+              Match
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}
