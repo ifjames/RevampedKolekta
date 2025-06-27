@@ -16,7 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFirestoreOperations } from '@/hooks/useFirestore';
-import { toastSuccess, toastError } from '@/utils/notifications';
+import { toast } from '@/hooks/use-toast';
 
 const reportSchema = z.object({
   reportedUserId: z.string().min(1, 'User ID is required'),
@@ -94,7 +94,10 @@ export function ReportModal({
 
   const onSubmit = async (data: ReportFormData) => {
     if (!user?.uid) {
-      toastError('You must be logged in to submit a report');
+      toast({
+        title: "Error",
+        description: "You must be logged in to submit a report"
+      });
       return;
     }
 
@@ -103,18 +106,25 @@ export function ReportModal({
       await addDocument('reports', {
         ...data,
         reporterId: user.uid,
+        matchId: matchId || null,
         status: 'pending',
         createdAt: new Date(),
         priority: data.issueType === 'fake_money' || data.issueType === 'scam' ? 'high' : 'normal'
       });
 
-      toastSuccess('Report submitted successfully. Our team will review it shortly.');
+      toast({
+        title: "Report Submitted",
+        description: "Our team will review it shortly."
+      });
       reset();
       setEvidenceFiles([]);
       onClose();
     } catch (error) {
       console.error('Error submitting report:', error);
-      toastError('Failed to submit report. Please try again.');
+      toast({
+        title: "Error",
+        description: "Failed to submit report. Please try again."
+      });
     } finally {
       setIsSubmitting(false);
     }

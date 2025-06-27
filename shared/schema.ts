@@ -133,6 +133,7 @@ export const notificationSchema = z.object({
   message: z.string(),
   data: z.record(z.any()).optional(),
   read: z.boolean().default(false),
+  deleted: z.boolean().default(false),
   createdAt: z.date()
 });
 

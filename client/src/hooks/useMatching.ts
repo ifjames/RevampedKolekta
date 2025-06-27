@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, query, where, onSnapshot, orderBy, limit } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, orderBy, limit, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocation } from '@/contexts/LocationContext';
@@ -174,6 +174,23 @@ export function useMatching() {
     if (!user?.uid) throw new Error('User not authenticated');
 
     try {
+      // Check for existing match requests to prevent duplicates
+      const existingMatchQuery = query(
+        collection(db, 'matches'),
+        where('userA', '==', user.uid),
+        where('userB', '==', targetPost.userId),
+        where('status', 'in', ['pending', 'confirmed'])
+      );
+      
+      const existingMatches = await getDocs(existingMatchQuery);
+      if (!existingMatches.empty) {
+        toast({
+          title: "Match Request Already Sent",
+          description: "You already have a pending request with this user."
+        });
+        return;
+      }
+
       const matchData = {
         userA: user.uid,
         userB: targetPost.userId,
@@ -226,6 +243,16 @@ export function useMatching() {
           message: 'Your exchange request has been accepted. You can now chat with your match.',
           data: { matchId },
           read: false,
+          createdAt: new Date()
+        });
+
+        // Create initial chat document
+        await addDocument('chats', {
+          matchId,
+          participants: [match.userA, match.userB],
+          lastMessage: null,
+          lastMessageTime: new Date(),
+          messages: [],
           createdAt: new Date()
         });
       }

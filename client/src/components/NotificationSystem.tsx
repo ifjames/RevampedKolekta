@@ -28,6 +28,7 @@ interface Notification {
   message: string;
   data?: Record<string, any>;
   read: boolean;
+  deleted?: boolean;
   createdAt: Date;
 }
 
@@ -41,11 +42,14 @@ export function NotificationSystem({ isOpen, onClose }: NotificationSystemProps)
   const { updateDocument } = useFirestoreOperations();
   const { acceptMatch, declineMatch } = useMatching();
 
-  const { data: notifications = [], loading } = useCollection<Notification>('notifications', user?.uid ? [
+  const { data: allNotifications = [], loading } = useCollection<Notification>('notifications', user?.uid ? [
     where('userId', '==', user.uid),
     orderBy('createdAt', 'desc'),
     limit(20)
   ] : []);
+
+  // Filter out deleted notifications
+  const notifications = allNotifications.filter(n => !(n as any).deleted);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -113,15 +117,27 @@ export function NotificationSystem({ isOpen, onClose }: NotificationSystemProps)
   const markAllAsRead = async () => {
     try {
       const unreadNotifications = notifications.filter(n => !n.read);
-      await Promise.all(
-        unreadNotifications.map(n => updateDocument('notifications', n.id, { read: true }))
-      );
+      for (const notification of unreadNotifications) {
+        await updateDocument('notifications', notification.id, { read: true });
+      }
       toast({
         title: "Success",
         description: "All notifications marked as read"
       });
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
+    }
+  };
+
+  const deleteNotification = async (notificationId: string) => {
+    try {
+      await updateDocument('notifications', notificationId, { deleted: true });
+      toast({
+        title: "Notification Removed",
+        description: "The notification has been deleted"
+      });
+    } catch (error) {
+      console.error('Error deleting notification:', error);
     }
   };
 
@@ -200,9 +216,22 @@ export function NotificationSystem({ isOpen, onClose }: NotificationSystemProps)
                               <h3 className="text-white font-medium text-sm truncate">
                                 {notification.title}
                               </h3>
-                              {!notification.read && (
-                                <div className="w-2 h-2 bg-blue-400 rounded-full flex-shrink-0 ml-2"></div>
-                              )}
+                              <div className="flex items-center space-x-2">
+                                {!notification.read && (
+                                  <div className="w-2 h-2 bg-blue-400 rounded-full flex-shrink-0"></div>
+                                )}
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    deleteNotification(notification.id);
+                                  }}
+                                  className="h-6 w-6 p-0 text-gray-400 hover:text-red-400"
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
                             </div>
                             <p className="text-blue-100 text-sm mb-2">
                               {notification.message}
@@ -266,11 +295,14 @@ export function NotificationSystem({ isOpen, onClose }: NotificationSystemProps)
 export function useNotificationCount() {
   const { user } = useAuth();
   
-  const { data: notifications } = useCollection<Notification>('notifications', [
-    where('userId', '==', user?.uid || ''),
+  const { data: allNotifications = [] } = useCollection<Notification>('notifications', user?.uid ? [
+    where('userId', '==', user.uid),
     where('read', '==', false),
     limit(50)
-  ]);
+  ] : []);
+
+  // Filter out deleted notifications
+  const notifications = allNotifications.filter(n => !(n as any).deleted);
 
   return notifications.length;
 }
