@@ -16,7 +16,8 @@ import {
   Shield,
   MapPin,
   Building2,
-  AlertTriangle
+  AlertTriangle,
+  Handshake
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -35,6 +36,8 @@ import { NotificationSystem, useNotificationCount } from './NotificationSystem';
 import { SafeMeetupModal } from './SafeMeetupModal';
 import { VerificationModal } from './VerificationModal';
 import { ReportModal } from './ReportModal';
+import { MapView } from './MapView';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { getGreeting } from '@/utils/timeUtils';
 import { toastInfo } from '@/utils/notifications';
 import { useFirestoreOperations } from '@/hooks/useFirestore';
@@ -61,6 +64,8 @@ export function Dashboard({ onLogout }: DashboardProps) {
   const [showSafeMeetup, setShowSafeMeetup] = useState(false);
   const [showVerification, setShowVerification] = useState(false);
   const [showReport, setShowReport] = useState(false);
+  const [showMapView, setShowMapView] = useState(false);
+  const [selectedPostForMap, setSelectedPostForMap] = useState<ExchangePost | null>(null);
   const [activeTab, setActiveTab] = useState('home');
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
   const [userPosts, setUserPosts] = useState<ExchangePost[]>([]);
@@ -225,7 +230,11 @@ export function Dashboard({ onLogout }: DashboardProps) {
                   }).catch(() => {
                     toastInfo('Failed to send match request');
                   });
-                }} 
+                }}
+                onViewMap={() => {
+                  setSelectedPostForMap(post);
+                  setShowMapView(true);
+                }}
               />
             ))
           ) : (
@@ -748,6 +757,81 @@ export function Dashboard({ onLogout }: DashboardProps) {
           console.log('Selected post:', post);
         }}
       />
+
+      {/* Map View Dialog */}
+      <Dialog open={showMapView} onOpenChange={setShowMapView}>
+        <DialogContent className="max-w-5xl w-[95vw] h-[85vh] p-0 glass-effect border-white/20">
+          <DialogHeader className="p-6 pb-0">
+            <DialogTitle className="text-white flex items-center">
+              <MapPin className="h-5 w-5 mr-2" />
+              {selectedPostForMap?.userInfo?.name || 'User'}'s Exchange Location
+            </DialogTitle>
+            <DialogDescription className="text-blue-200">
+              View the exact location where this exchange is available
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 p-6 pt-4 h-full">
+            {selectedPostForMap && (
+              <div className="h-full rounded-lg overflow-hidden border border-white/20 min-h-[500px]">
+                <MapView
+                  posts={[selectedPostForMap]}
+                  selectedPost={selectedPostForMap}
+                  onPostSelect={() => {}}
+                  showUserLocation={true}
+                />
+              </div>
+            )}
+          </div>
+          <div className="p-6 pt-0 border-t border-white/10">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                {selectedPostForMap && (
+                  <>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-sm font-bold">
+                          {selectedPostForMap.userInfo?.name?.charAt(0) || 'U'}
+                        </span>
+                      </div>
+                      <div>
+                        <div className="text-white font-medium">{selectedPostForMap.userInfo?.name || 'User'}</div>
+                        <div className="text-blue-100 text-sm">
+                          ₱{selectedPostForMap.giveAmount} {selectedPostForMap.giveType} → ₱{selectedPostForMap.needAmount} {selectedPostForMap.needType}
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+              <div className="flex space-x-2">
+                <Button
+                  onClick={() => setShowMapView(false)}
+                  variant="outline"
+                  className="glass-dark text-white border-white/20 hover:bg-white/10"
+                >
+                  Close Map
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (selectedPostForMap) {
+                      requestMatch(selectedPostForMap, selectedPostForMap).then(() => {
+                        toastInfo('Match request sent!');
+                        setShowMapView(false);
+                      }).catch(() => {
+                        toastInfo('Failed to send match request');
+                      });
+                    }
+                  }}
+                  className="bg-blue-500 hover:bg-blue-600 text-white"
+                >
+                  <Handshake className="h-4 w-4 mr-2" />
+                  Request Exchange
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

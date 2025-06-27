@@ -128,110 +128,12 @@ export function useMatching() {
           .filter(post => post.distance <= matchingOptions.maxDistance)
           .sort((a, b) => a.distance - b.distance);
 
-        // If no real posts, show sample posts for demonstration
-        if (nearbyPosts.length === 0) {
-          const samplePosts: ExchangePost[] = [
-            {
-              id: 'demo-1',
-              userId: 'demo-user-1',
-              userInfo: { 
-                name: 'John Doe', 
-                rating: 4.8, 
-                verified: true,
-                completedExchanges: 15
-              },
-              giveAmount: 1000,
-              giveType: 'bill',
-              needAmount: 1000,
-              needType: 'coins',
-              location: { 
-                lat: location.lat + 0.002, 
-                lng: location.lng + 0.001 
-              },
-              status: 'active',
-              timestamp: new Date(Date.now() - 300000), // 5 minutes ago
-              notes: 'Need coins for commute',
-              distance: 0.2
-            },
-            {
-              id: 'demo-2',
-              userId: 'demo-user-2',
-              userInfo: { 
-                name: 'Maria Santos', 
-                rating: 4.9, 
-                verified: false,
-                completedExchanges: 8
-              },
-              giveAmount: 500,
-              giveType: 'coins',
-              needAmount: 500,
-              needType: 'bill',
-              location: { 
-                lat: location.lat - 0.001, 
-                lng: location.lng + 0.003 
-              },
-              status: 'active',
-              timestamp: new Date(Date.now() - 1800000), // 30 minutes ago
-              notes: 'commute',
-              distance: 0.3
-            },
-            {
-              id: 'demo-3',
-              userId: 'demo-user-3',
-              userInfo: { 
-                name: 'Carlos Rivera', 
-                rating: 4.6, 
-                verified: true,
-                completedExchanges: 23
-              },
-              giveAmount: 200,
-              giveType: 'bill',
-              needAmount: 200,
-              needType: 'coins',
-              location: { 
-                lat: location.lat + 0.004, 
-                lng: location.lng - 0.002 
-              },
-              status: 'active',
-              timestamp: new Date(Date.now() - 900000), // 15 minutes ago
-              notes: 'For jeepney fare',
-              distance: 0.5
-            }
-          ];
-          setMatches(samplePosts);
-        } else {
-          setMatches(nearbyPosts);
-        }
+        setMatches(nearbyPosts);
         
         setIsSearching(false);
       } catch (error) {
         console.error('Error processing posts:', error);
-        // Show sample data on error
-        const samplePosts: ExchangePost[] = [
-          {
-            id: 'demo-1',
-            userId: 'demo-user-1',
-            userInfo: { 
-              name: 'John Doe', 
-              rating: 4.8, 
-              verified: true,
-              completedExchanges: 15
-            },
-            giveAmount: 1000,
-            giveType: 'bill',
-            needAmount: 1000,
-            needType: 'coins',
-            location: { 
-              lat: location.lat || 14.5995, 
-              lng: location.lng || 120.9842 
-            },
-            status: 'active',
-            timestamp: new Date(),
-            notes: 'Need coins for commute',
-            distance: 0.5
-          }
-        ];
-        setMatches(samplePosts);
+        setMatches([]);
         setIsSearching(false);
       }
     });

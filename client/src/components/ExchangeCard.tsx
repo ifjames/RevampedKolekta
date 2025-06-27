@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { MapPin, ArrowLeftRight, Handshake, Star, Shield } from 'lucide-react';
+import { MapPin, ArrowLeftRight, Handshake, Star, Shield, Map } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,9 +9,10 @@ import { formatTimeAgo } from '@/utils/timeUtils';
 interface ExchangeCardProps {
   post: ExchangePost;
   onMatch: () => void;
+  onViewMap?: () => void;
 }
 
-export function ExchangeCard({ post, onMatch }: ExchangeCardProps) {
+export function ExchangeCard({ post, onMatch, onViewMap }: ExchangeCardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -96,14 +97,27 @@ export function ExchangeCard({ post, onMatch }: ExchangeCardProps) {
                 }
               </span>
             </div>
-            <Button
-              onClick={onMatch}
-              size="sm"
-              className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white"
-            >
-              <Handshake className="mr-1 h-4 w-4" />
-              Match
-            </Button>
+            <div className="flex gap-2">
+              {onViewMap && (
+                <Button
+                  onClick={onViewMap}
+                  size="sm"
+                  variant="outline"
+                  className="glass-dark text-white border-white/20 hover:bg-white/10"
+                >
+                  <Map className="mr-1 h-4 w-4" />
+                  View Map
+                </Button>
+              )}
+              <Button
+                onClick={onMatch}
+                size="sm"
+                className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white"
+              >
+                <Handshake className="mr-1 h-4 w-4" />
+                Match
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>

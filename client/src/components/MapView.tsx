@@ -177,39 +177,7 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
     markersRef.current.forEach(marker => marker.remove());
     markersRef.current = [];
 
-    // Add sample exchange posts if none exist and we have user location
     let postsToShow = [...posts];
-    if (posts.length === 0 && location && !isLocationPicker) {
-      postsToShow = [
-        {
-          id: 'sample-1',
-          userId: 'sample-user-1',
-          userInfo: { name: 'John Doe', rating: 4.8, verified: true },
-          giveAmount: 500,
-          giveType: 'bill' as const,
-          needAmount: 500,
-          needType: 'coins' as const,
-          location: { lat: location.lat + 0.002, lng: location.lng + 0.001 },
-          status: 'active' as const,
-          timestamp: new Date(),
-          distance: 0.2
-        },
-        {
-          id: 'sample-2',
-          userId: 'sample-user-2',
-          userInfo: { name: 'Maria Santos', rating: 4.9, verified: false },
-          giveAmount: 100,
-          giveType: 'coins' as const,
-          needAmount: 100,
-          needType: 'bill' as const,
-          location: { lat: location.lat - 0.001, lng: location.lng + 0.003 },
-          status: 'active' as const,
-          timestamp: new Date(),
-          distance: 0.3
-        }
-      ];
-      console.log('Added sample exchange posts for demonstration');
-    }
 
     // Add exchange post markers
     postsToShow.forEach((post) => {

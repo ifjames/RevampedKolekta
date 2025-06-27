@@ -20,7 +20,8 @@ import {
   RefreshCw,
   Users,
   Map,
-  ArrowLeftRight
+  ArrowLeftRight,
+  Handshake
 } from 'lucide-react';
 import { ExchangePost } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
@@ -95,109 +96,13 @@ export function FindExchangeModal({ isOpen, onClose, onSelectPost }: FindExchang
         }
       });
       
-      // If no real posts exist, add sample data for demonstration
-      if (posts.length === 0 && location) {
-        const samplePosts: ExchangePost[] = [
-          {
-            id: 'demo-1',
-            userId: 'demo-user-1',
-            userInfo: { 
-              name: 'John Doe', 
-              rating: 4.8, 
-              verified: true,
-              completedExchanges: 15
-            },
-            giveAmount: 1000,
-            giveType: 'bill',
-            needAmount: 1000,
-            needType: 'coins',
-            location: { 
-              lat: location.lat + 0.002, 
-              lng: location.lng + 0.001,
-              geohash: 'demo1'
-            },
-            status: 'active',
-            timestamp: new Date(Date.now() - 300000),
-            notes: 'Need coins for commute'
-          },
-          {
-            id: 'demo-2',
-            userId: 'demo-user-2',
-            userInfo: { 
-              name: 'Maria Santos', 
-              rating: 4.9, 
-              verified: false,
-              completedExchanges: 8
-            },
-            giveAmount: 1000,
-            giveType: 'bill',
-            needAmount: 1000,
-            needType: 'coins',
-            location: { 
-              lat: location.lat - 0.001, 
-              lng: location.lng + 0.003,
-              geohash: 'demo2'
-            },
-            status: 'active',
-            timestamp: new Date(Date.now() - 1800000),
-            notes: 'commute'
-          },
-          {
-            id: 'demo-3',
-            userId: 'demo-user-3',
-            userInfo: { 
-              name: 'Carlos Rivera', 
-              rating: 4.6, 
-              verified: true,
-              completedExchanges: 23
-            },
-            giveAmount: 1000,
-            giveType: 'bill',
-            needAmount: 1000,
-            needType: 'coins',
-            location: { 
-              lat: location.lat + 0.004, 
-              lng: location.lng - 0.002 
-            },
-            status: 'active',
-            timestamp: new Date(Date.now() - 3600000),
-            notes: 'For jeepney fare'
-          }
-        ];
-        posts.push(...samplePosts);
-      }
+
       
       setAllPosts(posts);
       setLoading(false);
     }, (error) => {
       console.error('Error fetching posts:', error);
-      // Show sample data on error
-      if (location) {
-        const samplePosts: ExchangePost[] = [
-          {
-            id: 'demo-1',
-            userId: 'demo-user-1',
-            userInfo: { 
-              name: 'John Doe', 
-              rating: 4.8, 
-              verified: true,
-              completedExchanges: 15
-            },
-            giveAmount: 1000,
-            giveType: 'bill',
-            needAmount: 1000,
-            needType: 'coins',
-            location: { 
-              lat: location.lat + 0.002, 
-              lng: location.lng + 0.001 
-            },
-            status: 'active',
-            timestamp: new Date(),
-            notes: 'Need coins for commute'
-          }
-        ];
-        setAllPosts(samplePosts);
-      }
+      setAllPosts([]);
       setLoading(false);
     });
 
@@ -527,8 +432,8 @@ export function FindExchangeModal({ isOpen, onClose, onSelectPost }: FindExchang
                               handleSelectPost(post);
                             }}
                           >
-                            <MessageSquare className="h-3 w-3 mr-1" />
-                            Request
+                            <Handshake className="h-3 w-3 mr-1" />
+                            Match
                           </Button>
                         </div>
                       </CardContent>
@@ -540,7 +445,7 @@ export function FindExchangeModal({ isOpen, onClose, onSelectPost }: FindExchang
 
             {/* Results Summary */}
             <div className="text-center pt-4 border-t border-white/10">
-              <div className="text-blue-200 text-sm">
+              <div className="bg-white/10 rounded-lg px-3 py-2 text-white text-sm font-medium inline-block">
                 {filteredPosts.length} exchange{filteredPosts.length !== 1 ? 's' : ''} found
               </div>
             </div>
@@ -550,7 +455,7 @@ export function FindExchangeModal({ isOpen, onClose, onSelectPost }: FindExchang
 
       {/* Map View Dialog */}
       <Dialog open={showMapView} onOpenChange={setShowMapView}>
-        <DialogContent className="max-w-4xl h-[80vh] p-0 glass-effect border-white/20">
+        <DialogContent className="max-w-5xl w-[95vw] h-[85vh] p-0 glass-effect border-white/20">
           <DialogHeader className="p-6 pb-0">
             <DialogTitle className="text-white flex items-center">
               <Map className="h-5 w-5 mr-2" />
@@ -560,9 +465,9 @@ export function FindExchangeModal({ isOpen, onClose, onSelectPost }: FindExchang
               View the exact location where this exchange is available
             </DialogDescription>
           </DialogHeader>
-          <div className="flex-1 p-6 pt-4">
+          <div className="flex-1 p-6 pt-4 h-full">
             {selectedPostForMap && (
-              <div className="h-full rounded-lg overflow-hidden border border-white/20">
+              <div className="h-full rounded-lg overflow-hidden border border-white/20 min-h-[500px]">
                 <MapView
                   posts={[selectedPostForMap]}
                   selectedPost={selectedPostForMap}
