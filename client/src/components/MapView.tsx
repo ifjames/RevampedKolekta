@@ -37,13 +37,21 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
       center: [defaultLat, defaultLng],
       zoom: 15,
       zoomControl: true,
+      preferCanvas: false,
+      attributionControl: false,
     });
 
     // Add tile layer with proper styling
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      maxZoom: 19
+      maxZoom: 19,
+      crossOrigin: true
     }).addTo(map);
+
+    // Force map to invalidate size after creation
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 100);
 
     // Add click handler for location selection
     if (isLocationPicker && onLocationSelect) {
@@ -72,8 +80,29 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
   useEffect(() => {
     if (mapInstanceRef.current && location && isMapReady) {
       mapInstanceRef.current.setView([location.lat, location.lng], 15);
+      // Invalidate size to ensure proper rendering
+      setTimeout(() => {
+        mapInstanceRef.current?.invalidateSize();
+      }, 50);
     }
   }, [location, isMapReady]);
+
+  // Force map resize when component becomes visible
+  useEffect(() => {
+    if (mapInstanceRef.current && isMapReady) {
+      const resizeObserver = new ResizeObserver(() => {
+        mapInstanceRef.current?.invalidateSize();
+      });
+      
+      if (mapRef.current) {
+        resizeObserver.observe(mapRef.current);
+      }
+      
+      return () => {
+        resizeObserver.disconnect();
+      };
+    }
+  }, [isMapReady]);
 
   // Add user location marker
   useEffect(() => {
@@ -129,31 +158,35 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
       const isSelected = selectedPost?.id === post.id;
       const dist = location ? distance(location.lat, location.lng, post.location.lat, post.location.lng) : 0;
       
+      const currencyIcon = post.giveType === 'bill' ? '💵' : '🪙';
       const markerIcon = L.divIcon({
         html: `
           <div style="
-            width: 32px; 
-            height: 32px; 
+            width: 40px; 
+            height: 40px; 
             background: ${isSelected ? '#10b981' : '#ef4444'}; 
             border: 3px solid white; 
             border-radius: 50%; 
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             color: white;
             font-weight: bold;
-            font-size: 12px;
+            font-size: 10px;
             cursor: pointer;
             transform: ${isSelected ? 'scale(1.2)' : 'scale(1)'};
             transition: transform 0.2s ease;
+            position: relative;
           ">
-            ₱
+            <div style="font-size: 12px;">${currencyIcon}</div>
+            <div style="font-size: 8px; line-height: 1;">₱${post.giveAmount}</div>
           </div>
         `,
         className: 'exchange-marker',
-        iconSize: [32, 32],
-        iconAnchor: [16, 16],
+        iconSize: [40, 40],
+        iconAnchor: [20, 20],
       });
 
       const marker = L.marker([post.location.lat, post.location.lng], { icon: markerIcon })
@@ -249,7 +282,7 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
 
   return (
     <div className="relative h-full w-full">
-      <div ref={mapRef} className="h-full w-full rounded-lg overflow-hidden" />
+      <div ref={mapRef} className="h-full w-full" />
       
       {/* Map Controls */}
       <div className="absolute top-4 right-4 space-y-2">
@@ -376,6 +409,20 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
             transform: scale(2);
             opacity: 0;
           }
+        }
+        
+        .leaflet-container {
+          height: 100% !important;
+          width: 100% !important;
+          background: transparent !important;
+        }
+        
+        .leaflet-tile-pane {
+          filter: none !important;
+        }
+        
+        .leaflet-control-container {
+          display: none;
         }
       `}</style>
     </div>

@@ -311,7 +311,7 @@ export function CreatePostModal({ isOpen, onClose }: CreatePostModalProps) {
                     onClick={() => setShowLocationPicker(true)}
                     size="sm"
                     variant="outline"
-                    className="text-white border-white/20 hover:bg-white/10"
+                    className="glass-dark text-white border-white/20 hover:bg-white/10"
                   >
                     <MapPin className="mr-1 h-4 w-4" />
                     Choose on Map
@@ -348,7 +348,7 @@ export function CreatePostModal({ isOpen, onClose }: CreatePostModalProps) {
                 Click on the map to select where you want to make the exchange
               </DialogDescription>
             </DialogHeader>
-            <div className="h-96 w-full">
+            <div className="h-96 w-full rounded-lg overflow-hidden">
               <MapView
                 posts={[]}
                 onLocationSelect={(location) => {
@@ -362,7 +362,7 @@ export function CreatePostModal({ isOpen, onClose }: CreatePostModalProps) {
               <Button
                 variant="outline"
                 onClick={() => setShowLocationPicker(false)}
-                className="text-white border-white/20"
+                className="glass-dark text-white border-white/20 hover:bg-white/10"
               >
                 Cancel
               </Button>
