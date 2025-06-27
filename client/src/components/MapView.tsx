@@ -14,9 +14,11 @@ interface MapViewProps {
   onPostSelect?: (post: ExchangePost) => void;
   selectedPost?: ExchangePost | null;
   showUserLocation?: boolean;
+  onLocationSelect?: (location: { lat: number; lng: number }) => void;
+  isLocationPicker?: boolean;
 }
 
-export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = true }: MapViewProps) {
+export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = true, onLocationSelect, isLocationPicker = false }: MapViewProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
@@ -43,6 +45,18 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
       subdomains: 'abcd',
       maxZoom: 20
     }).addTo(map);
+
+    // Add click handler for location selection
+    if (isLocationPicker && onLocationSelect) {
+      map.on('click', (e) => {
+        const { lat, lng } = e.latlng;
+        onLocationSelect({ lat, lng });
+        
+        // Add a temporary marker to show selection
+        const marker = L.marker([lat, lng]).addTo(map);
+        setTimeout(() => map.removeLayer(marker), 2000);
+      });
+    }
 
     mapInstanceRef.current = map;
     setIsMapReady(true);

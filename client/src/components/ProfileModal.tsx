@@ -10,6 +10,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { 
   User, 
   Star, 
@@ -24,6 +26,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDate } from '@/utils/timeUtils';
 import { showConfirm, toastInfo } from '@/utils/notifications';
+import { VerificationModal } from './VerificationModal';
 
 interface ProfileModalProps {
   isOpen: boolean;
@@ -32,8 +35,14 @@ interface ProfileModalProps {
 }
 
 export function ProfileModal({ isOpen, onClose, onLogout }: ProfileModalProps) {
-  const { user, userProfile, logout } = useAuth();
+  const { user, userProfile, logout, updateUserProfile } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [showVerification, setShowVerification] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: userProfile?.name || '',
+    phone: userProfile?.phone || ''
+  });
 
   const handleLogout = async () => {
     const result = await showConfirm(
@@ -53,6 +62,36 @@ export function ProfileModal({ isOpen, onClose, onLogout }: ProfileModalProps) {
         setLoading(false);
       }
     }
+  };
+
+  const handleEditProfile = () => {
+    setEditForm({
+      name: userProfile?.name || '',
+      phone: userProfile?.phone || ''
+    });
+    setIsEditing(true);
+  };
+
+  const handleSaveProfile = async () => {
+    setLoading(true);
+    try {
+      await updateUserProfile(editForm);
+      setIsEditing(false);
+      toastInfo('Profile updated successfully!');
+    } catch (error) {
+      console.error('Profile update error:', error);
+      toastInfo('Failed to update profile');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditForm({
+      name: userProfile?.name || '',
+      phone: userProfile?.phone || ''
+    });
   };
 
   const stats = [
@@ -153,23 +192,67 @@ export function ProfileModal({ isOpen, onClose, onLogout }: ProfileModalProps) {
           transition={{ delay: 0.4 }}
           className="space-y-3"
         >
-          <Button
-            onClick={() => toastInfo('Edit profile coming soon!')}
-            className="w-full glass-dark text-white hover:bg-white/10 border-white/20"
-            variant="outline"
-          >
-            <Edit className="mr-2 h-4 w-4" />
-            Edit Profile
-          </Button>
-          
-          <Button
-            onClick={() => toastInfo('Verification coming soon!')}
-            className="w-full glass-dark text-white hover:bg-white/10 border-white/20"
-            variant="outline"
-          >
-            <Shield className="mr-2 h-4 w-4" />
-            Verification
-          </Button>
+          {isEditing ? (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name" className="text-white">Name</Label>
+                <Input
+                  id="name"
+                  value={editForm.name}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                  className="glass-dark text-white border-white/20"
+                  placeholder="Your name"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone" className="text-white">Phone</Label>
+                <Input
+                  id="phone"
+                  value={editForm.phone}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
+                  className="glass-dark text-white border-white/20"
+                  placeholder="Your phone number"
+                />
+              </div>
+              <div className="flex space-x-2">
+                <Button
+                  onClick={handleSaveProfile}
+                  disabled={loading}
+                  className="flex-1 bg-green-500 hover:bg-green-600 text-white"
+                >
+                  Save
+                </Button>
+                <Button
+                  onClick={handleCancelEdit}
+                  disabled={loading}
+                  className="flex-1 glass-dark text-white hover:bg-white/10 border-white/20"
+                  variant="outline"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <Button
+                onClick={handleEditProfile}
+                className="w-full glass-dark text-white hover:bg-white/10 border-white/20"
+                variant="outline"
+              >
+                <Edit className="mr-2 h-4 w-4" />
+                Edit Profile
+              </Button>
+              
+              <Button
+                onClick={() => setShowVerification(true)}
+                className="w-full glass-dark text-white hover:bg-white/10 border-white/20"
+                variant="outline"
+              >
+                <Shield className="mr-2 h-4 w-4" />
+                Verification
+              </Button>
+            </>
+          )}
           
           <Button
             onClick={handleLogout}
@@ -187,6 +270,12 @@ export function ProfileModal({ isOpen, onClose, onLogout }: ProfileModalProps) {
           </Button>
         </motion.div>
       </DialogContent>
+
+      {/* Verification Modal */}
+      <VerificationModal
+        isOpen={showVerification}
+        onClose={() => setShowVerification(false)}
+      />
     </Dialog>
   );
 }

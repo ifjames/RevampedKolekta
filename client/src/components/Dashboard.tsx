@@ -35,6 +35,10 @@ import { VerificationModal } from './VerificationModal';
 import { ReportModal } from './ReportModal';
 import { getGreeting } from '@/utils/timeUtils';
 import { toastInfo } from '@/utils/notifications';
+import { useFirestoreOperations } from '@/hooks/useFirestore';
+import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { ExchangePost } from '@/types';
 
 interface DashboardProps {
   onLogout: () => void;
@@ -55,8 +59,39 @@ export function Dashboard({ onLogout }: DashboardProps) {
   const [showReport, setShowReport] = useState(false);
   const [activeTab, setActiveTab] = useState('home');
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
+  const [userPosts, setUserPosts] = useState<ExchangePost[]>([]);
+  const [loadingUserPosts, setLoadingUserPosts] = useState(false);
   
   const notificationCount = useNotificationCount();
+
+  // Fetch user's posts from Firebase
+  useEffect(() => {
+    if (!user) return;
+
+    setLoadingUserPosts(true);
+    const postsQuery = query(
+      collection(db, 'posts'),
+      where('userId', '==', user.uid)
+    );
+
+    const unsubscribe = onSnapshot(postsQuery, (snapshot) => {
+      const posts = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        timestamp: doc.data().timestamp?.toDate() || new Date()
+      })) as ExchangePost[];
+      
+      // Filter active posts on the client side
+      const activePosts = posts.filter(post => post.status === 'active');
+      setUserPosts(activePosts);
+      setLoadingUserPosts(false);
+    }, (error) => {
+      console.error('Error fetching user posts:', error);
+      setLoadingUserPosts(false);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
 
 
   const stats = [
@@ -74,7 +109,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
     },
     {
       icon: Clock,
-      value: '0', // Active posts count
+      value: userPosts.length,
       label: 'Active',
       color: 'text-green-400',
     },
@@ -229,13 +264,46 @@ export function Dashboard({ onLogout }: DashboardProps) {
               Active Posts
             </h3>
             <div className="space-y-4">
-              <Card className="glass-dark border-white/10">
-                <CardContent className="p-4 text-center">
-                  <Clock className="h-8 w-8 text-blue-300 mx-auto mb-2" />
-                  <p className="text-white text-sm">No active posts</p>
-                  <p className="text-blue-100 text-xs">Create your first exchange post</p>
-                </CardContent>
-              </Card>
+              {loadingUserPosts ? (
+                <Card className="glass-dark border-white/10">
+                  <CardContent className="p-4 text-center">
+                    <div className="animate-spin h-6 w-6 border-2 border-white border-t-transparent rounded-full mx-auto mb-2"></div>
+                    <p className="text-white text-sm">Loading your posts...</p>
+                  </CardContent>
+                </Card>
+              ) : userPosts.length > 0 ? (
+                userPosts.map((post) => (
+                  <Card key={post.id} className="glass-dark border-white/10">
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <h4 className="text-white font-medium">
+                            Exchange ₱{post.giveAmount} {post.giveType} → ₱{post.needAmount} {post.needType}
+                          </h4>
+                          <p className="text-blue-100 text-sm">
+                            {post.notes || 'No additional notes'}
+                          </p>
+                        </div>
+                        <Badge variant="outline" className="text-green-400 border-green-400">
+                          Active
+                        </Badge>
+                      </div>
+                      <div className="flex items-center text-blue-200 text-xs">
+                        <MapPin className="h-3 w-3 mr-1" />
+                        {post.location ? `${post.location.lat.toFixed(4)}, ${post.location.lng.toFixed(4)}` : 'Location not available'}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <Card className="glass-dark border-white/10">
+                  <CardContent className="p-4 text-center">
+                    <Clock className="h-8 w-8 text-blue-300 mx-auto mb-2" />
+                    <p className="text-white text-sm">No active posts</p>
+                    <p className="text-blue-100 text-xs">Create your first exchange post</p>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </CardContent>
         </Card>

@@ -37,6 +37,7 @@ import { useLocation } from '@/contexts/LocationContext';
 import { useFirestoreOperations } from '@/hooks/useFirestore';
 import { encode } from '@/lib/geohash';
 import { toastSuccess, toastError } from '@/utils/notifications';
+import { MapView } from './MapView';
 
 const createPostSchema = z.object({
   giveAmount: z.number().min(1, 'Amount must be at least 1'),
@@ -60,6 +61,8 @@ export function CreatePostModal({ isOpen, onClose }: CreatePostModalProps) {
   const { addDocument } = useFirestoreOperations();
   const [loading, setLoading] = useState(false);
   const [locationLoading, setLocationLoading] = useState(false);
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<{lat: number, lng: number} | null>(null);
 
   const form = useForm<CreatePostFormData>({
     resolver: zodResolver(createPostSchema),
@@ -79,8 +82,9 @@ export function CreatePostModal({ isOpen, onClose }: CreatePostModalProps) {
       return;
     }
 
-    if (!location) {
-      toastError('Location access is required to create posts');
+    const postLocation = selectedLocation || location;
+    if (!postLocation) {
+      toastError('Please select a location for your exchange post');
       return;
     }
 
@@ -100,9 +104,9 @@ export function CreatePostModal({ isOpen, onClose }: CreatePostModalProps) {
         needBreakdown,
         notes: data.notes,
         location: {
-          geohash: encode(location.lat, location.lng, 5),
-          lat: location.lat,
-          lng: location.lng,
+          geohash: encode(postLocation.lat, postLocation.lng, 5),
+          lat: postLocation.lat,
+          lng: postLocation.lng,
         },
         status: 'active' as const,
         timestamp: new Date(),
@@ -271,17 +275,20 @@ export function CreatePostModal({ isOpen, onClose }: CreatePostModalProps) {
                 Exact location is only shared after mutual confirmation.
               </p>
               
-              {location ? (
-                <div className="flex items-center text-green-400 text-sm">
-                  <CheckCircle className="mr-2 h-4 w-4" />
-                  Location obtained ({location.lat.toFixed(4)}, {location.lng.toFixed(4)})
-                </div>
-              ) : (
-                <div className="space-y-2">
+              <div className="space-y-3">
+                {(selectedLocation || location) ? (
+                  <div className="flex items-center text-green-400 text-sm">
+                    <CheckCircle className="mr-2 h-4 w-4" />
+                    Location selected ({(selectedLocation || location)!.lat.toFixed(4)}, {(selectedLocation || location)!.lng.toFixed(4)})
+                  </div>
+                ) : (
                   <div className="flex items-center text-yellow-400 text-sm">
                     <AlertCircle className="mr-2 h-4 w-4" />
-                    Location access needed
+                    Location needed for exchange post
                   </div>
+                )}
+                
+                <div className="flex space-x-2">
                   <Button
                     type="button"
                     onClick={handleGetLocation}
@@ -290,23 +297,34 @@ export function CreatePostModal({ isOpen, onClose }: CreatePostModalProps) {
                     className="bg-blue-500 hover:bg-blue-600 text-white"
                   >
                     {locationLoading ? (
-                      <>Loading...</>
+                      <>Getting Location...</>
                     ) : (
                       <>
                         <Crosshair className="mr-1 h-4 w-4" />
-                        Get Current Location
+                        Use Current Location
                       </>
                     )}
                   </Button>
+                  
+                  <Button
+                    type="button"
+                    onClick={() => setShowLocationPicker(true)}
+                    size="sm"
+                    variant="outline"
+                    className="text-white border-white/20 hover:bg-white/10"
+                  >
+                    <MapPin className="mr-1 h-4 w-4" />
+                    Choose on Map
+                  </Button>
                 </div>
-              )}
+              </div>
             </CardContent>
           </Card>
 
           <Button 
             type="submit" 
             className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white"
-            disabled={loading || !location}
+            disabled={loading || (!selectedLocation && !location)}
           >
             {loading ? (
               <>Creating...</>
@@ -319,6 +337,46 @@ export function CreatePostModal({ isOpen, onClose }: CreatePostModalProps) {
           </Button>
         </form>
       </DialogContent>
+
+      {/* Location Picker Modal */}
+      {showLocationPicker && (
+        <Dialog open={showLocationPicker} onOpenChange={setShowLocationPicker}>
+          <DialogContent className="sm:max-w-4xl glass-effect border-white/20 bg-blue-900/95 max-h-[90vh]">
+            <DialogHeader>
+              <DialogTitle className="text-white">Choose Exchange Location</DialogTitle>
+              <DialogDescription className="text-blue-100">
+                Click on the map to select where you want to make the exchange
+              </DialogDescription>
+            </DialogHeader>
+            <div className="h-96 w-full">
+              <MapView
+                posts={[]}
+                onLocationSelect={(location) => {
+                  setSelectedLocation(location);
+                }}
+                isLocationPicker={true}
+                showUserLocation={true}
+              />
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowLocationPicker(false)}
+                className="text-white border-white/20"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => setShowLocationPicker(false)}
+                className="bg-green-500 hover:bg-green-600"
+                disabled={!selectedLocation}
+              >
+                Use Selected Location
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </Dialog>
   );
 }
