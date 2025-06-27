@@ -16,8 +16,9 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCollection, useFirestoreOperations } from '@/hooks/useFirestore';
 import { where, orderBy, limit } from 'firebase/firestore';
+import { useMatching } from '@/hooks/useMatching';
+import { toast } from '@/hooks/use-toast';
 import { formatTimeAgo } from '@/utils/timeUtils';
-import { toastSuccess } from '@/utils/notifications';
 
 interface Notification {
   id: string;
@@ -38,12 +39,13 @@ interface NotificationSystemProps {
 export function NotificationSystem({ isOpen, onClose }: NotificationSystemProps) {
   const { user } = useAuth();
   const { updateDocument } = useFirestoreOperations();
+  const { acceptMatch, declineMatch } = useMatching();
 
-  const { data: notifications, loading } = useCollection<Notification>('notifications', [
-    where('userId', '==', user?.uid || ''),
+  const { data: notifications = [], loading } = useCollection<Notification>('notifications', user?.uid ? [
+    where('userId', '==', user.uid),
     orderBy('createdAt', 'desc'),
     limit(20)
-  ]);
+  ] : []);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -76,13 +78,48 @@ export function NotificationSystem({ isOpen, onClose }: NotificationSystemProps)
     }
   };
 
+  const handleAcceptMatch = async (matchId: string, notificationId: string) => {
+    try {
+      await acceptMatch(matchId);
+      await markAsRead(notificationId);
+      toast({
+        title: "Match Accepted!",
+        description: "You can now chat with your exchange partner."
+      });
+    } catch (error) {
+      toast({
+        title: "Error", 
+        description: "Failed to accept match request"
+      });
+    }
+  };
+
+  const handleDeclineMatch = async (matchId: string, notificationId: string) => {
+    try {
+      await declineMatch(matchId);
+      await markAsRead(notificationId);
+      toast({
+        title: "Match Declined",
+        description: "The match request has been declined."
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to decline match request"
+      });
+    }
+  };
+
   const markAllAsRead = async () => {
     try {
       const unreadNotifications = notifications.filter(n => !n.read);
       await Promise.all(
         unreadNotifications.map(n => updateDocument('notifications', n.id, { read: true }))
       );
-      toastSuccess('All notifications marked as read');
+      toast({
+        title: "Success",
+        description: "All notifications marked as read"
+      });
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
     }
@@ -170,8 +207,39 @@ export function NotificationSystem({ isOpen, onClose }: NotificationSystemProps)
                             <p className="text-blue-100 text-sm mb-2">
                               {notification.message}
                             </p>
-                            <p className="text-blue-200 text-xs">
-                              {formatTimeAgo(notification.createdAt)}
+                            
+                            {/* Match request action buttons */}
+                            {notification.type === 'match_found' && notification.data && notification.data.matchId && !notification.read && (
+                              <div className="flex space-x-2 mt-3">
+                                <Button
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAcceptMatch(notification.data!.matchId, notification.id);
+                                  }}
+                                  className="bg-green-500 hover:bg-green-600 text-white flex-1"
+                                >
+                                  Accept
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeclineMatch(notification.data!.matchId, notification.id);
+                                  }}
+                                  className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white flex-1"
+                                >
+                                  Decline
+                                </Button>
+                              </div>
+                            )}
+                            
+                            <p className="text-blue-200 text-xs mt-2">
+                              {notification.createdAt && typeof notification.createdAt.getTime === 'function' 
+                                ? formatTimeAgo(notification.createdAt)
+                                : 'Recently'
+                              }
                             </p>
                           </div>
                         </div>

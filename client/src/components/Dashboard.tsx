@@ -38,8 +38,8 @@ import { VerificationModal } from './VerificationModal';
 import { ReportModal } from './ReportModal';
 import { MapView } from './MapView';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { getGreeting } from '@/utils/timeUtils';
-import { toastInfo } from '@/utils/notifications';
+import { toast } from '@/hooks/use-toast';
+import { getGreeting, formatDate } from '@/utils/timeUtils';
 import { useFirestoreOperations } from '@/hooks/useFirestore';
 import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -52,7 +52,12 @@ interface DashboardProps {
 export function Dashboard({ onLogout }: DashboardProps) {
   const { user, userProfile } = useAuth();
   const { location, hasPermission } = useLocation();
-  const { matches: nearbyPosts = [], matchRequests: incomingRequests = [], isSearching: loading, requestMatch } = useMatching();
+  const { matches: nearbyPosts = [], matchRequests: allMatchRequests = [], isSearching: loading, requestMatch } = useMatching();
+  
+  // Filter for confirmed matches in active exchanges
+  const confirmedMatches = allMatchRequests.filter(match => match.status === 'confirmed');
+  // Filter for pending match requests (for notifications)
+  const pendingRequests = allMatchRequests.filter(match => match.status === 'pending' && match.userB === user?.uid);
   
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [showChat, setShowChat] = useState(false);
@@ -167,16 +172,26 @@ export function Dashboard({ onLogout }: DashboardProps) {
       >
         <h2 className="text-2xl font-bold text-white mb-4">Active Exchanges</h2>
         <div className="space-y-4">
-          {incomingRequests.length > 0 ? (
-            incomingRequests.map((request) => (
-              <Card key={request.id} className="glass-effect border-white/20">
+          {confirmedMatches.length > 0 ? (
+            confirmedMatches.map((match) => (
+              <Card key={match.id} className="glass-effect border-white/20">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-white font-semibold">Match Request</h3>
-                      <p className="text-blue-100 text-sm">Someone wants to exchange with you!</p>
+                      <h3 className="text-white font-semibold">Active Exchange</h3>
+                      <p className="text-blue-100 text-sm">Chat with your exchange partner to coordinate meetup</p>
                     </div>
-                    <Badge className="bg-green-500">New</Badge>
+                    <div className="flex space-x-2">
+                      <Button
+                        size="sm"
+                        onClick={() => setShowChat(true)}
+                        className="bg-blue-500 hover:bg-blue-600 text-white"
+                      >
+                        <MessageSquare className="h-4 w-4 mr-1" />
+                        Chat
+                      </Button>
+                      <Badge className="bg-green-500">Confirmed</Badge>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -228,9 +243,15 @@ export function Dashboard({ onLogout }: DashboardProps) {
                 post={post} 
                 onMatch={() => {
                   requestMatch(post, post).then(() => {
-                    toastInfo('Match request sent!');
+                    toast({
+                      title: "Match Request Sent!",
+                      description: "You'll be notified when they respond."
+                    });
                   }).catch(() => {
-                    toastInfo('Failed to send match request');
+                    toast({
+                      title: "Error",
+                      description: "Failed to send match request"
+                    });
                   });
                 }}
                 onViewMap={() => {
@@ -262,13 +283,6 @@ export function Dashboard({ onLogout }: DashboardProps) {
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-white">Your Exchanges</h2>
         <div className="flex flex-wrap gap-2">
-          <Button
-            onClick={() => setShowFindExchange(true)}
-            className="bg-blue-500 hover:bg-blue-600 text-white"
-          >
-            <Users className="mr-2 h-4 w-4" />
-            Find Exchanges
-          </Button>
           <Button
             onClick={() => setShowMyPosts(true)}
             variant="outline"
@@ -380,8 +394,8 @@ export function Dashboard({ onLogout }: DashboardProps) {
               Match Requests
             </h3>
             <div className="space-y-4">
-              {incomingRequests.length > 0 ? (
-                incomingRequests.map((request) => (
+              {pendingRequests.length > 0 ? (
+                pendingRequests.map((request) => (
                   <Card key={request.id} className="glass-dark border-white/10">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
@@ -395,7 +409,10 @@ export function Dashboard({ onLogout }: DashboardProps) {
                             className="bg-green-500 hover:bg-green-600 text-white"
                             onClick={() => {
                               // Accept match logic
-                              toastInfo('Match accepted!');
+                              toast({
+                                title: "Match Accepted!",
+                                description: "You can now chat with your exchange partner."
+                              });
                               // Here you would handle the actual match acceptance
                             }}
                           >
@@ -406,7 +423,10 @@ export function Dashboard({ onLogout }: DashboardProps) {
                             className="bg-red-500 hover:bg-red-600 text-white border-red-500"
                             onClick={() => {
                               // Decline match logic
-                              toastInfo('Match declined');
+                              toast({
+                                title: "Match Declined",
+                                description: "The match request has been declined."
+                              });
                               // Here you would handle the actual match decline
                             }}
                           >
@@ -502,13 +522,47 @@ export function Dashboard({ onLogout }: DashboardProps) {
               Completed Exchanges
             </h3>
             <div className="space-y-4">
-              <Card className="glass-dark border-white/10">
-                <CardContent className="p-4 text-center">
-                  <History className="h-8 w-8 text-blue-300 mx-auto mb-2" />
-                  <p className="text-white text-sm">No completed exchanges yet</p>
-                  <p className="text-blue-100 text-xs">Your exchange history will appear here</p>
-                </CardContent>
-              </Card>
+              {allMatchRequests.filter(match => match.status === 'completed' && (match.userA === user?.uid || match.userB === user?.uid)).length > 0 ? (
+                allMatchRequests
+                  .filter(match => match.status === 'completed' && (match.userA === user?.uid || match.userB === user?.uid))
+                  .map((match) => (
+                    <Card key={match.id} className="glass-dark border-white/10">
+                      <CardContent className="p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <h4 className="text-white font-medium">Exchange Completed</h4>
+                            <p className="text-blue-100 text-sm">
+                              {'Recently completed'}
+                            </p>
+                          </div>
+                          <div className="flex items-center">
+                            {Array.from({ length: 5 }, (_, i) => (
+                              <Star
+                                key={i}
+                                className={`h-3 w-3 ${
+                                  i < 5 // Default 5-star rating for completed exchanges
+                                    ? 'text-yellow-400 fill-current'
+                                    : 'text-gray-400'
+                                }`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        <Badge variant="outline" className="text-green-400 border-green-400">
+                          Completed
+                        </Badge>
+                      </CardContent>
+                    </Card>
+                  ))
+              ) : (
+                <Card className="glass-dark border-white/10">
+                  <CardContent className="p-4 text-center">
+                    <History className="h-8 w-8 text-blue-300 mx-auto mb-2" />
+                    <p className="text-white text-sm">No completed exchanges yet</p>
+                    <p className="text-blue-100 text-xs">Your exchange history will appear here</p>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -522,8 +576,20 @@ export function Dashboard({ onLogout }: DashboardProps) {
                 <p className="text-blue-100 text-sm">Total Exchanges</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-white">{(userProfile?.rating || 5.0).toFixed(1)}</p>
-                <p className="text-blue-100 text-sm">Rating</p>
+                <div className="flex justify-center mb-1">
+                  {Array.from({ length: 5 }, (_, i) => (
+                    <Star
+                      key={i}
+                      className={`h-4 w-4 ${
+                        i < Math.floor(userProfile?.rating || 0)
+                          ? 'text-yellow-400 fill-current'
+                          : 'text-gray-400'
+                      }`}
+                    />
+                  ))}
+                </div>
+                <p className="text-sm text-white">{(userProfile?.rating || 0).toFixed(1)}</p>
+                <p className="text-blue-100 text-xs">Rating</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-white">0</p>

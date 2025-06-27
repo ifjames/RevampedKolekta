@@ -6,7 +6,7 @@ import { useLocation } from '@/contexts/LocationContext';
 import { ExchangePost, Match } from '@/types';
 import { distance } from '@/lib/geohash';
 import { useFirestoreOperations } from './useFirestore';
-import { toastSuccess, showMatchFound } from '@/utils/notifications';
+import { toast } from '@/hooks/use-toast';
 
 interface MatchingOptions {
   maxDistance: number; // in kilometers
@@ -197,7 +197,10 @@ export function useMatching() {
         createdAt: new Date()
       });
 
-      toastSuccess('Match request sent!');
+      toast({
+        title: "Match Request Sent!",
+        description: "You'll be notified when they respond."
+      });
       return matchRef;
     } catch (error) {
       console.error('Error requesting match:', error);
@@ -227,7 +230,10 @@ export function useMatching() {
         });
       }
 
-      toastSuccess('Match accepted! You can now chat.');
+      toast({
+        title: "Match Accepted!",
+        description: "You can now chat with your exchange partner."
+      });
     } catch (error) {
       console.error('Error accepting match:', error);
       throw error;
@@ -241,7 +247,10 @@ export function useMatching() {
         status: 'declined'
       });
 
-      toastSuccess('Match declined.');
+      toast({
+        title: "Match Declined",
+        description: "The match request has been declined."
+      });
     } catch (error) {
       console.error('Error declining match:', error);
       throw error;
@@ -273,7 +282,10 @@ export function useMatching() {
         });
       }
 
-      toastSuccess('Exchange completed successfully!');
+      toast({
+        title: "Exchange Completed!",
+        description: "Please rate your experience with this exchange."
+      });
     } catch (error) {
       console.error('Error completing exchange:', error);
       throw error;
@@ -314,7 +326,10 @@ export function useMatching() {
         });
       }
 
-      toastSuccess('No-show reported.');
+      toast({
+        title: "No-Show Reported",
+        description: "The report has been submitted successfully."
+      });
     } catch (error) {
       console.error('Error reporting no-show:', error);
       throw error;
