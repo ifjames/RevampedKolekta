@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, X, Navigation, Users } from 'lucide-react';
+import { MapPin, X, Navigation, Users, Handshake } from 'lucide-react';
 import { useLocation } from '@/contexts/LocationContext';
 import { ExchangePost } from '@/types';
 import { distance } from '@/lib/geohash';
@@ -388,21 +388,21 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
 
       {/* Map Legend */}
       <div className="absolute top-4 left-4 z-[1000]">
-        <Card className="glass-effect border-white/20">
+        <Card className="bg-black/80 backdrop-blur-md border-gray-600">
           <CardContent className="p-3">
             <h4 className="text-white font-medium mb-2 text-sm">Legend</h4>
             <div className="space-y-1.5 text-xs">
               <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 bg-blue-500 rounded-full border border-white"></div>
-                <span className="text-white">Your Location</span>
+                <div className="w-4 h-4 bg-blue-500 rounded-full border-2 border-black"></div>
+                <span className="text-white font-medium">Your Location</span>
               </div>
               <div className="flex items-center space-x-2">
-                <div className="w-5 h-3 bg-blue-500 rounded border border-white flex items-center justify-center text-white text-[8px] font-bold">₱</div>
-                <span className="text-white">Exchange Posts</span>
+                <div className="w-5 h-3 bg-blue-500 rounded border-2 border-black flex items-center justify-center text-white text-[8px] font-bold">₱</div>
+                <span className="text-white font-medium">Exchange Posts</span>
               </div>
               <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 bg-green-500 rounded border border-white flex items-center justify-center text-[10px]">🏪</div>
-                <span className="text-white">Safe Zones</span>
+                <div className="w-4 h-4 bg-green-500 rounded border-2 border-black flex items-center justify-center text-[10px]">🏪</div>
+                <span className="text-white font-medium">Safe Zones</span>
               </div>
             </div>
           </CardContent>
@@ -417,7 +417,7 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
           exit={{ opacity: 0, y: 20 }}
           className="absolute bottom-4 left-4 right-4 z-[1000]"
         >
-          <Card className="glass-effect border-white/20">
+          <Card className="bg-black/90 backdrop-blur-md border-gray-600">
             <CardContent className="p-4">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -430,7 +430,7 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
                       <div className="flex items-center space-x-2">
                         <div className="flex items-center">
                           <span className="text-yellow-400 text-sm">⭐</span>
-                          <span className="text-blue-100 text-sm ml-1">{selectedPost.userInfo?.rating || 0}</span>
+                          <span className="text-white text-sm ml-1 font-medium">{selectedPost.userInfo?.rating || 0}</span>
                         </div>
                         {selectedPost.userInfo?.verified && (
                           <Badge className="bg-green-500 text-white text-xs">Verified</Badge>
@@ -441,24 +441,24 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
                   <div className="grid grid-cols-2 gap-4 mb-3">
                     <div>
                       <p className="text-green-400 text-sm font-medium">Giving</p>
-                      <p className="text-white">₱{selectedPost.giveAmount} {selectedPost.giveType}</p>
+                      <p className="text-white font-semibold">₱{selectedPost.giveAmount} {selectedPost.giveType}</p>
                     </div>
                     <div>
                       <p className="text-blue-400 text-sm font-medium">Needs</p>
-                      <p className="text-white">₱{selectedPost.needAmount} {selectedPost.needType}</p>
+                      <p className="text-white font-semibold">₱{selectedPost.needAmount} {selectedPost.needType}</p>
                     </div>
                   </div>
                   {selectedPost.distance && (
-                    <p className="text-blue-200 text-sm">📍 {selectedPost.distance.toFixed(1)}km away</p>
+                    <p className="text-white text-sm font-medium">📍 {selectedPost.distance.toFixed(1)}km away</p>
                   )}
                 </div>
                 <Button
                   onClick={() => onPostSelect?.(selectedPost)}
                   size="sm"
-                  className="ml-4"
+                  className="ml-4 bg-blue-500 hover:bg-blue-600 text-white"
                 >
-                  <Users className="h-4 w-4 mr-2" />
-                  Connect
+                  <Handshake className="h-4 w-4 mr-2" />
+                  Match
                 </Button>
               </div>
             </CardContent>

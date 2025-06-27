@@ -211,3 +211,16 @@
 .react-hot-toast-root {
   z-index: 9999;
 }
+
+/* Dialog X button styles - make all X buttons white */
+button[data-state="open"] svg,
+button[aria-label="Close"] svg,
+.lucide-x {
+  color: white !important;
+}
+
+/* Dialog close button hover effect */
+button:hover .lucide-x {
+  color: white !important;
+  opacity: 0.8;
+}

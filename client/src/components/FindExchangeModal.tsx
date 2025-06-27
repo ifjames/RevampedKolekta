@@ -477,56 +477,7 @@ export function FindExchangeModal({ isOpen, onClose, onSelectPost }: FindExchang
               </div>
             )}
           </div>
-          <div className="p-6 pt-0 border-t border-white/10">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                {selectedPostForMap && (
-                  <>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-sm font-bold">
-                          {selectedPostForMap.userInfo?.name?.charAt(0) || 'U'}
-                        </span>
-                      </div>
-                      <div>
-                        <div className="text-white font-medium">{selectedPostForMap.userInfo?.name || 'User'}</div>
-                        <div className="text-blue-200 text-sm">
-                          ₱{selectedPostForMap.giveAmount} {selectedPostForMap.giveType} → ₱{selectedPostForMap.needAmount} {selectedPostForMap.needType}
-                        </div>
-                      </div>
-                    </div>
-                    {location && (
-                      <div className="text-blue-200 text-sm">
-                        📍 {distance(location.lat, location.lng, selectedPostForMap.location.lat, selectedPostForMap.location.lng).toFixed(1)}km away
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-              <div className="flex space-x-2">
-                <Button
-                  onClick={() => setShowMapView(false)}
-                  variant="outline"
-                  className="bg-white/10 text-white border-white/30 hover:bg-white/20"
-                >
-                  Close Map
-                </Button>
-                <Button
-                  onClick={() => {
-                    if (selectedPostForMap) {
-                      onSelectPost(selectedPostForMap);
-                      setShowMapView(false);
-                      onClose();
-                    }
-                  }}
-                  className="bg-blue-500 hover:bg-blue-600 text-white"
-                >
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  Request Exchange
-                </Button>
-              </div>
-            </div>
-          </div>
+
         </DialogContent>
       </Dialog>
     </>

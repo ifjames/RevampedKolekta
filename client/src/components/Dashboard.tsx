@@ -73,6 +73,8 @@ export function Dashboard({ onLogout }: DashboardProps) {
   
   const notificationCount = useNotificationCount();
 
+
+
   // Fetch user's posts from Firebase
   useEffect(() => {
     if (!user) return;
@@ -388,10 +390,26 @@ export function Dashboard({ onLogout }: DashboardProps) {
                           <p className="text-blue-100 text-sm">Someone wants to exchange with you</p>
                         </div>
                         <div className="flex space-x-2">
-                          <Button size="sm" className="bg-green-500 hover:bg-green-600 text-white">
+                          <Button 
+                            size="sm" 
+                            className="bg-green-500 hover:bg-green-600 text-white"
+                            onClick={() => {
+                              // Accept match logic
+                              toastInfo('Match accepted!');
+                              // Here you would handle the actual match acceptance
+                            }}
+                          >
                             Accept
                           </Button>
-                          <Button size="sm" variant="outline" className="text-white border-white/20">
+                          <Button 
+                            size="sm" 
+                            className="bg-red-500 hover:bg-red-600 text-white border-red-500"
+                            onClick={() => {
+                              // Decline match logic
+                              toastInfo('Match declined');
+                              // Here you would handle the actual match decline
+                            }}
+                          >
                             Decline
                           </Button>
                         </div>
@@ -584,8 +602,8 @@ export function Dashboard({ onLogout }: DashboardProps) {
             >
               <Bell className="h-5 w-5" />
               {notificationCount > 0 && (
-                <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 bg-red-500 text-white text-xs">
-                  {notificationCount}
+                <Badge className="absolute top-0 right-0 h-5 w-5 rounded-full flex items-center justify-center bg-red-500 text-white text-xs transform translate-x-1 -translate-y-1">
+                  {notificationCount > 9 ? '9+' : notificationCount}
                 </Badge>
               )}
             </Button>
@@ -782,54 +800,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
               </div>
             )}
           </div>
-          <div className="p-6 pt-0 border-t border-white/10">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                {selectedPostForMap && (
-                  <>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-sm font-bold">
-                          {selectedPostForMap.userInfo?.name?.charAt(0) || 'U'}
-                        </span>
-                      </div>
-                      <div>
-                        <div className="text-white font-medium">{selectedPostForMap.userInfo?.name || 'User'}</div>
-                        <div className="text-blue-100 text-sm">
-                          ₱{selectedPostForMap.giveAmount} {selectedPostForMap.giveType} → ₱{selectedPostForMap.needAmount} {selectedPostForMap.needType}
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-              <div className="flex space-x-2">
-                <Button
-                  onClick={() => setShowMapView(false)}
-                  variant="outline"
-                  className="glass-dark text-white border-white/20 hover:bg-white/10"
-                >
-                  Close Map
-                </Button>
-                <Button
-                  onClick={() => {
-                    if (selectedPostForMap) {
-                      requestMatch(selectedPostForMap, selectedPostForMap).then(() => {
-                        toastInfo('Match request sent!');
-                        setShowMapView(false);
-                      }).catch(() => {
-                        toastInfo('Failed to send match request');
-                      });
-                    }
-                  }}
-                  className="bg-blue-500 hover:bg-blue-600 text-white"
-                >
-                  <Handshake className="h-4 w-4 mr-2" />
-                  Request Exchange
-                </Button>
-              </div>
-            </div>
-          </div>
+
         </DialogContent>
       </Dialog>
     </div>
