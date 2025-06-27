@@ -8,6 +8,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -137,6 +138,9 @@ export function CreatePostModal({ isOpen, onClose }: CreatePostModalProps) {
             <DollarSign className="mr-2 h-6 w-6" />
             Create Exchange Post
           </DialogTitle>
+          <DialogDescription className="text-blue-100">
+            Create a new exchange request to find people nearby who can help with your cash denomination needs.
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">

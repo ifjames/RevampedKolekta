@@ -87,52 +87,47 @@ export function useMatching() {
 
   // Listen for potential matches based on user's active posts
   useEffect(() => {
-    if (!user?.uid || !location) return;
+    if (!user?.uid || !location) {
+      setMatches([]);
+      setIsSearching(false);
+      return;
+    }
 
     setIsSearching(true);
 
-    // Listen to user's active posts
-    const userPostsQuery = query(
+    // Single query for all active posts
+    const allPostsQuery = query(
       collection(db, 'posts'),
-      where('userId', '==', user.uid),
       where('status', '==', 'active'),
-      orderBy('timestamp', 'desc'),
-      limit(10)
+      limit(100)
     );
 
-    const unsubscribeUserPosts = onSnapshot(userPostsQuery, (userPostsSnapshot) => {
-      const userPosts = userPostsSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        timestamp: doc.data().timestamp?.toDate() || new Date()
-      })) as ExchangePost[];
+    const unsubscribe = onSnapshot(allPostsQuery, (snapshot) => {
+      try {
+        const allPosts = snapshot.docs
+          .map(doc => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              ...data,
+              timestamp: data.timestamp?.toDate() || new Date()
+            } as ExchangePost;
+          });
 
-      if (userPosts.length === 0) {
-        setMatches([]);
-        setIsSearching(false);
-        return;
-      }
+        // Separate user posts and other posts
+        const userPosts = allPosts.filter(post => post.userId === user.uid);
+        const otherPosts = allPosts.filter(post => post.userId !== user.uid);
 
-      // Listen to all other active posts for matching
-      const allPostsQuery = query(
-        collection(db, 'posts'),
-        where('status', '==', 'active'),
-        where('userId', '!=', user.uid),
-        orderBy('timestamp', 'desc'),
-        limit(100)
-      );
-
-      const unsubscribeAllPosts = onSnapshot(allPostsQuery, (allPostsSnapshot) => {
-        const allPosts = allPostsSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-          timestamp: doc.data().timestamp?.toDate() || new Date()
-        })) as ExchangePost[];
+        if (userPosts.length === 0) {
+          setMatches([]);
+          setIsSearching(false);
+          return;
+        }
 
         // Find matches for each user post
         const allMatches: ExchangePost[] = [];
         userPosts.forEach(userPost => {
-          const postMatches = findMatches(userPost, allPosts);
+          const postMatches = findMatches(userPost, otherPosts);
           allMatches.push(...postMatches);
         });
 
@@ -143,27 +138,14 @@ export function useMatching() {
 
         setMatches(uniqueMatches);
         setIsSearching(false);
-
-        // Notify user of new matches
-        if (uniqueMatches.length > 0) {
-          const newMatches = uniqueMatches.filter(match => 
-            !matches.some(existing => existing.id === match.id)
-          );
-          
-          if (newMatches.length > 0) {
-            showMatchFound({
-              count: newMatches.length,
-              closest: newMatches[0]
-            });
-          }
-        }
-      });
-
-      return () => unsubscribeAllPosts();
+      } catch (error) {
+        console.error('Error processing matches:', error);
+        setIsSearching(false);
+      }
     });
 
-    return () => unsubscribeUserPosts();
-  }, [user?.uid, location, matchingOptions]);
+    return () => unsubscribe();
+  }, [user?.uid, location?.lat, location?.lng]);
 
   // Listen for match requests
   useEffect(() => {
@@ -172,17 +154,20 @@ export function useMatching() {
     const matchRequestsQuery = query(
       collection(db, 'matches'),
       where('userB', '==', user.uid),
-      where('status', 'in', ['pending', 'confirmed']),
-      orderBy('createdAt', 'desc'),
       limit(20)
     );
 
     const unsubscribe = onSnapshot(matchRequestsQuery, (snapshot) => {
-      const requests = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate() || new Date()
-      })) as Match[];
+      const requests = snapshot.docs
+        .map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            createdAt: data.createdAt?.toDate() || new Date()
+          } as Match;
+        })
+        .filter(match => ['pending', 'confirmed'].includes(match.status));
 
       setMatchRequests(requests);
     });

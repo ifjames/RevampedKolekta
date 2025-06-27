@@ -50,7 +50,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
   const [showVerification, setShowVerification] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [activeTab, setActiveTab] = useState('home');
-  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [selectedLocation, setSelectedLocation] = useState<any>(null);
   
   const notificationCount = useNotificationCount();
 
@@ -83,7 +83,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
   ];
 
   const navItems = [
-    { id: 'home', icon: Home, label: 'Home', active: true },
+    { id: 'home', icon: Home, label: 'Home' },
     { id: 'exchanges', icon: ExternalLink, label: 'Exchanges' },
     { id: 'chat', icon: MessageSquare, label: 'Chat' },
     { id: 'history', icon: History, label: 'History' },
@@ -305,10 +305,10 @@ export function Dashboard({ onLogout }: DashboardProps) {
               key={item.id}
               variant="ghost"
               onClick={() => handleNavClick(item.id)}
-              className={`flex flex-col items-center space-y-1 p-2 ${
+              className={`flex flex-col items-center space-y-1 p-2 transition-colors ${
                 activeTab === item.id 
-                  ? 'text-white' 
-                  : 'text-blue-200 hover:text-white'
+                  ? 'text-white bg-white/20 rounded-lg' 
+                  : 'text-blue-200 hover:text-white hover:bg-white/10 rounded-lg'
               }`}
             >
               <item.icon className="h-5 w-5" />
@@ -352,7 +352,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
           setSelectedLocation(location);
           setShowSafeMeetup(false);
         }}
-        userLocation={location}
+        userLocation={location && location.lat && location.lng ? { lat: location.lat, lng: location.lng } : undefined}
       />
 
       <VerificationModal

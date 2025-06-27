@@ -1,4 +1,6 @@
 export function formatTimeAgo(date: Date): string {
+  if (!date || isNaN(date.getTime())) return 'Invalid time';
+  
   const now = new Date();
   const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
   
@@ -16,6 +18,8 @@ export function formatTimeAgo(date: Date): string {
 }
 
 export function formatTime(date: Date): string {
+  if (!date || isNaN(date.getTime())) return 'Invalid time';
+  
   return date.toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
@@ -24,7 +28,12 @@ export function formatTime(date: Date): string {
 }
 
 export function formatDate(date: Date | string | number): string {
+  if (!date) return 'Invalid Date';
   const dateObj = date instanceof Date ? date : new Date(date);
+  
+  // Check if the date is valid
+  if (isNaN(dateObj.getTime())) return 'Invalid Date';
+  
   return dateObj.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',

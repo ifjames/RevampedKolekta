@@ -8,6 +8,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -91,7 +92,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'signin' }: AuthModal
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md glass-effect border-white/20 bg-blue-900/95" aria-describedby="auth-modal-description">
+      <DialogContent className="sm:max-w-md glass-effect border-white/20 bg-blue-900/95">
         <DialogHeader className="text-center">
           <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
             <Coins className="h-8 w-8 text-blue-600" />
@@ -99,9 +100,9 @@ export function AuthModal({ isOpen, onClose, initialMode = 'signin' }: AuthModal
           <DialogTitle className="text-2xl font-bold text-white">
             {isSignUp ? 'Join Kolekta' : 'Welcome Back'}
           </DialogTitle>
-          <p id="auth-modal-description" className="text-blue-100 mt-2">
+          <DialogDescription className="text-blue-100 mt-2">
             {isSignUp ? 'Join the community of cash exchangers' : 'Sign in to your account'}
-          </p>
+          </DialogDescription>
         </DialogHeader>
 
         <AnimatePresence mode="wait">

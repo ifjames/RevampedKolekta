@@ -5,6 +5,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -84,6 +85,9 @@ export function ProfileModal({ isOpen, onClose, onLogout }: ProfileModalProps) {
           <DialogTitle className="text-2xl font-bold text-white">
             {userProfile?.name || user?.displayName || 'User'}
           </DialogTitle>
+          <DialogDescription className="text-blue-100">
+            View and manage your profile information
+          </DialogDescription>
           <div className="flex items-center justify-center space-x-2 mt-2">
             {userProfile?.verified && (
               <Badge className="bg-green-500 text-white">
