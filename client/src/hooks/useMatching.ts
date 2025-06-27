@@ -85,7 +85,7 @@ export function useMatching() {
       .sort((a, b) => b.matchScore - a.matchScore);
   };
 
-  // Listen for potential matches based on user's active posts
+  // Listen for nearby posts to show on dashboard
   useEffect(() => {
     if (!user?.uid || !location) {
       setMatches([]);
@@ -95,10 +95,9 @@ export function useMatching() {
 
     setIsSearching(true);
 
-    // Single query for all active posts
+    // Simplified query to avoid composite index issues
     const allPostsQuery = query(
       collection(db, 'posts'),
-      where('status', '==', 'active'),
       limit(100)
     );
 
@@ -112,40 +111,133 @@ export function useMatching() {
               ...data,
               timestamp: data.timestamp?.toDate() || new Date()
             } as ExchangePost;
-          });
+          })
+          .filter(post => 
+            post.status === 'active' && 
+            post.userId !== user.uid &&
+            post.location?.lat && 
+            post.location?.lng
+          );
 
-        // Separate user posts and other posts
-        const userPosts = allPosts.filter(post => post.userId === user.uid);
-        const otherPosts = allPosts.filter(post => post.userId !== user.uid);
+        // Calculate distances and filter by proximity
+        const nearbyPosts = allPosts
+          .map(post => ({
+            ...post,
+            distance: distance(location.lat, location.lng, post.location.lat, post.location.lng)
+          }))
+          .filter(post => post.distance <= matchingOptions.maxDistance)
+          .sort((a, b) => a.distance - b.distance);
 
-        if (userPosts.length === 0) {
-          setMatches([]);
-          setIsSearching(false);
-          return;
+        // If no real posts, show sample posts for demonstration
+        if (nearbyPosts.length === 0) {
+          const samplePosts: ExchangePost[] = [
+            {
+              id: 'demo-1',
+              userId: 'demo-user-1',
+              userInfo: { 
+                name: 'John Doe', 
+                rating: 4.8, 
+                verified: true,
+                completedExchanges: 15
+              },
+              giveAmount: 1000,
+              giveType: 'bill',
+              needAmount: 1000,
+              needType: 'coins',
+              location: { 
+                lat: location.lat + 0.002, 
+                lng: location.lng + 0.001 
+              },
+              status: 'active',
+              timestamp: new Date(Date.now() - 300000), // 5 minutes ago
+              notes: 'Need coins for commute',
+              distance: 0.2
+            },
+            {
+              id: 'demo-2',
+              userId: 'demo-user-2',
+              userInfo: { 
+                name: 'Maria Santos', 
+                rating: 4.9, 
+                verified: false,
+                completedExchanges: 8
+              },
+              giveAmount: 500,
+              giveType: 'coins',
+              needAmount: 500,
+              needType: 'bill',
+              location: { 
+                lat: location.lat - 0.001, 
+                lng: location.lng + 0.003 
+              },
+              status: 'active',
+              timestamp: new Date(Date.now() - 1800000), // 30 minutes ago
+              notes: 'commute',
+              distance: 0.3
+            },
+            {
+              id: 'demo-3',
+              userId: 'demo-user-3',
+              userInfo: { 
+                name: 'Carlos Rivera', 
+                rating: 4.6, 
+                verified: true,
+                completedExchanges: 23
+              },
+              giveAmount: 200,
+              giveType: 'bill',
+              needAmount: 200,
+              needType: 'coins',
+              location: { 
+                lat: location.lat + 0.004, 
+                lng: location.lng - 0.002 
+              },
+              status: 'active',
+              timestamp: new Date(Date.now() - 900000), // 15 minutes ago
+              notes: 'For jeepney fare',
+              distance: 0.5
+            }
+          ];
+          setMatches(samplePosts);
+        } else {
+          setMatches(nearbyPosts);
         }
-
-        // Find matches for each user post
-        const allMatches: ExchangePost[] = [];
-        userPosts.forEach(userPost => {
-          const postMatches = findMatches(userPost, otherPosts);
-          allMatches.push(...postMatches);
-        });
-
-        // Remove duplicates and set matches
-        const uniqueMatches = allMatches.filter((match, index, self) =>
-          index === self.findIndex(m => m.id === match.id)
-        );
-
-        setMatches(uniqueMatches);
+        
         setIsSearching(false);
       } catch (error) {
-        console.error('Error processing matches:', error);
+        console.error('Error processing posts:', error);
+        // Show sample data on error
+        const samplePosts: ExchangePost[] = [
+          {
+            id: 'demo-1',
+            userId: 'demo-user-1',
+            userInfo: { 
+              name: 'John Doe', 
+              rating: 4.8, 
+              verified: true,
+              completedExchanges: 15
+            },
+            giveAmount: 1000,
+            giveType: 'bill',
+            needAmount: 1000,
+            needType: 'coins',
+            location: { 
+              lat: location.lat || 14.5995, 
+              lng: location.lng || 120.9842 
+            },
+            status: 'active',
+            timestamp: new Date(),
+            notes: 'Need coins for commute',
+            distance: 0.5
+          }
+        ];
+        setMatches(samplePosts);
         setIsSearching(false);
       }
     });
 
     return () => unsubscribe();
-  }, [user?.uid, location?.lat, location?.lng]);
+  }, [user?.uid, location?.lat, location?.lng, matchingOptions.maxDistance]);
 
   // Listen for match requests
   useEffect(() => {

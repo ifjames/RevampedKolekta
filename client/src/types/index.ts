@@ -11,6 +11,7 @@ export interface ExchangePost {
     name: string;
     rating: number;
     verified: boolean;
+    completedExchanges?: number;
   };
   giveAmount: number;
   giveType: 'bill' | 'coins';
