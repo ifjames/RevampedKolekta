@@ -39,11 +39,10 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
       zoomControl: true,
     });
 
-    // Add tile layer with dark theme to match app design
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-      subdomains: 'abcd',
-      maxZoom: 20
+    // Add tile layer with proper styling
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 19
     }).addTo(map);
 
     // Add click handler for location selection
@@ -117,7 +116,7 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
     };
   }, [location, showUserLocation, isMapReady]);
 
-  // Add exchange post markers
+  // Add exchange post markers and safe locations
   useEffect(() => {
     if (!mapInstanceRef.current || !isMapReady) return;
 
@@ -125,6 +124,7 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
     markersRef.current.forEach(marker => marker.remove());
     markersRef.current = [];
 
+    // Add exchange post markers
     posts.forEach((post) => {
       const isSelected = selectedPost?.id === post.id;
       const dist = location ? distance(location.lat, location.lng, post.location.lat, post.location.lng) : 0;
@@ -181,6 +181,60 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
       markersRef.current.push(marker);
     });
 
+    // Add safe zone markers if user location is available
+    if (location) {
+      const safeZones = [
+        { name: '7-Eleven', type: 'store', lat: location.lat + 0.005, lng: location.lng + 0.003, color: '#22c55e' },
+        { name: 'AlfaMart', type: 'store', lat: location.lat - 0.003, lng: location.lng + 0.007, color: '#22c55e' },
+        { name: 'University of Manila', type: 'school', lat: location.lat + 0.008, lng: location.lng - 0.004, color: '#3b82f6' },
+        { name: 'SM City Center', type: 'mall', lat: location.lat - 0.006, lng: location.lng - 0.002, color: '#8b5cf6' },
+        { name: 'BDO Bank', type: 'bank', lat: location.lat + 0.002, lng: location.lng - 0.008, color: '#f59e0b' },
+      ];
+
+      safeZones.forEach((zone) => {
+        const safeZoneIcon = L.divIcon({
+          html: `
+            <div style="
+              width: 24px; 
+              height: 24px; 
+              background: ${zone.color}; 
+              border: 2px solid white; 
+              border-radius: 4px; 
+              box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: white;
+              font-weight: bold;
+              font-size: 10px;
+              cursor: pointer;
+            ">
+              ${zone.type === 'store' ? '🏪' : zone.type === 'school' ? '🏫' : zone.type === 'mall' ? '🏬' : '🏦'}
+            </div>
+          `,
+          className: 'safe-zone-marker',
+          iconSize: [24, 24],
+          iconAnchor: [12, 12],
+        });
+
+        const safeMarker = L.marker([zone.lat, zone.lng], { icon: safeZoneIcon })
+          .addTo(mapInstanceRef.current!);
+
+        const safePopupContent = `
+          <div style="min-width: 150px; color: #1f2937;">
+            <div style="font-weight: bold; margin-bottom: 4px; color: ${zone.color};">Safe Zone</div>
+            <div style="margin-bottom: 2px;">${zone.name}</div>
+            <div style="font-size: 12px; color: #6b7280; text-transform: capitalize;">
+              ${zone.type}
+            </div>
+          </div>
+        `;
+
+        safeMarker.bindPopup(safePopupContent);
+        markersRef.current.push(safeMarker);
+      });
+    }
+
     return () => {
       markersRef.current.forEach(marker => marker.remove());
       markersRef.current = [];
@@ -209,6 +263,29 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
             <Navigation className="h-4 w-4" />
           </Button>
         )}
+      </div>
+
+      {/* Map Legend */}
+      <div className="absolute top-4 left-4">
+        <Card className="glass-effect border-white/20">
+          <CardContent className="p-3">
+            <h4 className="text-white font-medium mb-2 text-sm">Legend</h4>
+            <div className="space-y-1 text-xs">
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 bg-blue-500 rounded-full border border-white"></div>
+                <span className="text-white">Your Location</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 bg-red-500 rounded-full border border-white"></div>
+                <span className="text-white">Exchange Request</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 bg-green-500 rounded border border-white text-center leading-none">🏪</div>
+                <span className="text-white">Safe Zones</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Selected Post Info */}

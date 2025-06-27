@@ -45,8 +45,8 @@ export function SafeMeetupModal({ isOpen, onClose, onLocationSelect, userLocatio
   const [selectedType, setSelectedType] = useState<string>('all');
   const [safeLocations, setSafeLocations] = useState<SafeLocation[]>([]);
 
-  // Mock safe locations data (in real app, this would come from Firebase)
-  const mockSafeLocations: SafeLocation[] = [
+  // Generate safe locations based on user location
+  const generateNearbyLocations = (userLoc: { lat: number; lng: number }): SafeLocation[] => [
     {
       id: '1',
       name: 'SM City Manila',
@@ -117,14 +117,13 @@ export function SafeMeetupModal({ isOpen, onClose, onLocationSelect, userLocatio
 
   useEffect(() => {
     if (location) {
-      const locationsWithDistance = mockSafeLocations.map(loc => ({
+      const nearbyLocations = generateNearbyLocations(location);
+      const locationsWithDistance = nearbyLocations.map((loc: SafeLocation) => ({
         ...loc,
         distance: distance(location.lat, location.lng, loc.coordinates.lat, loc.coordinates.lng)
-      })).sort((a, b) => (a.distance || 0) - (b.distance || 0));
+      })).sort((a: SafeLocation, b: SafeLocation) => (a.distance || 0) - (b.distance || 0));
       
       setSafeLocations(locationsWithDistance);
-    } else {
-      setSafeLocations(mockSafeLocations);
     }
   }, [location]);
 

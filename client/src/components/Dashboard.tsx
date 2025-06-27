@@ -29,7 +29,7 @@ import { ChatModal } from './ChatModal';
 import { ProfileModal } from './ProfileModal';
 import { ExchangeCard } from './ExchangeCard';
 import { NotificationSystem, useNotificationCount } from './NotificationSystem';
-import { BusinessAccountModal } from './BusinessAccountModal';
+
 import { SafeMeetupModal } from './SafeMeetupModal';
 import { VerificationModal } from './VerificationModal';
 import { ReportModal } from './ReportModal';
@@ -53,7 +53,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
   const [showChat, setShowChat] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [showBusinessAccount, setShowBusinessAccount] = useState(false);
+
   const [showSafeMeetup, setShowSafeMeetup] = useState(false);
   const [showVerification, setShowVerification] = useState(false);
   const [showReport, setShowReport] = useState(false);
@@ -456,15 +456,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
         <Card className="glass-effect border-white/20">
           <CardContent className="p-6">
             <h3 className="text-white font-semibold mb-4">Account Actions</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <Button
-                onClick={() => setShowBusinessAccount(true)}
-                className="glass-dark text-white hover:bg-white/10 border-white/20"
-                variant="outline"
-              >
-                <Building2 className="mr-2 h-4 w-4" />
-                Business Account
-              </Button>
+            <div className="grid grid-cols-1 gap-4">
               <Button
                 onClick={() => setShowReport(true)}
                 className="glass-dark text-white hover:bg-white/10 border-white/20"
@@ -482,11 +474,11 @@ export function Dashboard({ onLogout }: DashboardProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-700 to-cyan-500">
-      {/* Mobile Header */}
+      {/* Desktop/Mobile Header */}
       <motion.header 
         initial={{ opacity: 0, y: -50 }}
         animate={{ opacity: 1, y: 0 }}
-        className="glass-effect fixed top-0 left-0 right-0 z-40 px-4 py-3"
+        className="glass-effect fixed top-0 left-0 right-0 z-40 px-4 lg:px-8 py-3"
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -495,10 +487,30 @@ export function Dashboard({ onLogout }: DashboardProps) {
             </div>
             <div>
               <h1 className="text-white font-bold">Kolekta</h1>
-              <p className="text-blue-100 text-sm">
+              <p className="text-blue-100 text-sm lg:hidden">
                 {getGreeting()}, {userProfile?.name || user?.displayName || 'User'}!
               </p>
             </div>
+          </div>
+          
+          {/* Desktop Navigation */}
+          <div className="hidden lg:flex items-center space-x-6">
+            {navItems.map((item) => (
+              <Button
+                key={item.id}
+                variant="ghost"
+                size="sm"
+                onClick={() => setActiveTab(item.id)}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+                  activeTab === item.id
+                    ? 'bg-white/20 text-white'
+                    : 'text-blue-100 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                <item.icon className="h-4 w-4" />
+                <span>{item.label}</span>
+              </Button>
+            ))}
           </div>
           
           <div className="flex items-center space-x-3">
@@ -528,7 +540,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
       </motion.header>
 
       {/* Main Content */}
-      <main className="pt-20 pb-20 px-4">
+      <main className="pt-20 pb-20 lg:pb-8 px-4 lg:px-8">
         {/* Quick Stats */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -583,11 +595,12 @@ export function Dashboard({ onLogout }: DashboardProps) {
         {renderTabContent()}
       </main>
 
-      {/* Floating Action Button */}
+      {/* Floating Action Button - Mobile Only */}
       <motion.div
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ delay: 0.6, type: "spring" }}
+        className="lg:hidden"
       >
         <Button
           onClick={() => setShowCreatePost(true)}
@@ -597,11 +610,11 @@ export function Dashboard({ onLogout }: DashboardProps) {
         </Button>
       </motion.div>
 
-      {/* Bottom Navigation */}
+      {/* Bottom Navigation - Hidden on Desktop */}
       <motion.nav 
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
-        className="glass-effect fixed bottom-0 left-0 right-0 z-40 px-4 py-3"
+        className="glass-effect fixed bottom-0 left-0 right-0 z-40 px-4 py-3 lg:hidden"
       >
         <div className="flex items-center justify-around max-w-md mx-auto">
           {navItems.map((item) => (
@@ -642,11 +655,6 @@ export function Dashboard({ onLogout }: DashboardProps) {
       <NotificationSystem
         isOpen={showNotifications}
         onClose={() => setShowNotifications(false)}
-      />
-
-      <BusinessAccountModal
-        isOpen={showBusinessAccount}
-        onClose={() => setShowBusinessAccount(false)}
       />
 
       <SafeMeetupModal

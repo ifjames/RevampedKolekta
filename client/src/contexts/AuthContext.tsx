@@ -50,7 +50,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
           // Get user profile from Firestore
           const userDoc = await getDoc(doc(db, 'users', user.uid));
           if (userDoc.exists()) {
-            setUserProfile({ id: user.uid, ...userDoc.data() } as UserProfile);
+            const data = userDoc.data();
+            // Convert Firestore timestamp to Date if needed
+            const profile = {
+              id: user.uid,
+              ...data,
+              createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt || Date.now())
+            } as UserProfile;
+            setUserProfile(profile);
           } else {
             // Create default profile if it doesn't exist
             const defaultProfile: Omit<UserProfile, 'id'> = {
