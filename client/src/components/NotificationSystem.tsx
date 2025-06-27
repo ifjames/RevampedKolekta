@@ -44,8 +44,7 @@ export function NotificationSystem({ isOpen, onClose }: NotificationSystemProps)
 
   const { data: allNotifications = [], loading } = useCollection<Notification>('notifications', user?.uid ? [
     where('userId', '==', user.uid),
-    orderBy('createdAt', 'desc'),
-    limit(20)
+    limit(50)
   ] : []);
 
   // Debug logging

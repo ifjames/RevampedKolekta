@@ -24,7 +24,8 @@ export function useMatchingSystem() {
       if (existingMatch) {
         toast({
           title: "Request Already Sent",
-          description: "You've already sent a match request to this user."
+          description: "You've already sent a match request to this user.",
+          variant: "destructive"
         });
         return;
       }
@@ -63,7 +64,8 @@ export function useMatchingSystem() {
 
       toast({
         title: "Match Request Sent!",
-        description: "You'll be notified when they respond."
+        description: "You'll be notified when they respond.",
+        variant: "default"
       });
 
       return matchRef;
@@ -158,12 +160,34 @@ export function useMatchingSystem() {
   // Check if user already has a pending/confirmed match with target user
   const checkExistingMatch = async (userA: string, userB: string, postId: string): Promise<boolean> => {
     try {
-      // This would typically query the database
-      // For now, we'll return false to allow the request
-      return false;
+      const { getDocs, query, collection, where } = await import('firebase/firestore');
+      const { db } = await import('@/lib/firebase');
+      
+      // Check userA -> userB
+      const query1 = query(
+        collection(db, 'matches'),
+        where('userA', '==', userA),
+        where('userB', '==', userB),
+        where('status', 'in', ['pending', 'confirmed'])
+      );
+      
+      // Check userB -> userA  
+      const query2 = query(
+        collection(db, 'matches'),
+        where('userA', '==', userB),
+        where('userB', '==', userA),
+        where('status', 'in', ['pending', 'confirmed'])
+      );
+      
+      const [result1, result2] = await Promise.all([
+        getDocs(query1),
+        getDocs(query2)
+      ]);
+      
+      return !result1.empty || !result2.empty;
     } catch (error) {
       console.error('Error checking existing match:', error);
-      return false;
+      return false; // Allow the request if we can't check
     }
   };
 
