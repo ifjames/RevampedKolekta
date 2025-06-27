@@ -12,7 +12,11 @@ import {
   ExternalLink,
   Star,
   Clock,
-  Users
+  Users,
+  Shield,
+  MapPin,
+  Building2,
+  AlertTriangle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -91,10 +95,322 @@ export function Dashboard({ onLogout }: DashboardProps) {
 
   const handleNavClick = (navId: string) => {
     setActiveTab(navId);
-    if (navId !== 'home') {
-      toastInfo(`${navId.charAt(0).toUpperCase() + navId.slice(1)} coming soon!`);
+  };
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'exchanges':
+        return renderExchangesTab();
+      case 'chat':
+        return renderChatTab();
+      case 'history':
+        return renderHistoryTab();
+      default:
+        return renderHomeTab();
     }
   };
+
+  const renderHomeTab = () => (
+    <>
+      {/* Active Exchanges Section */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="max-w-6xl mx-auto mb-8"
+      >
+        <h2 className="text-2xl font-bold text-white mb-4">Active Exchanges</h2>
+        <div className="space-y-4">
+          {incomingRequests.length > 0 ? (
+            incomingRequests.map((request) => (
+              <Card key={request.id} className="glass-effect border-white/20">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-white font-semibold">Match Request</h3>
+                      <p className="text-blue-100 text-sm">Someone wants to exchange with you!</p>
+                    </div>
+                    <Badge className="bg-green-500">New</Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            <Card className="glass-effect border-white/20">
+              <CardContent className="p-8 text-center">
+                <Clock className="h-12 w-12 text-blue-300 mx-auto mb-3" />
+                <p className="text-white font-semibold">No active exchanges</p>
+                <p className="text-blue-100 text-sm">Create a post to start exchanging!</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </motion.div>
+
+      {/* Nearby Posts Section */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="max-w-6xl mx-auto"
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-bold text-white">Nearby Exchanges</h2>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => window.location.reload()}
+            className="glass-effect text-white hover:bg-white/10"
+          >
+            <RotateCcw className="mr-2 h-4 w-4" />
+            Refresh
+          </Button>
+        </div>
+        
+        <div className="space-y-4">
+          {loading ? (
+            <Card className="glass-effect border-white/20">
+              <CardContent className="p-8 text-center">
+                <div className="animate-spin h-8 w-8 border-2 border-white border-t-transparent rounded-full mx-auto mb-3"></div>
+                <p className="text-white">Finding nearby exchanges...</p>
+              </CardContent>
+            </Card>
+          ) : nearbyPosts.length > 0 ? (
+            nearbyPosts.map((post) => (
+              <ExchangeCard 
+                key={post.id} 
+                post={post} 
+                onMatch={() => {
+                  requestMatch(post, post).then(() => {
+                    toastInfo('Match request sent!');
+                  }).catch(() => {
+                    toastInfo('Failed to send match request');
+                  });
+                }} 
+              />
+            ))
+          ) : (
+            <Card className="glass-effect border-white/20">
+              <CardContent className="p-8 text-center">
+                <Users className="h-12 w-12 text-blue-300 mx-auto mb-3" />
+                <p className="text-white font-semibold">No nearby exchanges found</p>
+                <p className="text-blue-100 text-sm">Be the first to post an exchange in your area!</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </motion.div>
+    </>
+  );
+
+  const renderExchangesTab = () => (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="max-w-6xl mx-auto"
+    >
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-white">Your Exchanges</h2>
+        <Button
+          onClick={() => setShowCreatePost(true)}
+          className="bg-green-500 hover:bg-green-600 text-white"
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          Create Exchange
+        </Button>
+      </div>
+
+      <div className="grid gap-6">
+        {/* Active Posts */}
+        <Card className="glass-effect border-white/20">
+          <CardContent className="p-6">
+            <h3 className="text-white font-semibold mb-4 flex items-center">
+              <Clock className="mr-2 h-5 w-5 text-green-400" />
+              Active Posts
+            </h3>
+            <div className="space-y-4">
+              <Card className="glass-dark border-white/10">
+                <CardContent className="p-4 text-center">
+                  <Clock className="h-8 w-8 text-blue-300 mx-auto mb-2" />
+                  <p className="text-white text-sm">No active posts</p>
+                  <p className="text-blue-100 text-xs">Create your first exchange post</p>
+                </CardContent>
+              </Card>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Match Requests */}
+        <Card className="glass-effect border-white/20">
+          <CardContent className="p-6">
+            <h3 className="text-white font-semibold mb-4 flex items-center">
+              <Users className="mr-2 h-5 w-5 text-blue-400" />
+              Match Requests
+            </h3>
+            <div className="space-y-4">
+              {incomingRequests.length > 0 ? (
+                incomingRequests.map((request) => (
+                  <Card key={request.id} className="glass-dark border-white/10">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-white font-medium">New Match Request</p>
+                          <p className="text-blue-100 text-sm">Someone wants to exchange with you</p>
+                        </div>
+                        <div className="flex space-x-2">
+                          <Button size="sm" className="bg-green-500 hover:bg-green-600 text-white">
+                            Accept
+                          </Button>
+                          <Button size="sm" variant="outline" className="text-white border-white/20">
+                            Decline
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <Card className="glass-dark border-white/10">
+                  <CardContent className="p-4 text-center">
+                    <Users className="h-8 w-8 text-blue-300 mx-auto mb-2" />
+                    <p className="text-white text-sm">No pending requests</p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </motion.div>
+  );
+
+  const renderChatTab = () => (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="max-w-6xl mx-auto"
+    >
+      <h2 className="text-2xl font-bold text-white mb-6">Messages</h2>
+      
+      <div className="space-y-4">
+        <Card className="glass-effect border-white/20">
+          <CardContent className="p-6">
+            <h3 className="text-white font-semibold mb-4 flex items-center">
+              <MessageSquare className="mr-2 h-5 w-5 text-blue-400" />
+              Active Chats
+            </h3>
+            <div className="space-y-4">
+              <Card className="glass-dark border-white/10">
+                <CardContent className="p-4 text-center">
+                  <MessageSquare className="h-8 w-8 text-blue-300 mx-auto mb-2" />
+                  <p className="text-white text-sm">No active chats</p>
+                  <p className="text-blue-100 text-xs">Start an exchange to begin chatting</p>
+                </CardContent>
+              </Card>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="glass-effect border-white/20">
+          <CardContent className="p-6">
+            <h3 className="text-white font-semibold mb-4">Quick Actions</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <Button
+                onClick={() => setShowVerification(true)}
+                className="glass-dark text-white hover:bg-white/10 border-white/20"
+                variant="outline"
+              >
+                <Shield className="mr-2 h-4 w-4" />
+                Get Verified
+              </Button>
+              <Button
+                onClick={() => setShowSafeMeetup(true)}
+                className="glass-dark text-white hover:bg-white/10 border-white/20"
+                variant="outline"
+              >
+                <MapPin className="mr-2 h-4 w-4" />
+                Safe Locations
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </motion.div>
+  );
+
+  const renderHistoryTab = () => (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="max-w-6xl mx-auto"
+    >
+      <h2 className="text-2xl font-bold text-white mb-6">Exchange History</h2>
+      
+      <div className="space-y-4">
+        <Card className="glass-effect border-white/20">
+          <CardContent className="p-6">
+            <h3 className="text-white font-semibold mb-4 flex items-center">
+              <History className="mr-2 h-5 w-5 text-green-400" />
+              Completed Exchanges
+            </h3>
+            <div className="space-y-4">
+              <Card className="glass-dark border-white/10">
+                <CardContent className="p-4 text-center">
+                  <History className="h-8 w-8 text-blue-300 mx-auto mb-2" />
+                  <p className="text-white text-sm">No completed exchanges yet</p>
+                  <p className="text-blue-100 text-xs">Your exchange history will appear here</p>
+                </CardContent>
+              </Card>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="glass-effect border-white/20">
+          <CardContent className="p-6">
+            <h3 className="text-white font-semibold mb-4">Statistics</h3>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="text-center">
+                <p className="text-2xl font-bold text-white">{userProfile?.completedExchanges || 0}</p>
+                <p className="text-blue-100 text-sm">Total Exchanges</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-white">{(userProfile?.rating || 5.0).toFixed(1)}</p>
+                <p className="text-blue-100 text-sm">Rating</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-white">0</p>
+                <p className="text-blue-100 text-sm">This Month</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="glass-effect border-white/20">
+          <CardContent className="p-6">
+            <h3 className="text-white font-semibold mb-4">Account Actions</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <Button
+                onClick={() => setShowBusinessAccount(true)}
+                className="glass-dark text-white hover:bg-white/10 border-white/20"
+                variant="outline"
+              >
+                <Building2 className="mr-2 h-4 w-4" />
+                Business Account
+              </Button>
+              <Button
+                onClick={() => setShowReport(true)}
+                className="glass-dark text-white hover:bg-white/10 border-white/20"
+                variant="outline"
+              >
+                <AlertTriangle className="mr-2 h-4 w-4" />
+                Report Issue
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </motion.div>
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-700 to-cyan-500">
@@ -121,7 +437,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => toastInfo('Notifications coming soon!')}
+              onClick={() => setShowNotifications(true)}
               className="relative p-2 text-white hover:bg-white/10"
             >
               <Bell className="h-5 w-5" />
@@ -195,88 +511,8 @@ export function Dashboard({ onLogout }: DashboardProps) {
           </motion.div>
         )}
 
-        {/* Active Exchanges Section */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="max-w-6xl mx-auto mb-8"
-        >
-          <h2 className="text-2xl font-bold text-white mb-4">Active Exchanges</h2>
-          <div className="space-y-4">
-            {incomingRequests.length > 0 ? (
-              incomingRequests.map((request) => (
-                <Card key={request.id} className="glass-effect border-white/20">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-white font-semibold">Match Request</h3>
-                        <p className="text-blue-100 text-sm">Someone wants to exchange with you!</p>
-                      </div>
-                      <Badge className="bg-green-500">New</Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            ) : (
-              <Card className="glass-effect border-white/20">
-                <CardContent className="p-8 text-center">
-                  <Clock className="h-12 w-12 text-blue-300 mx-auto mb-3" />
-                  <p className="text-white font-semibold">No active exchanges</p>
-                  <p className="text-blue-100 text-sm">Create a post to start exchanging!</p>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </motion.div>
-
-        {/* Nearby Posts Section */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="max-w-6xl mx-auto"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-white">Nearby Exchanges</h2>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => toastInfo('Refreshing...')}
-              className="glass-effect text-white hover:bg-white/10"
-            >
-              <RotateCcw className="mr-2 h-4 w-4" />
-              Refresh
-            </Button>
-          </div>
-          
-          <div className="space-y-4">
-            {loading ? (
-              <Card className="glass-effect border-white/20">
-                <CardContent className="p-8 text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-3"></div>
-                  <p className="text-blue-100">Loading nearby exchanges...</p>
-                </CardContent>
-              </Card>
-            ) : nearbyPosts.length > 0 ? (
-              nearbyPosts.map((post) => (
-                <ExchangeCard
-                  key={post.id}
-                  post={post}
-                  onMatch={() => requestMatch(post, nearbyPosts[0])}
-                />
-              ))
-            ) : (
-              <Card className="glass-effect border-white/20">
-                <CardContent className="p-8 text-center">
-                  <Users className="h-12 w-12 text-blue-300 mx-auto mb-3" />
-                  <p className="text-white font-semibold">No nearby exchanges found</p>
-                  <p className="text-blue-100 text-sm">Be the first to post an exchange in your area!</p>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </motion.div>
+        {/* Tab Content */}
+        {renderTabContent()}
       </main>
 
       {/* Floating Action Button */}
