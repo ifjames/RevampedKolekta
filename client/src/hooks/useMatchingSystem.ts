@@ -94,20 +94,20 @@ export function useMatchingSystem() {
         chatOpened: true
       });
 
-      // Create active exchange
+      // Create active exchange with proper names from match data
       const exchangeData = {
         matchId,
         userA: matchData.userA,
         userB: matchData.userB,
-        userAName: user.displayName || user.email || 'User A',
-        userBName: 'Exchange Partner',
+        userAName: matchData.userAName || 'User A',
+        userBName: matchData.userBName || 'User B',
         postAId: matchData.postAId,
         postBId: matchData.postBId,
         status: 'active',
         participants: [matchData.userA, matchData.userB],
         initiatedBy: matchData.userA,
         partnerUser: matchData.userA === user.uid ? matchData.userB : matchData.userA,
-        partnerName: 'Exchange Partner',
+        partnerName: matchData.userA === user.uid ? matchData.userBName : matchData.userAName,
         exchangeDetails: {
           giveAmount: 1000,
           giveType: 'bill',
@@ -123,7 +123,7 @@ export function useMatchingSystem() {
       await addDocument('chats', {
         exchangeId: matchId,
         participants: [matchData.userA, matchData.userB],
-        participantNames: [user.displayName || user.email || 'User', 'Exchange Partner'],
+        participantNames: [matchData.userAName || 'User A', matchData.userBName || 'User B'],
         lastMessage: '',
         lastMessageAt: new Date(),
         createdAt: new Date(),

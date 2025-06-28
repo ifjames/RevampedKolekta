@@ -36,18 +36,47 @@ export function getGreeting(): string {
   }
 }
 
-export function formatTime(date: Date | string | number): string {
-  const dateObj = typeof date === 'string' || typeof date === 'number' ? new Date(date) : date;
+export function formatTime(date: any): string {
+  let dateObj: Date;
   
-  if (!dateObj || isNaN(dateObj.getTime())) {
+  try {
+    if (!date) {
+      return 'Invalid time';
+    }
+    
+    // Handle Firestore timestamp
+    if (date && typeof date === 'object' && date.seconds) {
+      dateObj = new Date(date.seconds * 1000);
+    }
+    // Handle Date object
+    else if (date instanceof Date) {
+      dateObj = date;
+    }
+    // Handle string or number
+    else if (typeof date === 'string' || typeof date === 'number') {
+      dateObj = new Date(date);
+    }
+    // Handle object with toDate method (Firestore Timestamp)
+    else if (date && typeof date.toDate === 'function') {
+      dateObj = date.toDate();
+    }
+    else {
+      return 'Invalid time';
+    }
+    
+    if (!dateObj || isNaN(dateObj.getTime())) {
+      return 'Invalid time';
+    }
+    
+    return dateObj.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true 
+    });
+  } catch (error) {
+    console.error('Error formatting time:', error, date);
     return 'Invalid time';
   }
-  
-  return dateObj.toLocaleTimeString('en-US', { 
-    hour: 'numeric', 
-    minute: '2-digit',
-    hour12: true 
-  });
 }
 
 export function formatDate(date: Date): string {
