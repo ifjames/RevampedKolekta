@@ -20,7 +20,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCollection, useFirestoreOperations } from '@/hooks/useFirestore';
-import { where, orderBy, limit, doc, getDoc } from 'firebase/firestore';
+import { where, orderBy, limit, doc, getDoc, collection, query, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { toast } from 'react-hot-toast';
 import { formatTime } from '@/utils/timeUtils';
@@ -66,13 +66,56 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
     }
   });
 
-  // Listen to chat messages with real-time updates
-  const { data: messages, loading } = useCollection<ChatMessage>('messages', 
-    matchId ? [
+  // State for messages with real-time updates
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Real-time message listener
+  useEffect(() => {
+    if (!matchId) {
+      setMessages([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    const messagesRef = collection(db, 'messages');
+    const q = query(
+      messagesRef,
       where('matchId', '==', matchId),
       orderBy('timestamp', 'asc')
-    ] : []
-  );
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot: any) => {
+      const newMessages: ChatMessage[] = [];
+      snapshot.forEach((doc: any) => {
+        const data = doc.data();
+        newMessages.push({
+          id: doc.id,
+          matchId: data.matchId,
+          sender: data.sender,
+          text: data.text,
+          timestamp: data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp),
+          read: data.read || false
+        });
+      });
+      
+      setMessages(newMessages);
+      setLoading(false);
+      
+      // Auto-scroll when new messages arrive
+      setTimeout(() => {
+        if (messagesEndRef.current) {
+          messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }
+      }, 100);
+    }, (error: any) => {
+      console.error('Error fetching messages:', error);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [matchId]);
 
   // Fetch real partner profile information from database
   useEffect(() => {
@@ -120,21 +163,16 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
     }
   }, [exchange, user?.uid, partnerName]);
 
-  // Auto-scroll to bottom when new messages arrive
+  // Auto-scroll when messages change
   useEffect(() => {
-    const scrollToBottom = () => {
-      if (messagesEndRef.current) {
-        messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
-      }
-    };
-    
-    // Immediate scroll for better responsiveness
     if (messages && messages.length > 0) {
-      scrollToBottom();
-      // Also set a timeout as backup
-      setTimeout(scrollToBottom, 50);
+      setTimeout(() => {
+        if (messagesEndRef.current) {
+          messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }
+      }, 50);
     }
-  }, [messages]); // Trigger on any message changes, not just count
+  }, [messages.length]);
 
   // Mark messages as read when chat opens
   useEffect(() => {
@@ -171,18 +209,11 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
         read: false
       };
 
-      // Add message to Firebase
+      // Add message to Firebase - this will trigger the real-time listener
       await addDocument('messages', messageData);
       
       // Clear form immediately
       reset();
-      
-      // Force immediate scroll
-      setTimeout(() => {
-        if (messagesEndRef.current) {
-          messagesEndRef.current.scrollIntoView({ behavior: 'auto', block: 'end' });
-        }
-      }, 100);
       
     } catch (error) {
       console.error('Error sending message:', error);
