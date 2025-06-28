@@ -14,7 +14,9 @@ import {
   Building,
   Zap,
   Coffee,
-  Users
+  Users,
+  RefreshCw,
+  Sliders
 } from 'lucide-react';
 import { useLocation } from '@/contexts/LocationContext';
 
@@ -39,10 +41,12 @@ interface SafeMeetupModalProps {
 }
 
 export function SafeMeetupModal({ isOpen, onClose, onLocationSelect, userLocation }: SafeMeetupModalProps) {
-  const { location } = useLocation();
+  const { location, requestLocation } = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState('all');
+  const [maxDistance, setMaxDistance] = useState(10); // Default 10km
   const [safeLocations, setSafeLocations] = useState<SafeLocation[]>([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Distance calculation function
   const distance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
@@ -160,15 +164,14 @@ export function SafeMeetupModal({ isOpen, onClose, onLocationSelect, userLocatio
       const locationsWithDistance = nearbyLocations.map((loc: SafeLocation) => ({
         ...loc,
         distance: distance(userLoc.lat, userLoc.lng, loc.coordinates.lat, loc.coordinates.lng)
-      })).filter((loc: SafeLocation) => (loc.distance || 0) <= 10) // Only show locations within 10km
+      })).filter((loc: SafeLocation) => (loc.distance || 0) <= maxDistance) // Filter by selected distance
         .sort((a: SafeLocation, b: SafeLocation) => (a.distance || 0) - (b.distance || 0));
       
       setSafeLocations(locationsWithDistance);
     } else {
-      // If no location, show empty state or request location
       setSafeLocations([]);
     }
-  }, [location, userLocation]);
+  }, [location, userLocation, maxDistance]);
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -204,6 +207,17 @@ export function SafeMeetupModal({ isOpen, onClose, onLocationSelect, userLocatio
     { value: 'convenience_store', label: 'Stores' }
   ];
 
+  const handleRefreshLocation = async () => {
+    setIsRefreshing(true);
+    try {
+      await requestLocation();
+    } catch (error) {
+      console.error('Failed to refresh location:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   const filteredLocations = useMemo(() => {
     return safeLocations.filter(location => {
       const matchesType = selectedType === 'all' || location.type === selectedType;
@@ -212,6 +226,15 @@ export function SafeMeetupModal({ isOpen, onClose, onLocationSelect, userLocatio
       return matchesType && matchesSearch;
     });
   }, [safeLocations, selectedType, searchQuery]);
+
+  const currentLocation = userLocation || location;
+  const distanceOptions = [
+    { value: 5, label: '5 km' },
+    { value: 10, label: '10 km' },
+    { value: 15, label: '15 km' },
+    { value: 20, label: '20 km' },
+    { value: 50, label: '50 km' }
+  ];
 
   if (!isOpen) return null;
 
@@ -253,6 +276,33 @@ export function SafeMeetupModal({ isOpen, onClose, onLocationSelect, userLocatio
             </CardHeader>
 
             <CardContent className="p-6">
+              {/* Current Location Display */}
+              {currentLocation && (
+                <div className="bg-blue-900/30 border border-blue-400/30 rounded-lg p-4 mb-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <MapPin className="h-5 w-5 text-blue-400" />
+                      <div>
+                        <p className="text-white text-sm font-medium">Current Location</p>
+                        <p className="text-blue-200 text-xs">
+                          {currentLocation.lat.toFixed(4)}, {currentLocation.lng.toFixed(4)}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={handleRefreshLocation}
+                      disabled={isRefreshing}
+                      size="sm"
+                      variant="outline"
+                      className="bg-white/10 text-white border-white/30 hover:bg-white/20"
+                    >
+                      <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                      {isRefreshing ? 'Refreshing...' : 'Refresh Location'}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               {/* Search and Filter */}
               <div className="space-y-4 mb-6">
                 <Input
@@ -261,23 +311,52 @@ export function SafeMeetupModal({ isOpen, onClose, onLocationSelect, userLocatio
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="bg-white/10 border-white/20 text-white placeholder-blue-200"
                 />
+
+                {/* Distance Filter */}
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-2">
+                    <Sliders className="h-4 w-4 text-blue-400" />
+                    <span className="text-white text-sm">Distance:</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {distanceOptions.map((option) => (
+                      <Button
+                        key={option.value}
+                        variant={maxDistance === option.value ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setMaxDistance(option.value)}
+                        className={`transition-all duration-200 ${
+                          maxDistance === option.value
+                            ? 'bg-gradient-to-r from-green-500 to-green-600 text-white border-green-400 shadow-lg shadow-green-500/25'
+                            : 'bg-white/10 text-white border-white/30 hover:bg-white/20 hover:border-white/50 hover:text-white'
+                        }`}
+                      >
+                        {option.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
                 
-                <div className="flex flex-wrap gap-2">
-                  {locationTypes.map((type) => (
-                    <Button
-                      key={type.value}
-                      variant={selectedType === type.value ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setSelectedType(type.value)}
-                      className={`transition-all duration-200 ${
-                        selectedType === type.value
-                          ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-400 shadow-lg shadow-blue-500/25'
-                          : 'bg-white/10 text-white border-white/30 hover:bg-white/20 hover:border-white/50 hover:text-white'
-                      }`}
-                    >
-                      {type.label}
-                    </Button>
-                  ))}
+                {/* Location Type Filter */}
+                <div className="flex items-center space-x-4">
+                  <span className="text-white text-sm">Type:</span>
+                  <div className="flex flex-wrap gap-2">
+                    {locationTypes.map((type) => (
+                      <Button
+                        key={type.value}
+                        variant={selectedType === type.value ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setSelectedType(type.value)}
+                        className={`transition-all duration-200 ${
+                          selectedType === type.value
+                            ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-400 shadow-lg shadow-blue-500/25'
+                            : 'bg-white/10 text-white border-white/30 hover:bg-white/20 hover:border-white/50 hover:text-white'
+                        }`}
+                      >
+                        {type.label}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
@@ -295,21 +374,44 @@ export function SafeMeetupModal({ isOpen, onClose, onLocationSelect, userLocatio
               </div>
 
               {/* No Location State */}
-              {!location && !userLocation && (
+              {!currentLocation && (
                 <div className="text-center py-8">
                   <div className="bg-yellow-900/30 border border-yellow-400/30 rounded-lg p-6">
                     <MapPin className="h-12 w-12 text-yellow-400 mx-auto mb-4" />
                     <h3 className="text-white font-semibold mb-2">Location Access Required</h3>
                     <p className="text-yellow-200 text-sm mb-4">
-                      We need your location to show nearby safe meetup spots within 10km of you.
+                      We need your location to show nearby safe meetup spots within {maxDistance}km of you.
                     </p>
                     <Button
-                      onClick={() => window.location.reload()}
+                      onClick={handleRefreshLocation}
+                      disabled={isRefreshing}
                       className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white"
                     >
                       <Navigation className="h-4 w-4 mr-2" />
-                      Enable Location
+                      {isRefreshing ? 'Getting Location...' : 'Enable Location'}
                     </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* No Results State */}
+              {currentLocation && filteredLocations.length === 0 && (
+                <div className="text-center py-8">
+                  <div className="bg-gray-900/30 border border-gray-400/30 rounded-lg p-6">
+                    <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-white font-semibold mb-2">No locations found</h3>
+                    <p className="text-gray-200 text-sm mb-4">
+                      Try increasing your distance to {maxDistance > 20 ? '50km' : '20km'} or changing your location type filter.
+                    </p>
+                    {maxDistance < 50 && (
+                      <Button
+                        onClick={() => setMaxDistance(maxDistance === 5 ? 10 : maxDistance === 10 ? 20 : 50)}
+                        variant="outline"
+                        className="bg-white/10 text-white border-white/30 hover:bg-white/20"
+                      >
+                        Increase Distance to {maxDistance === 5 ? '10km' : maxDistance === 10 ? '20km' : '50km'}
+                      </Button>
+                    )}
                   </div>
                 </div>
               )}
