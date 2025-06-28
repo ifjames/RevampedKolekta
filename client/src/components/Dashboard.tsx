@@ -20,7 +20,8 @@ import {
   Handshake,
   CheckCircle,
   Map,
-  Minus
+  Minus,
+  Eye
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -333,8 +334,8 @@ export function Dashboard({ onLogout }: DashboardProps) {
                     <SelectItem value="5">5km</SelectItem>
                     <SelectItem value="10">10km</SelectItem>
                     <SelectItem value="15">15km</SelectItem>
-                    <SelectItem value="20">20km</SelectItem>
                     <SelectItem value="50">50km</SelectItem>
+                    <SelectItem value="999">All</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -421,18 +422,33 @@ export function Dashboard({ onLogout }: DashboardProps) {
               </CardContent>
             </Card>
           ) : nearbyPosts.length > 0 ? (
-            nearbyPosts.map((post) => (
-              <ExchangeCard 
-                key={post.id} 
-                post={post} 
-                onMatch={() => handleMatchRequest(post)}
-                isMatching={matchingPostId === post.id}
-                onViewMap={() => {
-                  setSelectedPostForMap(post);
-                  setShowMapView(true);
-                }}
-              />
-            ))
+            <>
+              {nearbyPosts.slice(0, 5).map((post) => (
+                <ExchangeCard 
+                  key={post.id} 
+                  post={post} 
+                  onMatch={() => handleMatchRequest(post)}
+                  isMatching={matchingPostId === post.id}
+                  onViewMap={() => {
+                    setSelectedPostForMap(post);
+                    setShowMapView(true);
+                  }}
+                />
+              ))}
+              {nearbyPosts.length > 5 && (
+                <Card className="glass-effect border-white/20">
+                  <CardContent className="p-4 text-center">
+                    <Button
+                      onClick={() => setShowFindExchange(true)}
+                      className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
+                    >
+                      <Eye className="mr-2 h-4 w-4" />
+                      View All Exchanges ({nearbyPosts.length})
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+            </>
           ) : (
             <Card className="glass-effect border-white/20">
               <CardContent className="p-8 text-center">
@@ -580,34 +596,49 @@ export function Dashboard({ onLogout }: DashboardProps) {
             </h3>
             <div className="space-y-4">
               {pendingRequests.length > 0 ? (
-                pendingRequests.map((request) => (
-                  <Card key={request.id} className="glass-dark border-white/10">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-white font-medium">New Match Request</p>
-                          <p className="text-blue-100 text-sm">Someone wants to exchange with you</p>
+                <>
+                  {pendingRequests.slice(0, 7).map((request) => (
+                    <Card key={request.id} className="glass-dark border-white/10">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-white font-medium">New Match Request</p>
+                            <p className="text-blue-100 text-sm">Someone wants to exchange with you</p>
+                          </div>
+                          <div className="flex space-x-2">
+                            <Button 
+                              size="sm" 
+                              className="bg-green-500 hover:bg-green-600 text-white"
+                              onClick={() => acceptMatchRequest(request.id, request.userA)}
+                            >
+                              Accept
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              className="bg-red-500 hover:bg-red-600 text-white border-red-500"
+                              onClick={() => declineMatchRequest(request.id, request.userA)}
+                            >
+                              Decline
+                            </Button>
+                          </div>
                         </div>
-                        <div className="flex space-x-2">
-                          <Button 
-                            size="sm" 
-                            className="bg-green-500 hover:bg-green-600 text-white"
-                            onClick={() => acceptMatchRequest(request.id, request.userA)}
-                          >
-                            Accept
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            className="bg-red-500 hover:bg-red-600 text-white border-red-500"
-                            onClick={() => declineMatchRequest(request.id, request.userA)}
-                          >
-                            Decline
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
+                      </CardContent>
+                    </Card>
+                  ))}
+                  {pendingRequests.length > 7 && (
+                    <Card className="glass-dark border-white/10">
+                      <CardContent className="p-4 text-center">
+                        <Button
+                          onClick={() => setShowNotifications(true)}
+                          className="bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white"
+                        >
+                          <Eye className="mr-2 h-4 w-4" />
+                          View All Match Requests ({pendingRequests.length})
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )}
+                </>
               ) : (
                 <Card className="glass-dark border-white/10">
                   <CardContent className="p-4 text-center">
@@ -640,35 +671,54 @@ export function Dashboard({ onLogout }: DashboardProps) {
             </h3>
             <div className="space-y-4">
               {activeExchanges.length > 0 ? (
-                activeExchanges.map((exchange) => (
-                  <Card key={exchange.id} className="glass-dark border-white/10 hover:bg-white/5 transition-colors cursor-pointer"
-                    onClick={() => {
-                      setSelectedChatExchange(exchange);
-                      setShowChat(true);
-                    }}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-                            <MessageSquare className="h-5 w-5 text-white" />
+                <>
+                  {activeExchanges.slice(0, 5).map((exchange) => (
+                    <Card key={exchange.id} className="glass-dark border-white/10 hover:bg-white/5 transition-colors cursor-pointer"
+                      onClick={() => {
+                        setSelectedChatExchange(exchange);
+                        setShowChat(true);
+                      }}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                              <MessageSquare className="h-5 w-5 text-white" />
+                            </div>
+                            <div>
+                              <p className="text-white font-medium">
+                                {(() => {
+                                  return exchange.userA === user?.uid 
+                                    ? (exchange.userBName || 'Exchange Partner')
+                                    : (exchange.userAName || 'Exchange Partner');
+                                })()}
+                              </p>
+                              <p className="text-blue-100 text-sm">Active exchange • Click to chat</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-white font-medium">
-                              {(() => {
-                                return exchange.userA === user?.uid 
-                                  ? (exchange.userBName || 'Exchange Partner')
-                                  : (exchange.userAName || 'Exchange Partner');
-                              })()}
-                            </p>
-                            <p className="text-blue-100 text-sm">Active exchange • Click to chat</p>
-                          </div>
+                          <Badge className="bg-green-500">Active</Badge>
                         </div>
-                        <Badge className="bg-green-500">Active</Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
+                      </CardContent>
+                    </Card>
+                  ))}
+                  {activeExchanges.length > 5 && (
+                    <Card className="glass-dark border-white/10">
+                      <CardContent className="p-4 text-center">
+                        <Button
+                          onClick={() => {
+                            // Open a modal or navigate to show all chats
+                            // For now, we'll use the chat modal to show all
+                            setShowChat(true);
+                          }}
+                          className="bg-gradient-to-r from-blue-500 to-green-600 hover:from-blue-600 hover:to-green-700 text-white"
+                        >
+                          <Eye className="mr-2 h-4 w-4" />
+                          View All Chats ({activeExchanges.length})
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )}
+                </>
               ) : (
                 <Card className="glass-dark border-white/10">
                   <CardContent className="p-4 text-center">
@@ -727,7 +777,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
             <div className="space-y-4">
               {completedExchanges.length > 0 ? (
                 <>
-                  {(showAllHistory ? completedExchanges : getRecentExchanges()).map((exchange) => (
+                  {(showAllHistory ? completedExchanges : getRecentExchanges(8)).map((exchange) => (
                     <Card key={exchange.id} className="glass-dark border-white/10">
                       <CardContent className="p-4">
                         <div className="flex justify-between items-start mb-2">
@@ -762,7 +812,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
                     </Card>
                   ))}
                   
-                  {completedExchanges.length > 3 && !showAllHistory && (
+                  {completedExchanges.length > 8 && !showAllHistory && (
                     <div className="text-center">
                       <Button
                         variant="outline"

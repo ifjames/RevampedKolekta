@@ -428,49 +428,52 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
           exit={{ opacity: 0, y: 20 }}
           className="absolute bottom-4 left-4 right-4 z-[1000]"
         >
-          <Card className="bg-black/90 backdrop-blur-md border-gray-600">
-            <CardContent className="p-4">
+          <Card className="glass-effect border-white/20 shadow-2xl">
+            <CardContent className="p-6">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
+                  <div className="flex items-center space-x-3 mb-3">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
                       {selectedMapPost.userInfo?.name?.[0] || 'U'}
                     </div>
                     <div>
-                      <h3 className="text-white font-semibold">{selectedMapPost.userInfo?.name || 'Anonymous User'}</h3>
+                      <h3 className="text-white font-semibold text-lg">{selectedMapPost.userInfo?.name || 'Anonymous User'}</h3>
                       <div className="flex items-center space-x-2">
                         <div className="flex items-center">
                           <span className="text-yellow-400 text-sm">⭐</span>
                           <span className="text-white text-sm ml-1 font-medium">{selectedMapPost.userInfo?.rating || 0}</span>
                         </div>
                         {selectedMapPost.userInfo?.verified && (
-                          <Badge className="bg-green-500 text-white text-xs">Verified</Badge>
+                          <Badge className="bg-green-500/20 backdrop-blur-sm text-green-300 border-green-400/30">Verified</Badge>
                         )}
                       </div>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4 mb-3">
-                    <div>
-                      <p className="text-green-400 text-sm font-medium">Giving</p>
-                      <p className="text-white font-semibold">₱{selectedMapPost.giveAmount} {selectedMapPost.giveType}</p>
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div className="glass-dark rounded-lg p-3">
+                      <p className="text-green-400 text-sm font-medium mb-1">Giving</p>
+                      <p className="text-white font-semibold text-lg">₱{selectedMapPost.giveAmount} {selectedMapPost.giveType}</p>
                     </div>
-                    <div>
-                      <p className="text-blue-400 text-sm font-medium">Needs</p>
-                      <p className="text-white font-semibold">₱{selectedMapPost.needAmount} {selectedMapPost.needType}</p>
+                    <div className="glass-dark rounded-lg p-3">
+                      <p className="text-blue-400 text-sm font-medium mb-1">Needs</p>
+                      <p className="text-white font-semibold text-lg">₱{selectedMapPost.needAmount} {selectedMapPost.needType}</p>
                     </div>
                   </div>
                   {location && (
-                    <p className="text-white text-sm font-medium">📍 {distance(location.lat, location.lng, selectedMapPost.location.lat, selectedMapPost.location.lng).toFixed(1)}km away</p>
+                    <div className="flex items-center space-x-2 glass-dark rounded-lg p-2">
+                      <MapPin className="h-4 w-4 text-blue-400" />
+                      <p className="text-white text-sm font-medium">{distance(location.lat, location.lng, selectedMapPost.location.lat, selectedMapPost.location.lng).toFixed(1)}km away</p>
+                    </div>
                   )}
                 </div>
-                <div className="flex flex-col space-y-2">
+                <div className="flex flex-col space-y-3 ml-4">
                   <Button
                     onClick={() => {
                       onPostSelect?.(selectedMapPost);
                       setSelectedMapPost(null); // Close UI after matching
                     }}
                     size="sm"
-                    className="bg-blue-500 hover:bg-blue-600 text-white"
+                    className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg"
                   >
                     <Handshake className="h-4 w-4 mr-2" />
                     Match
@@ -478,11 +481,9 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
                   <Button
                     onClick={() => setSelectedMapPost(null)}
                     size="sm"
-                    variant="outline"
-                    className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                    className="glass-dark text-white border-white/30 hover:bg-white/10 hover:border-white/50"
                   >
-                    <X className="h-4 w-4 mr-2" />
-                    Close
+                    <X className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
