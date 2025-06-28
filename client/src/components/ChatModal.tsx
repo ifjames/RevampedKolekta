@@ -37,6 +37,7 @@ interface ChatModalProps {
   onClose: () => void;
   matchId?: string;
   partnerName?: string;
+  exchange?: any; // Exchange data to check permissions
 }
 
 const messageSchema = z.object({
@@ -45,7 +46,7 @@ const messageSchema = z.object({
 
 type MessageFormData = z.infer<typeof messageSchema>;
 
-export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Partner' }: ChatModalProps) {
+export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Partner', exchange }: ChatModalProps) {
   const { user } = useAuth();
   const { addDocument, updateDocument } = useFirestoreOperations();
   const [isExchangeCompleted, setIsExchangeCompleted] = useState(false);
@@ -155,7 +156,7 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center p-4"
           onClick={onClose}
         >
           <motion.div
@@ -230,14 +231,17 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
             {!isExchangeCompleted && (
               <div className="px-4 py-2 border-t border-white/10">
                 <div className="flex space-x-2">
-                  <Button
-                    onClick={completeExchange}
-                    size="sm"
-                    className="bg-green-500 hover:bg-green-600 text-white flex-1"
-                  >
-                    <CheckCircle2 className="h-4 w-4 mr-2" />
-                    Complete Exchange
-                  </Button>
+                  {/* Only show Complete button if current user is the one who initiated the exchange */}
+                  {exchange?.initiatedBy === user?.uid && (
+                    <Button
+                      onClick={completeExchange}
+                      size="sm"
+                      className="bg-green-500 hover:bg-green-600 text-white flex-1"
+                    >
+                      <CheckCircle2 className="h-4 w-4 mr-2" />
+                      Complete Exchange
+                    </Button>
+                  )}
                   <Button
                     onClick={reportIssue}
                     size="sm"

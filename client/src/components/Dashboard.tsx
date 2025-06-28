@@ -960,6 +960,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
               ? (extMatch.userBName || 'Exchange Partner')
               : (extMatch.userAName || 'Exchange Partner');
           })()}
+          exchange={selectedChatExchange}
         />
       )}
     </div>
