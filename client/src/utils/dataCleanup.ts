@@ -33,14 +33,16 @@ export async function cleanupVerificationStatus() {
 // Function to check actual user verification status
 export async function getUserVerificationStatus(userId: string): Promise<boolean> {
   try {
-    const userProfileQuery = query(
-      collection(db, 'userProfiles'), 
-      where('userId', '==', userId)
-    );
-    const snapshot = await getDocs(userProfileQuery);
+    // Check both possible collections for user data
+    const userDoc = await getDocs(query(collection(db, 'users'), where('__name__', '==', userId)));
+    if (!userDoc.empty) {
+      const userData = userDoc.docs[0].data();
+      return userData.verified === true;
+    }
     
-    if (!snapshot.empty) {
-      const userData = snapshot.docs[0].data();
+    const userProfileDoc = await getDocs(query(collection(db, 'userProfiles'), where('__name__', '==', userId)));
+    if (!userProfileDoc.empty) {
+      const userData = userProfileDoc.docs[0].data();
       return userData.verified === true;
     }
     

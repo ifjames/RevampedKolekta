@@ -47,30 +47,47 @@ export function AuthProvider({ children }: AuthProviderProps) {
       
       if (user) {
         try {
-          // Get user profile from Firestore
+          // Try multiple collections to get user profile data
+          let profileData = null;
+          
+          // First check 'users' collection
           const userDoc = await getDoc(doc(db, 'users', user.uid));
           if (userDoc.exists()) {
-            const data = userDoc.data();
-            // Convert Firestore timestamp to Date if needed
+            profileData = userDoc.data();
+          } else {
+            // Then check 'userProfiles' collection
+            const userProfileDoc = await getDoc(doc(db, 'userProfiles', user.uid));
+            if (userProfileDoc.exists()) {
+              profileData = userProfileDoc.data();
+            }
+          }
+          
+          if (profileData) {
+            // Use actual database data - preserve all values including rating changes
             const profile = {
               id: user.uid,
-              ...data,
-              createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt || Date.now())
+              name: profileData.name || user.displayName || 'User',
+              email: profileData.email || user.email || '',
+              verified: profileData.verified === true,
+              rating: profileData.rating || profileData.averageRating || 0, // Use actual rating from DB
+              completedExchanges: profileData.completedExchanges || 0,
+              phone: profileData.phone,
+              createdAt: profileData.createdAt?.toDate ? profileData.createdAt.toDate() : new Date(profileData.createdAt || Date.now())
             } as UserProfile;
             setUserProfile(profile);
           } else {
-            // Create default profile if it doesn't exist
-            const defaultProfile: Omit<UserProfile, 'id'> = {
+            // Only create minimal profile if absolutely none exists
+            const minimalProfile: Omit<UserProfile, 'id'> = {
               name: user.displayName || 'User',
               email: user.email || '',
               verified: false,
-              rating: 5.0,
+              rating: 0, // Start with 0 rating, not 5.0
               completedExchanges: 0,
               createdAt: new Date(),
             };
             
-            await setDoc(doc(db, 'users', user.uid), defaultProfile);
-            setUserProfile({ id: user.uid, ...defaultProfile });
+            await setDoc(doc(db, 'users', user.uid), minimalProfile);
+            setUserProfile({ id: user.uid, ...minimalProfile });
           }
         } catch (error) {
           console.error('Error fetching user profile:', error);
@@ -109,7 +126,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         email,
         phone,
         verified: false,
-        rating: 5.0,
+        rating: 0,
         completedExchanges: 0,
         createdAt: new Date(),
       };
@@ -139,7 +156,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     if (!user) throw new Error('No user logged in');
     
     try {
-      await setDoc(doc(db, 'users', user.uid), data, { merge: true });
+      // Update both collections to ensure data consistency
+      await Promise.all([
+        setDoc(doc(db, 'users', user.uid), data, { merge: true }),
+        setDoc(doc(db, 'userProfiles', user.uid), data, { merge: true })
+      ]);
       setUserProfile(prev => prev ? { ...prev, ...data } : null);
       toastSuccess('Profile updated successfully');
     } catch (error: any) {

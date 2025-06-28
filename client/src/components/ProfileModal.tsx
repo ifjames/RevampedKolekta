@@ -97,7 +97,7 @@ export function ProfileModal({ isOpen, onClose, onLogout }: ProfileModalProps) {
   const stats = [
     {
       icon: Star,
-      value: (userProfile?.rating || 5.0).toFixed(1),
+      value: userProfile?.rating ? userProfile.rating.toFixed(1) : '0.0',
       label: 'Rating',
       color: 'text-yellow-400',
     },

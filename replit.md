@@ -142,6 +142,13 @@ Changelog:
   * Fixed time formatting errors in chat and notification systems
   * Improved UI alignment and partner name display in active exchanges
   * Both match initiators and acceptors now see active exchanges properly
+- June 28, 2025. Critical real-time messaging and data integrity fixes:
+  * Fixed real-time chat messages to appear immediately without requiring modal close/reopen
+  * Removed incorrect verified badges by implementing proper database verification checks
+  * Updated AuthContext to read actual user profile data from database instead of defaults
+  * Fixed rating display across all components to show true database values
+  * Enhanced Firestore listeners with metadata changes for immediate UI updates
+  * Ensured all components use authentic database data rather than fallback values
 ```
 
 ## User Preferences

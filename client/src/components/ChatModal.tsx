@@ -60,32 +60,36 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<MessageFormData>();
 
-  // Listen to chat messages
+  // Listen to chat messages with real-time updates
   const { data: messages, loading } = useCollection<ChatMessage>('messages', 
     matchId ? [
       where('matchId', '==', matchId),
-      orderBy('timestamp', 'asc'),
-      limit(100)
+      orderBy('timestamp', 'asc')
     ] : []
   );
 
-  // Fetch partner profile information
+  // Fetch real partner profile information from database
   useEffect(() => {
     if (!exchange || !user?.uid) return;
     
     const partnerId = exchange.userA === user.uid ? exchange.userB : exchange.userA;
     if (partnerId) {
+      // Get actual user profile data
       getDoc(doc(db, 'userProfiles', partnerId))
         .then((snapshot: any) => {
           if (snapshot.exists()) {
             const profileData = snapshot.data();
-            console.log('Partner profile data:', profileData);
-            setPartnerProfile(profileData);
+            setPartnerProfile({
+              name: profileData.name || partnerName,
+              verified: profileData.verified === true,
+              averageRating: profileData.averageRating || 0,
+              totalRatings: profileData.totalRatings || 0
+            });
           } else {
-            // Create a basic profile if none exists
+            // If no profile exists, create minimal profile from auth data
             setPartnerProfile({
               name: partnerName,
-              verified: false, // Don't assume verified status
+              verified: false,
               averageRating: 0,
               totalRatings: 0
             });
@@ -93,7 +97,6 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
         })
         .catch((error: any) => {
           console.error('Error fetching partner profile:', error);
-          // Fallback profile data
           setPartnerProfile({
             name: partnerName,
             verified: false,
@@ -152,13 +155,19 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
         read: false
       };
 
+      // Add message to Firebase
       await addDocument('messages', messageData);
+      
+      // Clear form immediately
       reset();
       
-      // Immediate scroll after sending
-      if (messagesEndRef.current) {
-        messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
-      }
+      // Force immediate scroll
+      setTimeout(() => {
+        if (messagesEndRef.current) {
+          messagesEndRef.current.scrollIntoView({ behavior: 'auto', block: 'end' });
+        }
+      }, 50);
+      
     } catch (error) {
       console.error('Error sending message:', error);
       toastError('Failed to send message. Please try again.');

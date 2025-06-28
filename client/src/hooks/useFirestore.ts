@@ -77,10 +77,24 @@ export function useCollection<T = DocumentData>(
         includeMetadataChanges: true // Include local changes for immediate UI updates
       },
       (snapshot) => {
-        const docs = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as T[];
+        // Process documents with timestamp conversion for immediate updates
+        const docs = snapshot.docs.map(doc => {
+          const data = doc.data();
+          const processedData = { ...data };
+          
+          // Convert Firestore timestamps to JavaScript Dates
+          if (data.timestamp && data.timestamp.toDate) {
+            processedData.timestamp = data.timestamp.toDate();
+          }
+          if (data.createdAt && data.createdAt.toDate) {
+            processedData.createdAt = data.createdAt.toDate();
+          }
+          
+          return {
+            id: doc.id,
+            ...processedData,
+          };
+        }) as T[];
         
         setData(docs);
         setLoading(false);
