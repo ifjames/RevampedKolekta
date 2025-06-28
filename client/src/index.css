@@ -237,3 +237,28 @@ button:hover .lucide-x {
   color: white !important;
   opacity: 0.8;
 }
+
+/* SweetAlert2 z-index fixes - Maximum priority */
+.swal2-container {
+  z-index: 999999 !important;
+  position: fixed !important;
+}
+
+.swal2-popup {
+  z-index: 1000000 !important;
+  position: relative !important;
+}
+
+.swal2-backdrop-show {
+  z-index: 999998 !important;
+}
+
+/* Ensure SweetAlert2 is above all other elements */
+div[data-swal2-api] {
+  z-index: 1000001 !important;
+}
+
+/* Force all SweetAlert2 elements to highest z-index */
+.swal2-container * {
+  z-index: inherit !important;
+}

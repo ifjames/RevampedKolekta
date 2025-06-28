@@ -150,15 +150,16 @@ export function ReportModal({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             className="glass-effect border-white/20 rounded-xl w-full max-w-lg max-h-[80vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
           >
             <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center mb-6">
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center">
                     <AlertTriangle className="h-5 w-5 text-white" />
@@ -168,14 +169,6 @@ export function ReportModal({
                     <p className="text-blue-100 text-sm">Report problems with {reportedUserName}</p>
                   </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onClose}
-                  className="text-white hover:bg-white/10 p-2"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
               </div>
 
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
