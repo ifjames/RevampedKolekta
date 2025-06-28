@@ -17,7 +17,8 @@ import {
   MapPin,
   Building2,
   AlertTriangle,
-  Handshake
+  Handshake,
+  CheckCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -26,6 +27,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLocation } from '@/contexts/LocationContext';
 import { useMatching } from '@/hooks/useMatching';
 import { useMatchingSystem } from '@/hooks/useMatchingSystem';
+import { useExchangeHistory } from '@/hooks/useExchangeHistory';
 import { CreatePostModal } from './CreatePostModal';
 import { ChatModal } from './ChatModal';
 import { ProfileModal } from './ProfileModal';
@@ -38,6 +40,7 @@ import { SafeMeetupModal } from './SafeMeetupModal';
 import { VerificationModal } from './VerificationModal';
 import { ReportModal } from './ReportModal';
 import { MapView } from './MapView';
+import { ExchangeCompletionModal } from './ExchangeCompletionModal';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
 import { getGreeting, formatDate } from '@/utils/timeUtils';
@@ -54,11 +57,12 @@ export function Dashboard({ onLogout }: DashboardProps) {
   const { user, userProfile } = useAuth();
   const { location, hasPermission } = useLocation();
   const { matches: nearbyPosts = [], matchRequests: allMatchRequests = [], isSearching: loading, requestMatch } = useMatching();
+  const { completedExchanges, getRecentExchanges, formatDuration } = useExchangeHistory();
   
-  // Filter for confirmed matches in active exchanges
-  const confirmedMatches = allMatchRequests.filter(match => match.status === 'confirmed');
-  // Filter for pending match requests (for notifications)
+  // Use confirmed matches as active exchanges
+  const activeExchanges = allMatchRequests.filter(match => match.status === 'confirmed');
   const pendingRequests = allMatchRequests.filter(match => match.status === 'pending' && match.userB === user?.uid);
+  const [showAllHistory, setShowAllHistory] = useState(false);
   
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [showChat, setShowChat] = useState(false);
@@ -71,11 +75,14 @@ export function Dashboard({ onLogout }: DashboardProps) {
   const [showVerification, setShowVerification] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [showMapView, setShowMapView] = useState(false);
+  const [showExchangeCompletion, setShowExchangeCompletion] = useState(false);
   const [selectedPostForMap, setSelectedPostForMap] = useState<ExchangePost | null>(null);
+  const [selectedExchangeForCompletion, setSelectedExchangeForCompletion] = useState<any>(null);
   const [activeTab, setActiveTab] = useState('home');
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
   const [userPosts, setUserPosts] = useState<ExchangePost[]>([]);
   const [loadingUserPosts, setLoadingUserPosts] = useState(false);
+  const [selectedChatExchange, setSelectedChatExchange] = useState<any>(null);
   
   const notificationCount = useNotificationCount();
 
@@ -173,25 +180,48 @@ export function Dashboard({ onLogout }: DashboardProps) {
       >
         <h2 className="text-2xl font-bold text-white mb-4">Active Exchanges</h2>
         <div className="space-y-4">
-          {confirmedMatches.length > 0 ? (
-            confirmedMatches.map((match) => (
+          {activeExchanges.length > 0 ? (
+            activeExchanges.map((match) => (
               <Card key={match.id} className="glass-effect border-white/20">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-white font-semibold">Active Exchange</h3>
-                      <p className="text-blue-100 text-sm">Chat with your exchange partner to coordinate meetup</p>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-white font-semibold">Active Exchange</h3>
+                        <Badge className="bg-green-500">Confirmed</Badge>
+                      </div>
+                      <p className="text-blue-100 text-sm mb-2">
+                        Partner: Exchange Partner
+                      </p>
+                      <p className="text-blue-200 text-xs">
+                        Chat with your partner to coordinate the meetup and exchange
+                      </p>
                     </div>
                     <div className="flex space-x-2">
                       <Button
                         size="sm"
-                        onClick={() => setShowChat(true)}
+                        onClick={() => {
+                          setSelectedChatExchange(match);
+                          setShowChat(true);
+                        }}
                         className="bg-blue-500 hover:bg-blue-600 text-white"
                       >
                         <MessageSquare className="h-4 w-4 mr-1" />
                         Chat
                       </Button>
-                      <Badge className="bg-green-500">Confirmed</Badge>
+                      {match.userA === user?.uid && (
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            setSelectedExchangeForCompletion(match);
+                            setShowExchangeCompletion(true);
+                          }}
+                          className="bg-green-500 hover:bg-green-600 text-white"
+                        >
+                          <Handshake className="h-4 w-4 mr-1" />
+                          Complete
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -443,13 +473,39 @@ export function Dashboard({ onLogout }: DashboardProps) {
               Active Chats
             </h3>
             <div className="space-y-4">
-              <Card className="glass-dark border-white/10">
-                <CardContent className="p-4 text-center">
-                  <MessageSquare className="h-8 w-8 text-blue-300 mx-auto mb-2" />
-                  <p className="text-white text-sm">No active chats</p>
-                  <p className="text-blue-100 text-xs">Start an exchange to begin chatting</p>
-                </CardContent>
-              </Card>
+              {activeExchanges.length > 0 ? (
+                activeExchanges.map((match) => (
+                  <Card key={match.id} className="glass-dark border-white/10 hover:bg-white/5 transition-colors cursor-pointer"
+                    onClick={() => {
+                      setSelectedChatExchange(match);
+                      setShowChat(true);
+                    }}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                            <MessageSquare className="h-5 w-5 text-white" />
+                          </div>
+                          <div>
+                            <p className="text-white font-medium">Exchange Partner</p>
+                            <p className="text-blue-100 text-sm">Active exchange • Click to chat</p>
+                          </div>
+                        </div>
+                        <Badge className="bg-green-500">Active</Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <Card className="glass-dark border-white/10">
+                  <CardContent className="p-4 text-center">
+                    <MessageSquare className="h-8 w-8 text-blue-300 mx-auto mb-2" />
+                    <p className="text-white text-sm">No active chats</p>
+                    <p className="text-blue-100 text-xs">Start an exchange to begin chatting</p>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -497,17 +553,16 @@ export function Dashboard({ onLogout }: DashboardProps) {
               Completed Exchanges
             </h3>
             <div className="space-y-4">
-              {allMatchRequests.filter(match => match.status === 'completed' && (match.userA === user?.uid || match.userB === user?.uid)).length > 0 ? (
-                allMatchRequests
-                  .filter(match => match.status === 'completed' && (match.userA === user?.uid || match.userB === user?.uid))
-                  .map((match) => (
-                    <Card key={match.id} className="glass-dark border-white/10">
+              {completedExchanges.length > 0 ? (
+                <>
+                  {(showAllHistory ? completedExchanges : getRecentExchanges()).map((exchange) => (
+                    <Card key={exchange.id} className="glass-dark border-white/10">
                       <CardContent className="p-4">
                         <div className="flex justify-between items-start mb-2">
                           <div>
                             <h4 className="text-white font-medium">Exchange Completed</h4>
                             <p className="text-blue-100 text-sm">
-                              {'Recently completed'}
+                              {exchange.completedAt.toLocaleDateString()}
                             </p>
                           </div>
                           <div className="flex items-center">
@@ -515,7 +570,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
                               <Star
                                 key={i}
                                 className={`h-3 w-3 ${
-                                  i < 5 // Default 5-star rating for completed exchanges
+                                  i < exchange.rating
                                     ? 'text-yellow-400 fill-current'
                                     : 'text-gray-400'
                                 }`}
@@ -523,12 +578,42 @@ export function Dashboard({ onLogout }: DashboardProps) {
                             ))}
                           </div>
                         </div>
+                        <div className="text-blue-200 text-xs space-y-1 mb-2">
+                          <p>Partner: {exchange.partnerName}</p>
+                          <p>Duration: {formatDuration(exchange.duration)}</p>
+                          {exchange.notes && <p>Notes: {exchange.notes}</p>}
+                        </div>
                         <Badge variant="outline" className="text-green-400 border-green-400">
                           Completed
                         </Badge>
                       </CardContent>
                     </Card>
-                  ))
+                  ))}
+                  
+                  {completedExchanges.length > 3 && !showAllHistory && (
+                    <div className="text-center">
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowAllHistory(true)}
+                        className="glass-dark text-white hover:bg-white/10 border-white/20"
+                      >
+                        Show All Exchanges ({completedExchanges.length})
+                      </Button>
+                    </div>
+                  )}
+                  
+                  {showAllHistory && (
+                    <div className="text-center">
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowAllHistory(false)}
+                        className="glass-dark text-white hover:bg-white/10 border-white/20"
+                      >
+                        Show Less
+                      </Button>
+                    </div>
+                  )}
+                </>
               ) : (
                 <Card className="glass-dark border-white/10">
                   <CardContent className="p-4 text-center">
@@ -844,6 +929,23 @@ export function Dashboard({ onLogout }: DashboardProps) {
 
         </DialogContent>
       </Dialog>
+
+      {/* Exchange Completion Modal */}
+      <ExchangeCompletionModal
+        isOpen={showExchangeCompletion}
+        onClose={() => setShowExchangeCompletion(false)}
+        exchange={selectedExchangeForCompletion}
+      />
+
+      {/* Chat Modal */}
+      {showChat && selectedChatExchange && (
+        <ChatModal
+          isOpen={showChat}
+          onClose={() => setShowChat(false)}
+          matchId={selectedChatExchange.id}
+          partnerName="Exchange Partner"
+        />
+      )}
     </div>
   );
 }

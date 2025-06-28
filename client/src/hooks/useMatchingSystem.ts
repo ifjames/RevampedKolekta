@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFirestoreOperations } from './useFirestore';
+import { useExchangeManagement } from './useExchangeManagement';
 import { ExchangePost, Match } from '@/types';
 import { toast } from 'react-hot-toast';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 export function useMatchingSystem() {
   const { user } = useAuth();
   const { addDocument, updateDocument } = useFirestoreOperations();
+  const { createActiveExchange } = useExchangeManagement();
 
   // Send a match request
   const sendMatchRequest = async (targetPost: ExchangePost) => {
@@ -72,9 +76,55 @@ export function useMatchingSystem() {
     if (!user) return;
 
     try {
+      // Get match details to create active exchange
+      const matchQuery = query(collection(db, 'matches'), where('__name__', '==', matchId));
+      const matchSnapshot = await getDocs(matchQuery);
+      const matchData = matchSnapshot.docs[0]?.data();
+
+      if (!matchData) {
+        toast.error("Match not found");
+        return;
+      }
+
+      // Update match status
       await updateDocument('matches', matchId, {
         status: 'confirmed',
         chatOpened: true
+      });
+
+      // Create active exchange
+      const exchangeData = {
+        matchId,
+        userA: matchData.userA,
+        userB: matchData.userB,
+        userAName: user.displayName || user.email || 'User A',
+        userBName: 'Exchange Partner',
+        postAId: matchData.postAId,
+        postBId: matchData.postBId,
+        status: 'active',
+        participants: [matchData.userA, matchData.userB],
+        initiatedBy: matchData.userA,
+        partnerUser: matchData.userA === user.uid ? matchData.userB : matchData.userA,
+        partnerName: 'Exchange Partner',
+        exchangeDetails: {
+          giveAmount: 1000,
+          giveType: 'bill',
+          needAmount: 1000,
+          needType: 'coins',
+        },
+        createdAt: new Date(),
+      };
+
+      await addDocument('activeExchanges', exchangeData);
+
+      // Create chat document
+      await addDocument('chats', {
+        exchangeId: matchId,
+        participants: [matchData.userA, matchData.userB],
+        participantNames: [user.displayName || user.email || 'User', 'Exchange Partner'],
+        lastMessage: '',
+        lastMessageAt: new Date(),
+        createdAt: new Date(),
       });
 
       // Create notification for requester
@@ -86,16 +136,6 @@ export function useMatchingSystem() {
         data: { matchId },
         read: false,
         deleted: false,
-        createdAt: new Date()
-      });
-
-      // Create initial chat document
-      await addDocument('chats', {
-        matchId,
-        participants: [requesterUserId, user.uid],
-        lastMessage: null,
-        lastMessageTime: new Date(),
-        messages: [],
         createdAt: new Date()
       });
 
