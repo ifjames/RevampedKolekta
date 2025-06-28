@@ -121,7 +121,7 @@ export function LocationPermissionPage({ onAllowLocation, onTryAgain }: Location
               <Button
                 onClick={onTryAgain}
                 variant="outline"
-                className="w-full text-white border-white/20 hover:bg-white/10"
+                className="w-full bg-white/10 text-white border-white/30 hover:bg-white/20 hover:border-white/50"
               >
                 Try Again
               </Button>
