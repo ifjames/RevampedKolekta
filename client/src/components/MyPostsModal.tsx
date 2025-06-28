@@ -52,9 +52,6 @@ export function MyPostsModal({ isOpen, onClose, onEditPost }: MyPostsModalProps)
   }, [user, isOpen]);
 
   const handleDeletePost = async (postId: string) => {
-    // Set higher z-index before showing SweetAlert
-    document.documentElement.style.setProperty('--swal2-z-index', '9999');
-    
     const result = await Swal.fire({
       title: 'Delete Exchange Post?',
       text: 'This action cannot be undone. Your exchange request will be permanently removed.',
@@ -67,9 +64,6 @@ export function MyPostsModal({ isOpen, onClose, onEditPost }: MyPostsModalProps)
       background: '#1e293b',
       color: '#ffffff',
     });
-    
-    // Reset z-index
-    document.documentElement.style.removeProperty('--swal2-z-index');
 
     if (result.isConfirmed) {
       try {

@@ -35,6 +35,19 @@
   }
 }
 
+/* SweetAlert2 z-index fixes */
+.swal2-container {
+  z-index: 99999 !important;
+}
+
+.swal2-overlay {
+  z-index: 99998 !important;
+}
+
+.swal2-popup {
+  z-index: 99999 !important;
+}
+
 :root {
   --background: hsl(210, 100%, 98%);
   --foreground: hsl(222, 84%, 5%);

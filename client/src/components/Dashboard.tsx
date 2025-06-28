@@ -78,6 +78,24 @@ export function Dashboard({ onLogout }: DashboardProps) {
   const [showVerification, setShowVerification] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [showMapView, setShowMapView] = useState(false);
+
+  // Close all modals function
+  const closeAllModals = () => {
+    setShowCreatePost(false);
+    setEditingPost(null);
+    setShowChat(false);
+    setShowProfile(false);
+    setShowNotifications(false);
+    setShowMyPosts(false);
+    setShowFindExchange(false);
+    setShowSafeMeetup(false);
+    setShowVerification(false);
+    setShowReport(false);
+    setShowMapView(false);
+    setSelectedChatExchange(null);
+    setShowExchangeCompletion(false);
+    setShowPartnerRating(false);
+  };
   
   // Exchange completion states
   const [showExchangeCompletion, setShowExchangeCompletion] = useState(false);
@@ -336,7 +354,10 @@ export function Dashboard({ onLogout }: DashboardProps) {
         <h2 className="text-2xl font-bold text-white">Your Exchanges</h2>
         <div className="flex flex-wrap gap-2">
           <Button
-            onClick={() => setShowMyPosts(true)}
+            onClick={() => {
+              closeAllModals();
+              setShowMyPosts(true);
+            }}
             variant="outline"
             className="glass-dark text-white border-white/20 hover:bg-white/10"
           >
@@ -344,7 +365,10 @@ export function Dashboard({ onLogout }: DashboardProps) {
             My Posts
           </Button>
           <Button
-            onClick={() => setShowCreatePost(true)}
+            onClick={() => {
+              closeAllModals();
+              setShowCreatePost(true);
+            }}
             className="bg-green-500 hover:bg-green-600 text-white"
           >
             <Plus className="mr-2 h-4 w-4" />
@@ -419,14 +443,20 @@ export function Dashboard({ onLogout }: DashboardProps) {
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Button
-                  onClick={() => setShowFindExchange(true)}
+                  onClick={() => {
+                    closeAllModals();
+                    setShowFindExchange(true);
+                  }}
                   className="bg-blue-500 hover:bg-blue-600 text-white"
                 >
                   <Users className="mr-2 h-4 w-4" />
                   Browse All Exchanges
                 </Button>
                 <Button
-                  onClick={() => setShowCreatePost(true)}
+                  onClick={() => {
+                    closeAllModals();
+                    setShowCreatePost(true);
+                  }}
                   variant="outline"
                   className="glass-dark text-white border-white/20 hover:bg-white/10"
                 >
@@ -762,7 +792,10 @@ export function Dashboard({ onLogout }: DashboardProps) {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setShowNotifications(true)}
+              onClick={() => {
+                closeAllModals();
+                setShowNotifications(true);
+              }}
               className="relative p-2 text-white hover:bg-white/10"
             >
               <Bell className="h-5 w-5" />
@@ -775,7 +808,10 @@ export function Dashboard({ onLogout }: DashboardProps) {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setShowProfile(true)}
+              onClick={() => {
+                closeAllModals();
+                setShowProfile(true);
+              }}
               className="p-2 text-white hover:bg-white/10"
             >
               <User className="h-5 w-5" />
@@ -848,7 +884,10 @@ export function Dashboard({ onLogout }: DashboardProps) {
         className="lg:hidden"
       >
         <Button
-          onClick={() => setShowCreatePost(true)}
+          onClick={() => {
+            closeAllModals();
+            setShowCreatePost(true);
+          }}
           className="floating-btn fixed bottom-24 right-6 w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white rounded-full shadow-2xl z-30"
         >
           <Plus className="h-6 w-6" />
@@ -899,6 +938,10 @@ export function Dashboard({ onLogout }: DashboardProps) {
         isOpen={showProfile} 
         onClose={() => setShowProfile(false)}
         onLogout={onLogout}
+        onOpenVerification={() => {
+          closeAllModals();
+          setShowVerification(true);
+        }}
       />
 
       <NotificationSystem
@@ -935,7 +978,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
         isOpen={showMyPosts}
         onClose={() => setShowMyPosts(false)}
         onEditPost={(post) => {
-          setShowMyPosts(false);
+          closeAllModals();
           setEditingPost(post);
           setShowCreatePost(true);
         }}

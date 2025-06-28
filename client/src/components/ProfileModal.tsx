@@ -32,9 +32,10 @@ interface ProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
   onLogout: () => void;
+  onOpenVerification?: () => void;
 }
 
-export function ProfileModal({ isOpen, onClose, onLogout }: ProfileModalProps) {
+export function ProfileModal({ isOpen, onClose, onLogout, onOpenVerification }: ProfileModalProps) {
   const { user, userProfile, logout, updateUserProfile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -255,7 +256,14 @@ export function ProfileModal({ isOpen, onClose, onLogout }: ProfileModalProps) {
               </Button>
               
               <Button
-                onClick={() => setShowVerification(true)}
+                onClick={() => {
+                  if (onOpenVerification) {
+                    onClose();
+                    onOpenVerification();
+                  } else {
+                    setShowVerification(true);
+                  }
+                }}
                 className="w-full glass-dark text-white hover:bg-white/10 border-white/20"
                 variant="outline"
               >
