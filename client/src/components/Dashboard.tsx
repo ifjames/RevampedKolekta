@@ -315,6 +315,103 @@ export function Dashboard({ onLogout }: DashboardProps) {
           </Button>
         </div>
         
+        {/* Exchange Map - Always visible */}
+        <Card className="glass-effect border-white/20 mb-6">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-2">
+                <Map className="h-5 w-5 text-blue-400" />
+                <h3 className="text-white font-semibold">Exchange Map</h3>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Label className="text-white text-sm">Distance:</Label>
+                <Select value={mapDistance.toString()} onValueChange={(value) => setMapDistance(Number(value))}>
+                  <SelectTrigger className="w-24 h-8 glass-dark text-white border-white/20">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="glass-dark border-white/20">
+                    <SelectItem value="5">5km</SelectItem>
+                    <SelectItem value="10">10km</SelectItem>
+                    <SelectItem value="15">15km</SelectItem>
+                    <SelectItem value="20">20km</SelectItem>
+                    <SelectItem value="50">50km</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <div className="relative h-80 rounded-lg overflow-hidden border border-white/20">
+              <MapView
+                posts={nearbyPosts}
+                onPostSelect={(post) => {
+                  setSelectedPostForMap(post);
+                  handleMatchRequest(post);
+                }}
+                selectedPost={selectedPostForMap}
+                showUserLocation={true}
+              />
+              
+              {/* Map Legend */}
+              <div className="absolute top-4 left-4 glass-effect border-white/20 rounded-lg p-3 space-y-2 max-w-xs">
+                <h4 className="text-white font-medium text-sm mb-2">Legend</h4>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                  <span className="text-white text-xs">Your Location</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <span className="text-white text-xs">Cash to Coins</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                  <span className="text-white text-xs">Coins to Cash</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                  <span className="text-white text-xs">Both Ways</span>
+                </div>
+              </div>
+              
+              {/* Map Controls */}
+              <div className="absolute top-4 right-4 flex flex-col space-y-2">
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    // Zoom in functionality would be handled by MapView
+                    console.log('Zoom in');
+                  }}
+                  className="w-8 h-8 p-0 glass-effect border-white/20 text-white hover:bg-white/10"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    // Zoom out functionality would be handled by MapView
+                    console.log('Zoom out');
+                  }}
+                  className="w-8 h-8 p-0 glass-effect border-white/20 text-white hover:bg-white/10"
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    // Center on user location
+                    if (location) {
+                      console.log('Center on user location');
+                    }
+                  }}
+                  className="w-8 h-8 p-0 glass-effect border-white/20 text-white hover:bg-white/10"
+                  title="Center on your location"
+                >
+                  <MapPin className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         <div className="space-y-4">
           {loading ? (
             <Card className="glass-effect border-white/20">
@@ -337,113 +434,13 @@ export function Dashboard({ onLogout }: DashboardProps) {
               />
             ))
           ) : (
-            <div className="space-y-6">
-              {/* Map Section */}
-              <Card className="glass-effect border-white/20">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center space-x-2">
-                      <Map className="h-5 w-5 text-blue-400" />
-                      <h3 className="text-white font-semibold">Exchange Map</h3>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <Label className="text-white text-sm">Distance:</Label>
-                      <Select value={mapDistance.toString()} onValueChange={(value) => setMapDistance(Number(value))}>
-                        <SelectTrigger className="w-24 h-8 glass-dark text-white border-white/20">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="glass-dark border-white/20">
-                          <SelectItem value="5">5km</SelectItem>
-                          <SelectItem value="10">10km</SelectItem>
-                          <SelectItem value="15">15km</SelectItem>
-                          <SelectItem value="20">20km</SelectItem>
-                          <SelectItem value="50">50km</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  
-                  <div className="relative h-80 rounded-lg overflow-hidden border border-white/20">
-                    <MapView
-                      posts={nearbyPosts}
-                      onPostSelect={(post) => {
-                        setSelectedPostForMap(post);
-                        handleMatchRequest(post);
-                      }}
-                      selectedPost={selectedPostForMap}
-                      showUserLocation={true}
-                    />
-                    
-                    {/* Map Legend */}
-                    <div className="absolute top-4 left-4 glass-effect border-white/20 rounded-lg p-3 space-y-2 max-w-xs">
-                      <h4 className="text-white font-medium text-sm mb-2">Legend</h4>
-                      <div className="flex items-center space-x-2">
-                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                        <span className="text-white text-xs">Your Location</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                        <span className="text-white text-xs">Cash to Coins</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                        <span className="text-white text-xs">Coins to Cash</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                        <span className="text-white text-xs">Both Ways</span>
-                      </div>
-                    </div>
-                    
-                    {/* Map Controls */}
-                    <div className="absolute top-4 right-4 flex flex-col space-y-2">
-                      <Button
-                        size="sm"
-                        onClick={() => {
-                          // Zoom in functionality would be handled by MapView
-                          console.log('Zoom in');
-                        }}
-                        className="w-8 h-8 p-0 glass-effect border-white/20 text-white hover:bg-white/10"
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={() => {
-                          // Zoom out functionality would be handled by MapView
-                          console.log('Zoom out');
-                        }}
-                        className="w-8 h-8 p-0 glass-effect border-white/20 text-white hover:bg-white/10"
-                      >
-                        <Minus className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={() => {
-                          // Center on user location
-                          if (location) {
-                            console.log('Center on user location');
-                          }
-                        }}
-                        className="w-8 h-8 p-0 glass-effect border-white/20 text-white hover:bg-white/10"
-                        title="Center on your location"
-                      >
-                        <MapPin className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              {/* No nearby message */}
-              <Card className="glass-effect border-white/20">
-                <CardContent className="p-8 text-center">
-                  <Users className="h-12 w-12 text-blue-300 mx-auto mb-3" />
-                  <p className="text-white font-semibold">No nearby exchanges found</p>
-                  <p className="text-blue-100 text-sm">Be the first to post an exchange in your area!</p>
-                </CardContent>
-              </Card>
-            </div>
+            <Card className="glass-effect border-white/20">
+              <CardContent className="p-8 text-center">
+                <Users className="h-12 w-12 text-blue-300 mx-auto mb-3" />
+                <p className="text-white font-semibold">No nearby exchanges found</p>
+                <p className="text-blue-100 text-sm">Be the first to post an exchange in your area!</p>
+              </CardContent>
+            </Card>
           )}
         </div>
       </motion.div>

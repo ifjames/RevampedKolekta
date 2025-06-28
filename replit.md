@@ -198,6 +198,14 @@ Changelog:
   * Added distance filter controls and improved location type filtering UI
   * Enhanced no-location and no-results states with actionable suggestions
   * Fixed Try Again button styling on location permission page for proper visibility
+- June 28, 2025. SweetAlert2 modal fixes and persistent exchange map implementation:
+  * Enhanced SweetAlert2 z-index to maximum priority (999999+) ensuring buttons are always clickable
+  * Modified Report modal to close when clicking outside and removed X button (only Cancel remains)
+  * Implemented persistent Exchange Map feature that always displays at top of Nearby Exchanges section
+  * Added comprehensive map with distance controls (5km-50km), legend, and zoom/center controls
+  * Fixed Leaflet map initialization errors with proper null checks and error handling
+  * Map now shows user location and nearby exchange posts with interactive markers
+  * Enhanced modal management system to prevent interference between modals
 ```
 
 ## User Preferences
