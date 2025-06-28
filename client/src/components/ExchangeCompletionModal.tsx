@@ -53,16 +53,22 @@ export function ExchangeCompletionModal({ isOpen, onClose, exchange }: ExchangeC
 
       // Create exchange history record for current user
       await addDocument('exchangeHistory', {
+        exchangeId: exchange.id,
         matchId: exchange.id,
         userId: user.uid,
         partnerUserId: partnerId,
         partnerName: partnerName,
+        participants: [user.uid, partnerId], // For querying
         completedAt,
         duration,
-        myRating: rating,
-        myNotes: notes,
-        exchangeAmount: exchange.exchangeDetails?.giveAmount || 0,
-        exchangeType: exchange.exchangeDetails?.giveType || 'cash',
+        rating: rating,
+        notes: notes,
+        exchangeDetails: {
+          giveAmount: exchange.exchangeDetails?.giveAmount || 0,
+          giveType: exchange.exchangeDetails?.giveType || 'cash',
+          needAmount: exchange.exchangeDetails?.needAmount || 0,
+          needType: exchange.exchangeDetails?.needType || 'cash'
+        },
         initiatedBy: exchange.initiatedBy
       });
 

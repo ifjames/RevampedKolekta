@@ -272,18 +272,49 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
 
       // Create exchange history record for current user
       await addDocument('exchangeHistory', {
+        exchangeId: exchange.id,
         matchId: exchange.id,
         userId: user.uid,
         partnerUserId: partnerId,
         partnerName: partnerName,
+        participants: [user.uid, partnerId], // For querying
         completedAt,
         duration,
-        myRating: selectedRating,
-        myNotes: exchangeNotes,
-        exchangeAmount: exchange.exchangeDetails?.giveAmount || 0,
-        exchangeType: exchange.exchangeDetails?.giveType || 'cash',
+        rating: selectedRating,
+        notes: exchangeNotes,
+        exchangeDetails: {
+          giveAmount: exchange.exchangeDetails?.giveAmount || 0,
+          giveType: exchange.exchangeDetails?.giveType || 'cash',
+          needAmount: exchange.exchangeDetails?.needAmount || 0,
+          needType: exchange.exchangeDetails?.needType || 'cash'
+        },
         initiatedBy: exchange.initiatedBy
       });
+
+      // Delete associated posts
+      try {
+        const { deleteDoc, doc, getDoc } = await import('firebase/firestore');
+        const { db } = await import('@/lib/firebase');
+        
+        if (exchange.postAId && exchange.postAId !== 'quick-match') {
+          const postARef = doc(db, 'posts', exchange.postAId);
+          const postADoc = await getDoc(postARef);
+          if (postADoc.exists()) {
+            await deleteDoc(postARef);
+            console.log('Deleted Post A:', exchange.postAId);
+          }
+        }
+        if (exchange.postBId && exchange.postBId !== 'quick-match') {
+          const postBRef = doc(db, 'posts', exchange.postBId);
+          const postBDoc = await getDoc(postBRef);
+          if (postBDoc.exists()) {
+            await deleteDoc(postBRef);
+            console.log('Deleted Post B:', exchange.postBId);
+          }
+        }
+      } catch (error) {
+        console.error('Error deleting posts:', error);
+      }
 
       // Update user ratings and profile
       await addDocument('userRatings', {
@@ -322,12 +353,21 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
         createdAt: completedAt
       });
 
+      console.log('Exchange completion successful - all operations completed');
+      console.log('Exchange history saved:', {
+        exchangeId: exchange.id,
+        userId: user.uid,
+        partnerName: partnerName,
+        rating: selectedRating,
+        notes: exchangeNotes
+      });
       toastSuccess('Exchange completed and rated successfully!');
       setShowRatingModal(false);
       setIsExchangeCompleted(true);
 
       // Close the modal after a brief delay to show the success message
       setTimeout(() => {
+        console.log('Reloading page to refresh data...');
         onClose();
         // Reload the page to refresh all data
         window.location.reload();

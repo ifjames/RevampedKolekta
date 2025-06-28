@@ -86,18 +86,33 @@ export function useActiveExchanges() {
       setLoading(false);
     });
 
-    // Listen to exchange history (using simpler query)
+    // Listen to exchange history (using or query to get both old and new records)
     const historyQuery = query(
       collection(db, 'exchangeHistory'),
-      where('participants', 'array-contains', user.uid)
+      where('userId', '==', user.uid)
     );
 
     const unsubscribeHistory = onSnapshot(historyQuery, (snapshot) => {
-      const history = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        completedAt: doc.data().completedAt?.toDate() || new Date(),
-      })) as ExchangeHistory[];
+      const history = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          exchangeId: data.exchangeId || data.matchId,
+          partnerName: data.partnerName,
+          partnerUserId: data.partnerUserId,
+          completedAt: data.completedAt?.toDate() || new Date(),
+          duration: data.duration || 0,
+          rating: data.rating || data.myRating || 0,
+          notes: data.notes || data.myNotes || '',
+          exchangeDetails: data.exchangeDetails || {
+            giveAmount: data.exchangeAmount || 0,
+            giveType: data.exchangeType || 'cash',
+            needAmount: 0,
+            needType: 'cash'
+          },
+          initiatedBy: data.initiatedBy
+        };
+      }) as ExchangeHistory[];
       
       // Sort by completed date on client side
       history.sort((a, b) => b.completedAt.getTime() - a.completedAt.getTime());
