@@ -30,6 +30,8 @@ export function useMatchingSystem() {
       const matchData = {
         userA: user.uid,
         userB: targetPost.userId,
+        userAName: user.displayName || user.email || 'User',
+        userBName: targetPost.userInfo?.name || 'Exchange Partner',
         postAId: 'quick-match',
         postBId: targetPost.id,
         status: 'pending' as const,

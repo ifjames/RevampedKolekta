@@ -36,8 +36,14 @@ export function getGreeting(): string {
   }
 }
 
-export function formatTime(date: Date): string {
-  return date.toLocaleTimeString('en-US', { 
+export function formatTime(date: Date | string | number): string {
+  const dateObj = typeof date === 'string' || typeof date === 'number' ? new Date(date) : date;
+  
+  if (!dateObj || isNaN(dateObj.getTime())) {
+    return 'Invalid time';
+  }
+  
+  return dateObj.toLocaleTimeString('en-US', { 
     hour: 'numeric', 
     minute: '2-digit',
     hour12: true 

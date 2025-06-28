@@ -62,6 +62,8 @@ export const matchSchema = z.object({
   id: z.string(),
   userA: z.string(),
   userB: z.string(),
+  userAName: z.string().optional(),
+  userBName: z.string().optional(),
   postAId: z.string(),
   postBId: z.string(),
   meetupTime: z.date().optional(),
@@ -71,7 +73,11 @@ export const matchSchema = z.object({
   ratingA: z.number().min(1).max(5).optional(),
   ratingB: z.number().min(1).max(5).optional(),
   createdAt: z.date(),
-  completedAt: z.date().optional()
+  completedAt: z.date().optional(),
+  duration: z.number().optional(),
+  rating: z.number().min(1).max(5).optional(),
+  notes: z.string().optional(),
+  completedBy: z.string().optional()
 });
 
 export const insertMatchSchema = matchSchema.omit({ id: true, createdAt: true });

@@ -184,20 +184,25 @@ export function Dashboard({ onLogout }: DashboardProps) {
             activeExchanges.map((match) => (
               <Card key={match.id} className="glass-effect border-white/20">
                 <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 mr-4">
+                      <div className="flex items-center gap-3 mb-2">
                         <h3 className="text-white font-semibold">Active Exchange</h3>
                         <Badge className="bg-green-500">Confirmed</Badge>
                       </div>
                       <p className="text-blue-100 text-sm mb-2">
-                        Partner: Exchange Partner
+                        Partner: {(() => {
+                          const extMatch = match as any;
+                          return match.userA === user?.uid 
+                            ? (extMatch.userBName || 'Exchange Partner')
+                            : (extMatch.userAName || 'Exchange Partner');
+                        })()}
                       </p>
                       <p className="text-blue-200 text-xs">
                         Chat with your partner to coordinate the meetup and exchange
                       </p>
                     </div>
-                    <div className="flex space-x-2">
+                    <div className="flex flex-col gap-2 min-w-fit">
                       <Button
                         size="sm"
                         onClick={() => {
@@ -488,7 +493,14 @@ export function Dashboard({ onLogout }: DashboardProps) {
                             <MessageSquare className="h-5 w-5 text-white" />
                           </div>
                           <div>
-                            <p className="text-white font-medium">Exchange Partner</p>
+                            <p className="text-white font-medium">
+                              {(() => {
+                                const extMatch = match as any;
+                                return match.userA === user?.uid 
+                                  ? (extMatch.userBName || 'Exchange Partner')
+                                  : (extMatch.userAName || 'Exchange Partner');
+                              })()}
+                            </p>
                             <p className="text-blue-100 text-sm">Active exchange • Click to chat</p>
                           </div>
                         </div>
@@ -943,7 +955,12 @@ export function Dashboard({ onLogout }: DashboardProps) {
           isOpen={showChat}
           onClose={() => setShowChat(false)}
           matchId={selectedChatExchange.id}
-          partnerName="Exchange Partner"
+          partnerName={(() => {
+            const extMatch = selectedChatExchange as any;
+            return selectedChatExchange.userA === user?.uid 
+              ? (extMatch.userBName || 'Exchange Partner')
+              : (extMatch.userAName || 'Exchange Partner');
+          })()}
         />
       )}
     </div>

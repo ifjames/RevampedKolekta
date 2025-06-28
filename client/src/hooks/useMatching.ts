@@ -141,32 +141,60 @@ export function useMatching() {
     return () => unsubscribe();
   }, [user?.uid, location?.lat, location?.lng, matchingOptions.maxDistance]);
 
-  // Listen for match requests
+  // Listen for match requests (both sent and received)
   useEffect(() => {
     if (!user?.uid) return;
 
-    const matchRequestsQuery = query(
+    // Query for matches where user is userB (received requests)
+    const receivedMatchesQuery = query(
       collection(db, 'matches'),
       where('userB', '==', user.uid),
       limit(20)
     );
 
-    const unsubscribe = onSnapshot(matchRequestsQuery, (snapshot) => {
-      const requests = snapshot.docs
-        .map(doc => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            ...data,
-            createdAt: data.createdAt?.toDate() || new Date()
-          } as Match;
-        })
-        .filter(match => ['pending', 'confirmed'].includes(match.status));
+    // Query for matches where user is userA (sent requests)
+    const sentMatchesQuery = query(
+      collection(db, 'matches'),
+      where('userA', '==', user.uid),
+      limit(20)
+    );
 
+    const allMatches = new Map();
+
+    const unsubscribeReceived = onSnapshot(receivedMatchesQuery, (snapshot) => {
+      snapshot.docs.forEach(doc => {
+        const data = doc.data();
+        allMatches.set(doc.id, {
+          id: doc.id,
+          ...data,
+          createdAt: data.createdAt?.toDate() || new Date()
+        } as Match);
+      });
+      
+      const requests = Array.from(allMatches.values())
+        .filter(match => ['pending', 'confirmed'].includes(match.status));
       setMatchRequests(requests);
     });
 
-    return () => unsubscribe();
+    const unsubscribeSent = onSnapshot(sentMatchesQuery, (snapshot) => {
+      snapshot.docs.forEach(doc => {
+        const data = doc.data();
+        allMatches.set(doc.id, {
+          id: doc.id,
+          ...data,
+          createdAt: data.createdAt?.toDate() || new Date()
+        } as Match);
+      });
+      
+      const requests = Array.from(allMatches.values())
+        .filter(match => ['pending', 'confirmed'].includes(match.status));
+      setMatchRequests(requests);
+    });
+
+    return () => {
+      unsubscribeReceived();
+      unsubscribeSent();
+    };
   }, [user?.uid]);
 
   // Request a match with another user
