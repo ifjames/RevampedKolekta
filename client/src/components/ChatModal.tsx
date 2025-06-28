@@ -20,7 +20,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCollection, useFirestoreOperations } from '@/hooks/useFirestore';
-import { where, orderBy, limit, doc, getDoc, collection, query, onSnapshot } from 'firebase/firestore';
+import { where, orderBy, limit, doc, getDoc, collection, query, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { toast } from 'react-hot-toast';
 import { formatTime } from '@/utils/timeUtils';
@@ -70,7 +70,7 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Real-time message listener
+  // Real-time message listener using simplified query
   useEffect(() => {
     if (!matchId) {
       setMessages([]);
@@ -80,26 +80,39 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
 
     setLoading(true);
     const messagesRef = collection(db, 'messages');
-    const q = query(
-      messagesRef,
-      where('matchId', '==', matchId),
-      orderBy('timestamp', 'asc')
-    );
+    // Use only where clause to avoid index requirement
+    const q = query(messagesRef, where('matchId', '==', matchId));
 
     const unsubscribe = onSnapshot(q, (snapshot: any) => {
       const newMessages: ChatMessage[] = [];
       snapshot.forEach((doc: any) => {
         const data = doc.data();
+        // Handle server timestamp properly
+        let timestamp = new Date();
+        if (data.timestamp) {
+          if (data.timestamp.toDate) {
+            timestamp = data.timestamp.toDate();
+          } else if (data.timestamp.seconds) {
+            timestamp = new Date(data.timestamp.seconds * 1000);
+          } else if (typeof data.timestamp === 'string' || typeof data.timestamp === 'number') {
+            timestamp = new Date(data.timestamp);
+          }
+        }
+        
         newMessages.push({
           id: doc.id,
           matchId: data.matchId,
           sender: data.sender,
           text: data.text,
-          timestamp: data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp),
+          timestamp: timestamp,
           read: data.read || false
         });
       });
       
+      // Sort messages by timestamp on client side
+      newMessages.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+      
+      console.log(`Real-time chat update: ${newMessages.length} messages for match ${matchId}`);
       setMessages(newMessages);
       setLoading(false);
       
@@ -205,7 +218,7 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
         matchId,
         sender: user.uid,
         text: messageText,
-        timestamp: new Date(),
+        timestamp: serverTimestamp(),
         read: false
       };
 
