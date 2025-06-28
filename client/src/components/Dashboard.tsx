@@ -247,7 +247,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
                             setSelectedExchangeForCompletion(exchange);
                             setShowExchangeCompletion(true);
                           }}
-                          className="bg-green-500 hover:bg-green-600 text-white"
+                          className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white border-0 shadow-lg"
                         >
                           <Handshake className="h-4 w-4 mr-1" />
                           Complete

@@ -11,7 +11,8 @@ import {
   Shield,
   AlertTriangle,
   CheckCircle2,
-  Star
+  Star,
+  Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -54,9 +55,11 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
   const { addDocument, updateDocument } = useFirestoreOperations();
   const [isExchangeCompleted, setIsExchangeCompleted] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState(false);
-  const [selectedRating, setSelectedRating] = useState(0);
+  const [selectedRating, setSelectedRating] = useState(5);
   const [partnerProfile, setPartnerProfile] = useState<any>(null);
   const [showPartnerProfile, setShowPartnerProfile] = useState(false);
+  const [completingExchange, setCompletingExchange] = useState(false);
+  const [exchangeNotes, setExchangeNotes] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<MessageFormData>({
@@ -240,31 +243,99 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
   };
 
   const submitRating = async () => {
-    if (!matchId || selectedRating === 0) return;
+    if (!exchange || !user || selectedRating === 0) return;
 
+    setCompletingExchange(true);
     try {
-      await updateDocument('matches', matchId, {
-        status: 'completed',
-        completedAt: new Date(),
-        rating: selectedRating
+      const completedAt = new Date();
+      const duration = Math.round((completedAt.getTime() - (exchange.createdAt?.getTime() || Date.now())) / (1000 * 60));
+      const partnerId = exchange.userA === user.uid ? exchange.userB : exchange.userA;
+      const partnerName = exchange.userA === user.uid ? exchange.userBName : exchange.userAName;
+
+      // Update match status to completed
+      const { doc, updateDoc } = await import('firebase/firestore');
+      const { db } = await import('@/lib/firebase');
+      
+      try {
+        await updateDoc(doc(db, 'matches', exchange.id), {
+          status: 'completed',
+          completedAt,
+          duration,
+          [`${user.uid}_rating`]: selectedRating,
+          [`${user.uid}_notes`]: exchangeNotes,
+          [`${user.uid}_completed`]: true,
+          completedBy: user.uid
+        });
+      } catch (error) {
+        console.error('Error updating match:', error);
+      }
+
+      // Create exchange history record for current user
+      await addDocument('exchangeHistory', {
+        matchId: exchange.id,
+        userId: user.uid,
+        partnerUserId: partnerId,
+        partnerName: partnerName,
+        completedAt,
+        duration,
+        myRating: selectedRating,
+        myNotes: exchangeNotes,
+        exchangeAmount: exchange.exchangeDetails?.giveAmount || 0,
+        exchangeType: exchange.exchangeDetails?.giveType || 'cash',
+        initiatedBy: exchange.initiatedBy
+      });
+
+      // Update user ratings and profile
+      await addDocument('userRatings', {
+        ratedUserId: partnerId,
+        raterUserId: user.uid,
+        rating: selectedRating,
+        notes: exchangeNotes,
+        matchId: exchange.id,
+        createdAt: completedAt
       });
 
       // Add completion message to chat
       await addDocument('messages', {
         matchId,
         sender: user?.uid,
-        text: `✅ Exchange completed! Rated ${selectedRating} stars.`,
-        timestamp: new Date(),
+        text: `✅ Exchange completed! Rated ${selectedRating} stars. ${exchangeNotes ? `Notes: ${exchangeNotes}` : ''}`,
+        timestamp: completedAt,
         read: false,
         systemMessage: true
+      });
+
+      // Create notification for partner
+      await addDocument('notifications', {
+        userId: partnerId,
+        type: 'exchange_completed',
+        title: 'Exchange Completed!',
+        message: `Your exchange with ${user.displayName || user.email || 'Someone'} has been completed. Please rate your experience.`,
+        data: { 
+          matchId: exchange.id,
+          completedBy: user.uid,
+          rating: selectedRating,
+          partnerName: user.displayName || user.email
+        },
+        read: false,
+        deleted: false,
+        createdAt: completedAt
       });
 
       toastSuccess('Exchange completed and rated successfully!');
       setShowRatingModal(false);
       onClose();
+
+      // Reload the page to refresh all data
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+
     } catch (error) {
       console.error('Error completing exchange:', error);
       toastError('Failed to complete exchange. Please try again.');
+    } finally {
+      setCompletingExchange(false);
     }
   };
 
@@ -380,7 +451,7 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
                 <Button
                   onClick={completeExchange}
                   size="sm"
-                  className="bg-green-500 hover:bg-green-600 text-white w-full"
+                  className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white w-full border-0 shadow-lg"
                 >
                   <CheckCircle2 className="h-4 w-4 mr-2" />
                   Complete Exchange
@@ -444,41 +515,66 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
               <Card className="glass-effect border-white/20 p-6 max-w-sm w-full mx-4">
                 <div className="text-center">
                   <Star className="h-12 w-12 text-yellow-400 mx-auto mb-4" />
-                  <h3 className="text-white font-bold text-lg mb-2">Rate Your Experience</h3>
+                  <h3 className="text-white font-bold text-lg mb-2">Complete Exchange</h3>
                   <p className="text-blue-100 text-sm mb-6">
-                    How was your exchange with {partnerName}?
+                    Rate your exchange with {partnerName}
                   </p>
                   
-                  <div className="flex justify-center space-x-2 mb-6">
+                  <div className="flex justify-center space-x-2 mb-4">
                     {[1, 2, 3, 4, 5].map((rating) => (
                       <button
                         key={rating}
                         onClick={() => setSelectedRating(rating)}
+                        disabled={completingExchange}
                         className={`p-2 rounded-full transition-colors ${
                           rating <= selectedRating
                             ? 'text-yellow-400'
                             : 'text-gray-400 hover:text-yellow-200'
-                        }`}
+                        } ${completingExchange ? 'opacity-50 cursor-not-allowed' : ''}`}
                       >
                         <Star className="h-6 w-6 fill-current" />
                       </button>
                     ))}
                   </div>
 
+                  <div className="mb-4">
+                    <Textarea
+                      value={exchangeNotes}
+                      onChange={(e) => setExchangeNotes(e.target.value)}
+                      placeholder="Add notes about your experience (optional)"
+                      className="bg-blue-900/30 border-white/20 text-white placeholder-blue-300 text-sm"
+                      rows={3}
+                      maxLength={200}
+                      disabled={completingExchange}
+                    />
+                    <p className="text-blue-300 text-xs text-right mt-1">{exchangeNotes.length}/200</p>
+                  </div>
+
                   <div className="flex space-x-3">
                     <Button
                       variant="outline"
                       onClick={() => setShowRatingModal(false)}
-                      className="flex-1 text-white border-white/20 hover:bg-white/10"
+                      disabled={completingExchange}
+                      className="flex-1 text-white border-white/20 hover:bg-white/10 bg-transparent"
                     >
-                      Skip
+                      Cancel
                     </Button>
                     <Button
                       onClick={submitRating}
-                      disabled={selectedRating === 0}
-                      className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
+                      disabled={selectedRating === 0 || completingExchange}
+                      className="flex-1 bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white border-0"
                     >
-                      Submit Rating
+                      {completingExchange ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Completing...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle2 className="mr-2 h-4 w-4" />
+                          Complete Exchange
+                        </>
+                      )}
                     </Button>
                   </div>
                 </div>

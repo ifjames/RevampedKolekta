@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Star, Clock, MessageSquare, CheckCircle, Loader2 } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
@@ -33,15 +33,23 @@ export function ExchangeCompletionModal({ isOpen, onClose, exchange }: ExchangeC
       const partnerName = exchange.userA === user.uid ? exchange.userBName : exchange.userAName;
 
       // Update match status to completed
-      await updateDocument('matches', exchange.id, {
-        status: 'completed',
-        completedAt,
-        duration,
-        [`${user.uid}_rating`]: rating,
-        [`${user.uid}_notes`]: notes,
-        [`${user.uid}_completed`]: true,
-        completedBy: user.uid
-      });
+      const { doc, updateDoc } = await import('firebase/firestore');
+      const { db } = await import('@/lib/firebase');
+      
+      try {
+        await updateDoc(doc(db, 'matches', exchange.id), {
+          status: 'completed',
+          completedAt,
+          duration,
+          [`${user.uid}_rating`]: rating,
+          [`${user.uid}_notes`]: notes,
+          [`${user.uid}_completed`]: true,
+          completedBy: user.uid
+        });
+      } catch (error) {
+        console.error('Error updating match:', error);
+        // If match doesn't exist, continue with other operations
+      }
 
       // Create exchange history record for current user
       await addDocument('exchangeHistory', {
@@ -163,6 +171,9 @@ export function ExchangeCompletionModal({ isOpen, onClose, exchange }: ExchangeC
       <DialogContent className="glass-effect border-white/20 text-white max-w-md">
         <DialogHeader className="text-center">
           <DialogTitle className="text-xl text-white mb-4">Complete Exchange</DialogTitle>
+          <DialogDescription className="text-blue-100">
+            Rate your exchange experience and complete the transaction
+          </DialogDescription>
         </DialogHeader>
 
         <motion.div
@@ -239,14 +250,14 @@ export function ExchangeCompletionModal({ isOpen, onClose, exchange }: ExchangeC
               variant="outline"
               onClick={onClose}
               disabled={loading}
-              className="flex-1 border-white/30 text-white hover:bg-white/10"
+              className="flex-1 border-white/30 text-white hover:bg-white/10 bg-transparent"
             >
               Cancel
             </Button>
             <Button
               onClick={handleComplete}
               disabled={loading}
-              className="flex-1 bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white"
+              className="flex-1 bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white border-0"
             >
               {loading ? (
                 <>
