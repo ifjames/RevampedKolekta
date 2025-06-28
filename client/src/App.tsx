@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
-import { LocationProvider } from '@/contexts/LocationContext';
+import { LocationProvider, useLocation } from '@/contexts/LocationContext';
 import { LandingPage } from '@/components/LandingPage';
 import { AuthModal } from '@/components/AuthModal';
 import { Dashboard } from '@/components/Dashboard';
+import { LocationPermissionPage } from '@/components/LocationPermissionPage';
 
 function AppContent() {
   const { user, loading } = useAuth();
+  const { permissionDenied, requestLocation } = useLocation();
   const [showAuth, setShowAuth] = useState(false);
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
 
@@ -33,6 +35,16 @@ function AppContent() {
           <p className="text-white text-lg">Loading Kolekta...</p>
         </div>
       </div>
+    );
+  }
+
+  // Show location permission page if access was denied
+  if (permissionDenied && !loading) {
+    return (
+      <LocationPermissionPage
+        onAllowLocation={requestLocation}
+        onTryAgain={requestLocation}
+      />
     );
   }
 

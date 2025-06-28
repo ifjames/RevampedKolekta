@@ -9,6 +9,7 @@ interface LocationContextType {
   loading: boolean;
   requestLocation: () => void;
   hasPermission: boolean;
+  permissionDenied: boolean;
 }
 
 const LocationContext = createContext<LocationContextType | undefined>(undefined);
@@ -29,6 +30,7 @@ export function LocationProvider({ children }: LocationProviderProps) {
   const { location, error, loading, getCurrentLocation } = useGeolocation();
   const [hasPermission, setHasPermission] = useState(false);
   const [permissionRequested, setPermissionRequested] = useState(false);
+  const [permissionDenied, setPermissionDenied] = useState(false);
 
   useEffect(() => {
     // Check if geolocation is supported
@@ -54,6 +56,7 @@ export function LocationProvider({ children }: LocationProviderProps) {
     if (error) {
       setHasPermission(false);
       if (error.includes('denied')) {
+        setPermissionDenied(true);
         toastError('Location access is needed to find nearby exchanges');
       }
     }
@@ -65,6 +68,7 @@ export function LocationProvider({ children }: LocationProviderProps) {
       return;
     }
 
+    setPermissionDenied(false); // Reset permission denied state when trying again
     getCurrentLocation();
   };
 
@@ -74,6 +78,7 @@ export function LocationProvider({ children }: LocationProviderProps) {
     loading,
     requestLocation,
     hasPermission,
+    permissionDenied,
   };
 
   return (

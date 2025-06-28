@@ -153,21 +153,22 @@ export function SafeMeetupModal({ isOpen, onClose, onLocationSelect, userLocatio
   };
 
   useEffect(() => {
-    if (location) {
-      const userLoc = { lat: location.lat, lng: location.lng };
+    const currentLocation = userLocation || location;
+    if (currentLocation) {
+      const userLoc = { lat: currentLocation.lat, lng: currentLocation.lng };
       const nearbyLocations = generateNearbyLocations(userLoc);
       const locationsWithDistance = nearbyLocations.map((loc: SafeLocation) => ({
         ...loc,
         distance: distance(userLoc.lat, userLoc.lng, loc.coordinates.lat, loc.coordinates.lng)
-      })).sort((a: SafeLocation, b: SafeLocation) => (a.distance || 0) - (b.distance || 0));
+      })).filter((loc: SafeLocation) => (loc.distance || 0) <= 10) // Only show locations within 10km
+        .sort((a: SafeLocation, b: SafeLocation) => (a.distance || 0) - (b.distance || 0));
       
       setSafeLocations(locationsWithDistance);
     } else {
-      // If no location, still show default locations
-      const defaultLocations = generateNearbyLocations({ lat: 14.5995, lng: 120.9842 }); // Manila center
-      setSafeLocations(defaultLocations);
+      // If no location, show empty state or request location
+      setSafeLocations([]);
     }
-  }, [location]);
+  }, [location, userLocation]);
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -268,10 +269,10 @@ export function SafeMeetupModal({ isOpen, onClose, onLocationSelect, userLocatio
                       variant={selectedType === type.value ? "default" : "outline"}
                       size="sm"
                       onClick={() => setSelectedType(type.value)}
-                      className={`${
+                      className={`transition-all duration-200 ${
                         selectedType === type.value
-                          ? 'bg-blue-500 text-white'
-                          : 'text-white border-white/20 hover:bg-white/10'
+                          ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-400 shadow-lg shadow-blue-500/25'
+                          : 'bg-white/10 text-white border-white/30 hover:bg-white/20 hover:border-white/50 hover:text-white'
                       }`}
                     >
                       {type.label}
@@ -292,6 +293,26 @@ export function SafeMeetupModal({ isOpen, onClose, onLocationSelect, userLocatio
                   </div>
                 </div>
               </div>
+
+              {/* No Location State */}
+              {!location && !userLocation && (
+                <div className="text-center py-8">
+                  <div className="bg-yellow-900/30 border border-yellow-400/30 rounded-lg p-6">
+                    <MapPin className="h-12 w-12 text-yellow-400 mx-auto mb-4" />
+                    <h3 className="text-white font-semibold mb-2">Location Access Required</h3>
+                    <p className="text-yellow-200 text-sm mb-4">
+                      We need your location to show nearby safe meetup spots within 10km of you.
+                    </p>
+                    <Button
+                      onClick={() => window.location.reload()}
+                      className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white"
+                    >
+                      <Navigation className="h-4 w-4 mr-2" />
+                      Enable Location
+                    </Button>
+                  </div>
+                </div>
+              )}
 
               {/* Locations List */}
               <div className="space-y-3 max-h-96 overflow-y-auto">
