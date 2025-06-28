@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -53,12 +53,13 @@ type CreatePostFormData = z.infer<typeof createPostSchema>;
 interface CreatePostModalProps {
   isOpen: boolean;
   onClose: () => void;
+  editingPost?: any;
 }
 
-export function CreatePostModal({ isOpen, onClose }: CreatePostModalProps) {
+export function CreatePostModal({ isOpen, onClose, editingPost }: CreatePostModalProps) {
   const { user, userProfile } = useAuth();
   const { location, requestLocation } = useLocation();
-  const { addDocument } = useFirestoreOperations();
+  const { addDocument, updateDocument } = useFirestoreOperations();
   const [loading, setLoading] = useState(false);
   const [locationLoading, setLocationLoading] = useState(false);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
@@ -76,13 +77,38 @@ export function CreatePostModal({ isOpen, onClose }: CreatePostModalProps) {
     },
   });
 
+  // Reset form when editingPost changes
+  useEffect(() => {
+    if (editingPost) {
+      form.reset({
+        giveAmount: editingPost.giveAmount,
+        giveType: editingPost.giveType,
+        needAmount: editingPost.needAmount,
+        needType: editingPost.needType,
+        needBreakdown: editingPost.needBreakdown?.join(', ') || '',
+        notes: editingPost.notes || '',
+      });
+      setSelectedLocation(editingPost.location || null);
+    } else {
+      form.reset({
+        giveAmount: 1000,
+        giveType: 'bill',
+        needAmount: 1000,
+        needType: 'coins',
+        needBreakdown: '',
+        notes: '',
+      });
+      setSelectedLocation(null);
+    }
+  }, [editingPost, form]);
+
   const handleSubmit = async (data: CreatePostFormData) => {
     if (!user) {
       toastError('Please log in to create posts');
       return;
     }
 
-    const postLocation = selectedLocation || location;
+    const postLocation = selectedLocation || (editingPost?.location || location);
     if (!postLocation) {
       toastError('Please select a location for your exchange post');
       return;
@@ -115,17 +141,22 @@ export function CreatePostModal({ isOpen, onClose }: CreatePostModalProps) {
           lng: postLocation.lng,
         },
         status: 'active' as const,
-        timestamp: new Date(),
+        ...(editingPost ? {} : { timestamp: new Date() }), // Keep original timestamp when editing
       };
 
-      await addDocument('posts', postData);
+      if (editingPost) {
+        await updateDocument('posts', editingPost.id, postData);
+        toastSuccess('Exchange post updated successfully!');
+      } else {
+        await addDocument('posts', { ...postData, timestamp: new Date() });
+        toastSuccess('Exchange post created successfully!');
+      }
       
-      toastSuccess('Exchange post created successfully!');
       onClose();
       form.reset();
     } catch (error) {
-      console.error('Error creating post:', error);
-      toastError('Failed to create post');
+      console.error('Error saving post:', error);
+      toastError(editingPost ? 'Failed to update post' : 'Failed to create post');
     } finally {
       setLoading(false);
     }
@@ -146,7 +177,7 @@ export function CreatePostModal({ isOpen, onClose }: CreatePostModalProps) {
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-white flex items-center">
             <DollarSign className="mr-2 h-6 w-6" />
-            Create Exchange Post
+            {editingPost ? 'Edit Exchange Post' : 'Create Exchange Post'}
           </DialogTitle>
           <DialogDescription className="text-blue-100">
             Create a new exchange request to find people nearby who can help with your cash denomination needs.
@@ -333,11 +364,11 @@ export function CreatePostModal({ isOpen, onClose }: CreatePostModalProps) {
             disabled={loading || (!selectedLocation && !location)}
           >
             {loading ? (
-              <>Creating...</>
+              <>{editingPost ? 'Updating...' : 'Creating...'}</>
             ) : (
               <>
                 <Send className="mr-2 h-4 w-4" />
-                Post Exchange Request
+                {editingPost ? 'Update Exchange Request' : 'Post Exchange Request'}
               </>
             )}
           </Button>

@@ -68,6 +68,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
   
   // UI state management
   const [showCreatePost, setShowCreatePost] = useState(false);
+  const [editingPost, setEditingPost] = useState<any>(null);
   const [showChat, setShowChat] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -882,7 +883,11 @@ export function Dashboard({ onLogout }: DashboardProps) {
       {/* Modals */}
       <CreatePostModal 
         isOpen={showCreatePost} 
-        onClose={() => setShowCreatePost(false)} 
+        onClose={() => {
+          setShowCreatePost(false);
+          setEditingPost(null);
+        }}
+        editingPost={editingPost}
       />
       
       <ChatModal 
@@ -931,6 +936,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
         onClose={() => setShowMyPosts(false)}
         onEditPost={(post) => {
           setShowMyPosts(false);
+          setEditingPost(post);
           setShowCreatePost(true);
         }}
       />
