@@ -85,9 +85,9 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
             // Create a basic profile if none exists
             setPartnerProfile({
               name: partnerName,
-              verified: true, // Default to verified for demo
-              averageRating: 4.5,
-              totalRatings: 12
+              verified: false, // Don't assume verified status
+              averageRating: 0,
+              totalRatings: 0
             });
           }
         })
@@ -96,15 +96,15 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
           // Fallback profile data
           setPartnerProfile({
             name: partnerName,
-            verified: true,
-            averageRating: 4.5,
-            totalRatings: 12
+            verified: false,
+            averageRating: 0,
+            totalRatings: 0
           });
         });
     }
   }, [exchange, user?.uid, partnerName]);
 
-  // Auto-scroll to bottom when new messages arrive with proper timing
+  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     const scrollToBottom = () => {
       if (messagesEndRef.current) {
@@ -112,11 +112,13 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
       }
     };
     
-    // Use setTimeout to ensure DOM is updated before scrolling
+    // Immediate scroll for better responsiveness
     if (messages && messages.length > 0) {
-      setTimeout(scrollToBottom, 100);
+      scrollToBottom();
+      // Also set a timeout as backup
+      setTimeout(scrollToBottom, 50);
     }
-  }, [messages?.length]); // Only trigger when message count changes
+  }, [messages]); // Trigger on any message changes, not just count
 
   // Mark messages as read when chat opens
   useEffect(() => {
@@ -153,12 +155,10 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
       await addDocument('messages', messageData);
       reset();
       
-      // Force scroll to bottom after sending message
-      setTimeout(() => {
-        if (messagesEndRef.current) {
-          messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
-        }
-      }, 200);
+      // Immediate scroll after sending
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }
     } catch (error) {
       console.error('Error sending message:', error);
       toastError('Failed to send message. Please try again.');

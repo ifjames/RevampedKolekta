@@ -1,10 +1,12 @@
 import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
 import { MapPin, ArrowLeftRight, Handshake, Star, Shield, Map } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ExchangePost } from '@/types';
 import { formatTimeAgo } from '@/utils/timeUtils';
+import { getUserVerificationStatus } from '@/utils/dataCleanup';
 
 interface ExchangeCardProps {
   post: ExchangePost;
@@ -13,6 +15,15 @@ interface ExchangeCardProps {
 }
 
 export function ExchangeCard({ post, onMatch, onViewMap }: ExchangeCardProps) {
+  const [isVerified, setIsVerified] = useState(false);
+  
+  // Check actual verification status from database
+  useEffect(() => {
+    if (post.userId) {
+      getUserVerificationStatus(post.userId).then(setIsVerified);
+    }
+  }, [post.userId]);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -32,10 +43,10 @@ export function ExchangeCard({ post, onMatch, onViewMap }: ExchangeCardProps) {
               <div>
                 <span className="text-white font-medium">{post.userInfo?.name || 'User'}</span>
                 <div className="flex items-center space-x-1">
-                  {post.userInfo?.verified && (
+                  {isVerified && (
                     <Shield className="h-3 w-3 text-green-400" />
                   )}
-                  {post.userInfo?.rating && (
+                  {post.userInfo?.rating && post.userInfo.rating > 0 && (
                     <div className="flex items-center">
                       <Star className="h-3 w-3 text-yellow-400 fill-current" />
                       <span className="text-blue-100 text-xs ml-1">

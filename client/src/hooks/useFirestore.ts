@@ -73,6 +73,9 @@ export function useCollection<T = DocumentData>(
 
     const unsubscribe = onSnapshot(
       q,
+      {
+        includeMetadataChanges: true // Include local changes for immediate UI updates
+      },
       (snapshot) => {
         const docs = snapshot.docs.map(doc => ({
           id: doc.id,
