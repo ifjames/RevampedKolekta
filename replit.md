@@ -155,6 +155,13 @@ Changelog:
   * Added client-side message sorting to maintain chronological order
   * Messages now appear instantly in real-time without modal refresh required
   * Enhanced error handling and debugging for Firebase listeners
+- June 28, 2025. Enhanced user rating and verification system:
+  * Added dynamic star rating display based on user ratings (1-5 stars)
+  * Implemented verification badges next to user names in profile and exchange cards
+  * Added warning indicators for users with negative ratings
+  * Star ratings scale appropriately: 0-1=1 star, 1-2=2 stars, etc. up to 5 stars
+  * Negative ratings show warning triangle instead of stars
+  * Updated both ProfileModal and ExchangeCard components with new rating system
 ```
 
 ## User Preferences

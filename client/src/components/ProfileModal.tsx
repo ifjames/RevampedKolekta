@@ -21,7 +21,8 @@ import {
   LogOut,
   Calendar,
   Mail,
-  Phone
+  Phone,
+  AlertTriangle
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDate } from '@/utils/timeUtils';
@@ -94,13 +95,52 @@ export function ProfileModal({ isOpen, onClose, onLogout }: ProfileModalProps) {
     });
   };
 
+  // Star rating calculation
+  const getStarRating = (rating: number) => {
+    if (rating < 0) {
+      return {
+        stars: 0,
+        showWarning: true,
+        color: 'text-red-400'
+      };
+    }
+    
+    // Scale: 0-1 = 1 star, 1-2 = 2 stars, 2-3 = 3 stars, 3-4 = 4 stars, 4+ = 5 stars
+    const stars = Math.min(5, Math.max(1, Math.ceil(rating)));
+    
+    return {
+      stars,
+      showWarning: false,
+      color: rating >= 4 ? 'text-yellow-400' : rating >= 2 ? 'text-yellow-300' : 'text-yellow-200'
+    };
+  };
+
+  const renderStarRating = (rating: number) => {
+    const { stars, showWarning, color } = getStarRating(rating);
+    
+    if (showWarning) {
+      return (
+        <div className="flex items-center space-x-1">
+          <AlertTriangle className="h-4 w-4 text-red-400" />
+          <span className="text-red-400 text-sm">Poor Rating</span>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="flex items-center space-x-1">
+        {[...Array(5)].map((_, i) => (
+          <Star
+            key={i}
+            className={`h-4 w-4 ${i < stars ? color + ' fill-current' : 'text-gray-400'}`}
+          />
+        ))}
+        <span className="ml-1 text-white text-sm">{rating.toFixed(1)}</span>
+      </div>
+    );
+  };
+
   const stats = [
-    {
-      icon: Star,
-      value: userProfile?.rating ? userProfile.rating.toFixed(1) : '0.0',
-      label: 'Rating',
-      color: 'text-yellow-400',
-    },
     {
       icon: ExternalLink,
       value: userProfile?.completedExchanges || 0,
@@ -121,19 +161,21 @@ export function ProfileModal({ isOpen, onClose, onLogout }: ProfileModalProps) {
           >
             <User className="h-10 w-10 text-white" />
           </motion.div>
-          <DialogTitle className="text-2xl font-bold text-white">
-            {userProfile?.name || user?.displayName || 'User'}
-          </DialogTitle>
-          <DialogDescription className="text-blue-100">
-            View and manage your profile information
-          </DialogDescription>
-          <div className="flex items-center justify-center space-x-2 mt-2">
+          <div className="flex items-center justify-center space-x-2">
+            <DialogTitle className="text-2xl font-bold text-white">
+              {userProfile?.name || user?.displayName || 'User'}
+            </DialogTitle>
             {userProfile?.verified && (
               <Badge className="bg-green-500 text-white">
                 <Shield className="mr-1 h-3 w-3" />
                 Verified
               </Badge>
             )}
+          </div>
+          <DialogDescription className="text-blue-100">
+            View and manage your profile information
+          </DialogDescription>
+          <div className="flex items-center justify-center mt-2">
             <p className="text-blue-100 text-sm">
               Member since {userProfile?.createdAt ? formatDate(new Date(userProfile.createdAt)) : 'recently'}
             </p>
@@ -174,6 +216,17 @@ export function ProfileModal({ isOpen, onClose, onLogout }: ProfileModalProps) {
           transition={{ delay: 0.3 }}
           className="grid grid-cols-2 gap-4 mb-6"
         >
+          {/* Rating Card with Stars */}
+          <Card className="glass-dark border-white/10">
+            <CardContent className="p-3 text-center">
+              <div className="mb-2">
+                {renderStarRating(userProfile?.rating || 0)}
+              </div>
+              <p className="text-blue-100 text-xs">Rating</p>
+            </CardContent>
+          </Card>
+
+          {/* Exchanges Card */}
           {stats.map((stat, index) => (
             <Card key={stat.label} className="glass-dark border-white/10">
               <CardContent className="p-3 text-center">

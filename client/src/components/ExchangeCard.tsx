@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { MapPin, ArrowLeftRight, Handshake, Star, Shield, Map } from 'lucide-react';
+import { MapPin, ArrowLeftRight, Handshake, Star, Shield, Map, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -24,6 +24,50 @@ export function ExchangeCard({ post, onMatch, onViewMap }: ExchangeCardProps) {
     }
   }, [post.userId]);
 
+  // Star rating calculation
+  const getStarRating = (rating: number) => {
+    if (rating < 0) {
+      return {
+        stars: 0,
+        showWarning: true,
+        color: 'text-red-400'
+      };
+    }
+    
+    const stars = Math.min(5, Math.max(1, Math.ceil(rating)));
+    
+    return {
+      stars,
+      showWarning: false,
+      color: rating >= 4 ? 'text-yellow-400' : rating >= 2 ? 'text-yellow-300' : 'text-yellow-200'
+    };
+  };
+
+  const renderStarRating = (rating: number) => {
+    const { stars, showWarning, color } = getStarRating(rating);
+    
+    if (showWarning) {
+      return (
+        <div className="flex items-center space-x-1">
+          <AlertTriangle className="h-3 w-3 text-red-400" />
+          <span className="text-red-400 text-xs">Poor</span>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="flex items-center space-x-1">
+        {[...Array(Math.min(3, stars))].map((_, i) => (
+          <Star
+            key={i}
+            className={`h-3 w-3 ${color} fill-current`}
+          />
+        ))}
+        <span className="text-blue-200 text-xs">{rating.toFixed(1)}</span>
+      </div>
+    );
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -41,18 +85,18 @@ export function ExchangeCard({ post, onMatch, onViewMap }: ExchangeCardProps) {
                 </span>
               </div>
               <div>
-                <span className="text-white font-medium">{post.userInfo?.name || 'User'}</span>
-                <div className="flex items-center space-x-1">
+                <div className="flex items-center space-x-2">
+                  <span className="text-white font-medium">{post.userInfo?.name || 'User'}</span>
                   {isVerified && (
-                    <Shield className="h-3 w-3 text-green-400" />
+                    <Badge className="bg-green-500 text-white text-xs px-1 py-0">
+                      <Shield className="h-2 w-2 mr-1" />
+                      Verified
+                    </Badge>
                   )}
-                  {post.userInfo?.rating && post.userInfo.rating > 0 && (
-                    <div className="flex items-center">
-                      <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                      <span className="text-blue-100 text-xs ml-1">
-                        {post.userInfo.rating.toFixed(1)}
-                      </span>
-                    </div>
+                </div>
+                <div className="flex items-center space-x-1 mt-1">
+                  {post.userInfo?.rating !== undefined && (
+                    renderStarRating(post.userInfo.rating)
                   )}
                 </div>
               </div>
