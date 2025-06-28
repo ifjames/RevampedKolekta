@@ -33,7 +33,7 @@ export function ExchangeCompletionModal({ isOpen, onClose, exchange }: ExchangeC
       const partnerName = exchange.userA === user.uid ? exchange.userBName : exchange.userAName;
 
       // Update match status to completed
-      const { doc, updateDoc } = await import('firebase/firestore');
+      const { doc, updateDoc, getDoc } = await import('firebase/firestore');
       const { db } = await import('@/lib/firebase');
       
       try {
@@ -46,6 +46,15 @@ export function ExchangeCompletionModal({ isOpen, onClose, exchange }: ExchangeC
           [`${user.uid}_completed`]: true,
           completedBy: user.uid
         });
+        
+        // Remove from active exchanges
+        const activeExchangeRef = doc(db, 'activeExchanges', exchange.id);
+        await updateDoc(activeExchangeRef, {
+          status: 'completed',
+          completedAt
+        });
+        
+        console.log('Updated match and active exchange status to completed');
       } catch (error) {
         console.error('Error updating match:', error);
         // If match doesn't exist, continue with other operations
@@ -92,7 +101,17 @@ export function ExchangeCompletionModal({ isOpen, onClose, exchange }: ExchangeC
         }
       }
 
-      // Update user ratings and profile
+      // Calculate rating impact with multiplier system
+      const calculateRatingImpact = (newRating: number, currentRating: number, totalRatings: number) => {
+        // Base weight decreases as user gets more ratings (prevents rating inflation)
+        const baseWeight = Math.max(0.1, 1 / Math.sqrt(totalRatings + 1));
+        // Rating impact varies based on difference from current rating
+        const ratingDifference = newRating - currentRating;
+        const impact = ratingDifference * baseWeight;
+        return Math.max(-0.5, Math.min(0.5, impact)); // Cap impact between -0.5 and +0.5
+      };
+
+      // Update user ratings and profile with smart rating system
       await addDocument('userRatings', {
         ratedUserId: partnerId,
         raterUserId: user.uid,
@@ -101,6 +120,31 @@ export function ExchangeCompletionModal({ isOpen, onClose, exchange }: ExchangeC
         matchId: exchange.id,
         createdAt: completedAt
       });
+
+      // Update partner's rating with multiplier system
+      try {
+        const partnerRef = doc(db, 'users', partnerId);
+        const partnerDoc = await getDoc(partnerRef);
+        
+        if (partnerDoc.exists()) {
+          const partnerData = partnerDoc.data();
+          const currentRating = partnerData.averageRating || 3.0;
+          const totalRatings = partnerData.totalRatings || 0;
+          
+          const ratingImpact = calculateRatingImpact(rating, currentRating, totalRatings);
+          const newRating = Math.max(1.0, Math.min(5.0, currentRating + ratingImpact));
+          
+          await updateDoc(partnerRef, {
+            averageRating: newRating,
+            totalRatings: totalRatings + 1,
+            lastRatingAt: completedAt
+          });
+          
+          console.log(`Updated partner rating: ${currentRating} -> ${newRating} (impact: ${ratingImpact})`);
+        }
+      } catch (error) {
+        console.error('Error updating partner rating:', error);
+      }
 
       // Update user profiles with new exchange count and rating
       try {

@@ -175,6 +175,10 @@ Changelog:
   * Updated exchange history data structure with participants array for better querying
   * Added comprehensive logging for debugging exchange completion process
   * Standardized exchange completion logic across Dashboard and Chat modal components
+  * Implemented smart rating multiplier system with diminishing returns for established users
+  * Fixed active exchange removal to properly update status and hide completed chats
+  * Enhanced rating calculation with weighted impact based on user's total ratings count
+  * Rating system prevents inflation by reducing impact weight as users gain more ratings
 ```
 
 ## User Preferences
