@@ -19,7 +19,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCollection, useFirestoreOperations } from '@/hooks/useFirestore';
-import { where, orderBy, limit } from 'firebase/firestore';
+import { where, orderBy, limit, doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { toast } from 'react-hot-toast';
 import { formatTime } from '@/utils/timeUtils';
 import { toastSuccess, toastError } from '@/utils/notifications';
 
@@ -52,6 +54,7 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
   const [isExchangeCompleted, setIsExchangeCompleted] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [selectedRating, setSelectedRating] = useState(0);
+  const [partnerProfile, setPartnerProfile] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<MessageFormData>();
@@ -65,10 +68,37 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
     ] : []
   );
 
-  // Auto-scroll to bottom when new messages arrive
+  // Fetch partner profile information
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    if (!exchange || !user?.uid) return;
+    
+    const partnerId = exchange.userA === user.uid ? exchange.userB : exchange.userA;
+    if (partnerId) {
+      getDoc(doc(db, 'userProfiles', partnerId))
+        .then((snapshot: any) => {
+          if (snapshot.exists()) {
+            setPartnerProfile(snapshot.data());
+          }
+        })
+        .catch((error: any) => {
+          console.error('Error fetching partner profile:', error);
+        });
+    }
+  }, [exchange, user?.uid]);
+
+  // Auto-scroll to bottom when new messages arrive with proper timing
+  useEffect(() => {
+    const scrollToBottom = () => {
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }
+    };
+    
+    // Use setTimeout to ensure DOM is updated before scrolling
+    if (messages && messages.length > 0) {
+      setTimeout(scrollToBottom, 100);
+    }
+  }, [messages?.length]); // Only trigger when message count changes
 
   // Mark messages as read when chat opens
   useEffect(() => {
@@ -104,6 +134,13 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
 
       await addDocument('messages', messageData);
       reset();
+      
+      // Force scroll to bottom after sending message
+      setTimeout(() => {
+        if (messagesEndRef.current) {
+          messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }
+      }, 200);
     } catch (error) {
       console.error('Error sending message:', error);
       toastError('Failed to send message. Please try again.');
@@ -168,11 +205,37 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
           >
             {/* Header */}
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-white/10">
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-3 flex-1">
                 <MessageSquare className="h-6 w-6 text-blue-400" />
-                <div>
-                  <CardTitle className="text-white">{partnerName}</CardTitle>
-                  <p className="text-blue-100 text-sm">Exchange Chat</p>
+                <div className="flex-1">
+                  <div className="flex items-center space-x-2">
+                    <CardTitle className="text-white">{partnerName}</CardTitle>
+                    {partnerProfile?.verified && (
+                      <div className="bg-blue-500 rounded-full p-1">
+                        <Shield className="h-3 w-3 text-white" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center space-x-3 text-sm">
+                    <p className="text-blue-100">Exchange Chat</p>
+                    {partnerProfile?.averageRating && (
+                      <div className="flex items-center space-x-1">
+                        <Star className="h-3 w-3 text-yellow-400 fill-yellow-400" />
+                        <span className="text-yellow-400">{partnerProfile.averageRating.toFixed(1)}</span>
+                      </div>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-blue-400 hover:bg-blue-400/10 h-auto p-1 text-xs"
+                      onClick={() => {
+                        // TODO: Show partner profile modal
+                        toast.success('Profile view coming soon!');
+                      }}
+                    >
+                      View Profile
+                    </Button>
+                  </div>
                 </div>
               </div>
               <Button
@@ -186,7 +249,7 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
             </CardHeader>
 
             {/* Messages */}
-            <CardContent className="flex-1 overflow-y-auto p-4 space-y-3">
+            <CardContent className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0">
               {loading ? (
                 <div className="flex items-center justify-center h-full">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
@@ -228,29 +291,16 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
             </CardContent>
 
             {/* Exchange Actions */}
-            {!isExchangeCompleted && (
+            {!isExchangeCompleted && exchange?.initiatedBy === user?.uid && (
               <div className="px-4 py-2 border-t border-white/10">
-                <div className="flex space-x-2">
-                  {/* Only show Complete button if current user is the one who initiated the exchange */}
-                  {exchange?.initiatedBy === user?.uid && (
-                    <Button
-                      onClick={completeExchange}
-                      size="sm"
-                      className="bg-green-500 hover:bg-green-600 text-white flex-1"
-                    >
-                      <CheckCircle2 className="h-4 w-4 mr-2" />
-                      Complete Exchange
-                    </Button>
-                  )}
-                  <Button
-                    onClick={reportIssue}
-                    size="sm"
-                    variant="outline"
-                    className="text-red-400 border-red-400/50 hover:bg-red-400/10"
-                  >
-                    <AlertTriangle className="h-4 w-4" />
-                  </Button>
-                </div>
+                <Button
+                  onClick={completeExchange}
+                  size="sm"
+                  className="bg-green-500 hover:bg-green-600 text-white w-full"
+                >
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  Complete Exchange
+                </Button>
               </div>
             )}
 
@@ -264,9 +314,19 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
                   disabled={isExchangeCompleted}
                 />
                 <Button
+                  onClick={reportIssue}
+                  size="sm"
+                  variant="outline"
+                  type="button"
+                  className="text-red-400 border-red-400/50 hover:bg-red-400/10 px-3"
+                  disabled={isExchangeCompleted}
+                >
+                  <AlertTriangle className="h-4 w-4" />
+                </Button>
+                <Button
                   type="submit"
                   size="sm"
-                  className="bg-blue-500 hover:bg-blue-600 text-white"
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-3"
                   disabled={isExchangeCompleted}
                 >
                   <Send className="h-4 w-4" />
