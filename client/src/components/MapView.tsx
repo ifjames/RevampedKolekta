@@ -69,7 +69,13 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
 
     // Force map to invalidate size after creation
     setTimeout(() => {
-      map.invalidateSize();
+      if (map && map.getContainer() && map.getContainer().offsetWidth > 0) {
+        try {
+          map.invalidateSize();
+        } catch (error) {
+          console.warn('Map invalidateSize error:', error);
+        }
+      }
     }, 100);
 
     // Add click handler for location selection
