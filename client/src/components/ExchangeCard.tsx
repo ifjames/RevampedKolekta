@@ -1,12 +1,13 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { MapPin, ArrowLeftRight, Handshake, Star, Shield, Map, AlertTriangle } from 'lucide-react';
+import { MapPin, ArrowLeftRight, Handshake, Shield, Map } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ExchangePost } from '@/types';
 import { formatTimeAgo } from '@/utils/timeUtils';
 import { getUserVerificationStatus } from '@/utils/dataCleanup';
+import { StarRating } from '@/components/ui/StarRating';
 
 interface ExchangeCardProps {
   post: ExchangePost;
@@ -24,49 +25,7 @@ export function ExchangeCard({ post, onMatch, onViewMap }: ExchangeCardProps) {
     }
   }, [post.userId]);
 
-  // Star rating calculation
-  const getStarRating = (rating: number) => {
-    if (rating < 0) {
-      return {
-        stars: 0,
-        showWarning: true,
-        color: 'text-red-400'
-      };
-    }
-    
-    const stars = Math.min(5, Math.max(1, Math.ceil(rating)));
-    
-    return {
-      stars,
-      showWarning: false,
-      color: rating >= 4 ? 'text-yellow-400' : rating >= 2 ? 'text-yellow-300' : 'text-yellow-200'
-    };
-  };
 
-  const renderStarRating = (rating: number) => {
-    const { stars, showWarning, color } = getStarRating(rating);
-    
-    if (showWarning) {
-      return (
-        <div className="flex items-center space-x-1">
-          <AlertTriangle className="h-3 w-3 text-red-400" />
-          <span className="text-red-400 text-xs">Poor</span>
-        </div>
-      );
-    }
-    
-    return (
-      <div className="flex items-center space-x-1">
-        {[...Array(Math.min(3, stars))].map((_, i) => (
-          <Star
-            key={i}
-            className={`h-3 w-3 ${color} fill-current`}
-          />
-        ))}
-        <span className="text-blue-200 text-xs">{rating.toFixed(1)}</span>
-      </div>
-    );
-  };
 
   return (
     <motion.div
@@ -96,7 +55,11 @@ export function ExchangeCard({ post, onMatch, onViewMap }: ExchangeCardProps) {
                 </div>
                 <div className="flex items-center space-x-1 mt-1">
                   {post.userInfo?.rating !== undefined && (
-                    renderStarRating(post.userInfo.rating)
+                    <StarRating 
+                      rating={post.userInfo.rating} 
+                      layout="horizontal" 
+                      size="sm"
+                    />
                   )}
                 </div>
               </div>

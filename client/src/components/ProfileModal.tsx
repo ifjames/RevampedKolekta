@@ -14,20 +14,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { 
   User, 
-  Star, 
   ExternalLink, 
   Edit, 
   Shield, 
   LogOut,
   Calendar,
   Mail,
-  Phone,
-  AlertTriangle
+  Phone
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDate } from '@/utils/timeUtils';
 import { showConfirm, toastInfo } from '@/utils/notifications';
 import { VerificationModal } from './VerificationModal';
+import { StarRating } from '@/components/ui/StarRating';
 
 interface ProfileModalProps {
   isOpen: boolean;
@@ -95,50 +94,7 @@ export function ProfileModal({ isOpen, onClose, onLogout }: ProfileModalProps) {
     });
   };
 
-  // Star rating calculation
-  const getStarRating = (rating: number) => {
-    if (rating < 0) {
-      return {
-        stars: 0,
-        showWarning: true,
-        color: 'text-red-400'
-      };
-    }
-    
-    // Scale: 0-1 = 1 star, 1-2 = 2 stars, 2-3 = 3 stars, 3-4 = 4 stars, 4+ = 5 stars
-    const stars = Math.min(5, Math.max(1, Math.ceil(rating)));
-    
-    return {
-      stars,
-      showWarning: false,
-      color: rating >= 4 ? 'text-yellow-400' : rating >= 2 ? 'text-yellow-300' : 'text-yellow-200'
-    };
-  };
 
-  const renderStarRating = (rating: number) => {
-    const { stars, showWarning, color } = getStarRating(rating);
-    
-    if (showWarning) {
-      return (
-        <div className="flex items-center space-x-1">
-          <AlertTriangle className="h-4 w-4 text-red-400" />
-          <span className="text-red-400 text-sm">Poor Rating</span>
-        </div>
-      );
-    }
-    
-    return (
-      <div className="flex items-center space-x-1">
-        {[...Array(5)].map((_, i) => (
-          <Star
-            key={i}
-            className={`h-4 w-4 ${i < stars ? color + ' fill-current' : 'text-gray-400'}`}
-          />
-        ))}
-        <span className="ml-1 text-white text-sm">{rating.toFixed(1)}</span>
-      </div>
-    );
-  };
 
   const stats = [
     {
@@ -219,10 +175,12 @@ export function ProfileModal({ isOpen, onClose, onLogout }: ProfileModalProps) {
           {/* Rating Card with Stars */}
           <Card className="glass-dark border-white/10">
             <CardContent className="p-3 text-center">
-              <div className="mb-2">
-                {renderStarRating(userProfile?.rating || 0)}
-              </div>
-              <p className="text-blue-100 text-xs">Rating</p>
+              <StarRating 
+                rating={userProfile?.rating || 0} 
+                layout="vertical" 
+                size="md"
+              />
+              <p className="text-blue-100 text-xs mt-2">Rating</p>
             </CardContent>
           </Card>
 
