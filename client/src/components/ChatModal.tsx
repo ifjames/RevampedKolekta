@@ -191,9 +191,9 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
                 </div>
               ) : messages && messages.length > 0 ? (
-                messages.map((message) => (
+                messages.map((message, index) => (
                   <motion.div
-                    key={message.id}
+                    key={message.id || `message-${index}`}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     className={`flex ${message.sender === user?.uid ? 'justify-end' : 'justify-start'}`}
@@ -202,7 +202,7 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
                       className={`max-w-[70%] p-3 rounded-2xl ${
                         message.sender === user?.uid
                           ? 'bg-blue-500 text-white'
-                          : 'bg-white/10 text-white border border-white/20'
+                          : 'bg-white/20 text-white border border-white/30'
                       }`}
                     >
                       <p className="text-sm">{message.text}</p>

@@ -105,7 +105,7 @@ export function useMatchingSystem() {
         postBId: matchData.postBId,
         status: 'active',
         participants: [matchData.userA, matchData.userB],
-        initiatedBy: matchData.userA,
+        initiatedBy: matchData.userB, // userB is the original post creator
         partnerUser: matchData.userA === user.uid ? matchData.userB : matchData.userA,
         partnerName: matchData.userA === user.uid ? matchData.userBName : matchData.userAName,
         exchangeDetails: {
