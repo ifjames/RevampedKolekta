@@ -35,9 +35,10 @@ interface Notification {
 interface NotificationSystemProps {
   isOpen: boolean;
   onClose: () => void;
+  onExchangeCompleted?: (exchange: any, partnerName: string) => void;
 }
 
-export function NotificationSystem({ isOpen, onClose }: NotificationSystemProps) {
+export function NotificationSystem({ isOpen, onClose, onExchangeCompleted }: NotificationSystemProps) {
   const { user } = useAuth();
   const { updateDocument } = useFirestoreOperations();
   const { acceptMatch, declineMatch } = useMatching();
@@ -117,6 +118,24 @@ export function NotificationSystem({ isOpen, onClose }: NotificationSystemProps)
         title: "Error",
         description: "Failed to decline match request"
       });
+    }
+  };
+
+  const handleExchangeCompleted = async (notification: Notification) => {
+    try {
+      await markAsRead(notification.id);
+      if (onExchangeCompleted && notification.data?.matchId) {
+        const partnerName = notification.data.partnerName || 'Exchange Partner';
+        const exchange = {
+          id: notification.data.matchId,
+          completedBy: notification.data.completedBy,
+          ...notification.data
+        };
+        onExchangeCompleted(exchange, partnerName);
+      }
+      onClose();
+    } catch (error) {
+      console.error('Error handling exchange completion:', error);
     }
   };
 
@@ -266,6 +285,23 @@ export function NotificationSystem({ isOpen, onClose }: NotificationSystemProps)
                                   className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white flex-1"
                                 >
                                   Decline
+                                </Button>
+                              </div>
+                            )}
+
+                            {/* Exchange completion action button */}
+                            {notification.type === 'exchange_completed' && notification.data && notification.data.matchId && !notification.read && (
+                              <div className="mt-3">
+                                <Button
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleExchangeCompleted(notification);
+                                  }}
+                                  className="bg-yellow-500 hover:bg-yellow-600 text-white w-full"
+                                >
+                                  <Star className="h-4 w-4 mr-2" />
+                                  Rate Your Partner
                                 </Button>
                               </div>
                             )}

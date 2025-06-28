@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { MapPin, ArrowLeftRight, Handshake, Shield, Map } from 'lucide-react';
+import { MapPin, ArrowLeftRight, Handshake, Shield, Map, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,9 +13,10 @@ interface ExchangeCardProps {
   post: ExchangePost;
   onMatch: () => void;
   onViewMap?: () => void;
+  isMatching?: boolean;
 }
 
-export function ExchangeCard({ post, onMatch, onViewMap }: ExchangeCardProps) {
+export function ExchangeCard({ post, onMatch, onViewMap, isMatching = false }: ExchangeCardProps) {
   const [isVerified, setIsVerified] = useState(false);
   
   // Check actual verification status from database
@@ -130,10 +131,20 @@ export function ExchangeCard({ post, onMatch, onViewMap }: ExchangeCardProps) {
               <Button
                 onClick={onMatch}
                 size="sm"
-                className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white"
+                disabled={isMatching}
+                className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white disabled:opacity-50"
               >
-                <Handshake className="mr-1 h-4 w-4" />
-                Match
+                {isMatching ? (
+                  <>
+                    <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                    Matching...
+                  </>
+                ) : (
+                  <>
+                    <Handshake className="mr-1 h-4 w-4" />
+                    Match
+                  </>
+                )}
               </Button>
             </div>
           </div>

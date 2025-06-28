@@ -41,8 +41,9 @@ import { VerificationModal } from './VerificationModal';
 import { ReportModal } from './ReportModal';
 import { MapView } from './MapView';
 import { ExchangeCompletionModal } from './ExchangeCompletionModal';
+import { PartnerRatingModal } from './PartnerRatingModal';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'react-hot-toast';
 import { getGreeting, formatDate } from '@/utils/timeUtils';
 import { useFirestoreOperations } from '@/hooks/useFirestore';
 import { useActiveExchanges } from '@/hooks/useActiveExchanges';
@@ -65,25 +66,32 @@ export function Dashboard({ onLogout }: DashboardProps) {
   const pendingRequests = allMatchRequests.filter(match => match.status === 'pending' && match.userB === user?.uid);
   const [showAllHistory, setShowAllHistory] = useState(false);
   
+  // UI state management
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showMyPosts, setShowMyPosts] = useState(false);
   const [showFindExchange, setShowFindExchange] = useState(false);
-
   const [showSafeMeetup, setShowSafeMeetup] = useState(false);
   const [showVerification, setShowVerification] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [showMapView, setShowMapView] = useState(false);
+  
+  // Exchange completion states
   const [showExchangeCompletion, setShowExchangeCompletion] = useState(false);
-  const [selectedPostForMap, setSelectedPostForMap] = useState<ExchangePost | null>(null);
   const [selectedExchangeForCompletion, setSelectedExchangeForCompletion] = useState<any>(null);
+  const [showPartnerRating, setShowPartnerRating] = useState(false);
+  const [selectedExchangeForRating, setSelectedExchangeForRating] = useState<any>(null);
+  const [partnerNameForRating, setPartnerNameForRating] = useState('');
+  
+  const [selectedPostForMap, setSelectedPostForMap] = useState<ExchangePost | null>(null);
   const [activeTab, setActiveTab] = useState('home');
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
   const [userPosts, setUserPosts] = useState<ExchangePost[]>([]);
   const [loadingUserPosts, setLoadingUserPosts] = useState(false);
   const [selectedChatExchange, setSelectedChatExchange] = useState<any>(null);
+  const [matchingPostId, setMatchingPostId] = useState<string | null>(null);
   
   const notificationCount = useNotificationCount();
 
@@ -155,6 +163,24 @@ export function Dashboard({ onLogout }: DashboardProps) {
 
   const handleNavClick = (navId: string) => {
     setActiveTab(navId);
+  };
+
+  // Handle match request with loading state
+  const handleMatchRequest = async (targetPost: ExchangePost) => {
+    if (!user) {
+      toast.error("Please log in to send match requests.");
+      return;
+    }
+
+    setMatchingPostId(targetPost.id);
+    try {
+      await sendMatchRequest(targetPost);
+    } catch (error) {
+      console.error('Error sending match request:', error);
+      toast.error("Failed to send match request. Please try again.");
+    } finally {
+      setMatchingPostId(null);
+    }
   };
 
   const renderTabContent = () => {
@@ -277,7 +303,8 @@ export function Dashboard({ onLogout }: DashboardProps) {
               <ExchangeCard 
                 key={post.id} 
                 post={post} 
-                onMatch={() => sendMatchRequest(post)}
+                onMatch={() => handleMatchRequest(post)}
+                isMatching={matchingPostId === post.id}
                 onViewMap={() => {
                   setSelectedPostForMap(post);
                   setShowMapView(true);
@@ -872,6 +899,11 @@ export function Dashboard({ onLogout }: DashboardProps) {
       <NotificationSystem
         isOpen={showNotifications}
         onClose={() => setShowNotifications(false)}
+        onExchangeCompleted={(exchange, partnerName) => {
+          setSelectedExchangeForRating(exchange);
+          setPartnerNameForRating(partnerName);
+          setShowPartnerRating(true);
+        }}
       />
 
       <SafeMeetupModal
@@ -946,6 +978,14 @@ export function Dashboard({ onLogout }: DashboardProps) {
         isOpen={showExchangeCompletion}
         onClose={() => setShowExchangeCompletion(false)}
         exchange={selectedExchangeForCompletion}
+      />
+
+      {/* Partner Rating Modal */}
+      <PartnerRatingModal
+        isOpen={showPartnerRating}
+        onClose={() => setShowPartnerRating(false)}
+        exchange={selectedExchangeForRating}
+        partnerName={partnerNameForRating}
       />
 
       {/* Chat Modal */}
