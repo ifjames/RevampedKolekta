@@ -324,12 +324,14 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
 
       toastSuccess('Exchange completed and rated successfully!');
       setShowRatingModal(false);
-      onClose();
+      setIsExchangeCompleted(true);
 
-      // Reload the page to refresh all data
+      // Close the modal after a brief delay to show the success message
       setTimeout(() => {
+        onClose();
+        // Reload the page to refresh all data
         window.location.reload();
-      }, 1500);
+      }, 2000);
 
     } catch (error) {
       console.error('Error completing exchange:', error);
