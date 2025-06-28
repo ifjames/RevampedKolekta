@@ -179,6 +179,15 @@ Changelog:
   * Fixed active exchange removal to properly update status and hide completed chats
   * Enhanced rating calculation with weighted impact based on user's total ratings count
   * Rating system prevents inflation by reducing impact weight as users gain more ratings
+- June 28, 2025. Two-way rating system and active exchange removal fixes:
+  * Implemented mutual rating system - both users can now complete and rate each other
+  * Fixed Complete button to appear for both users, not just exchange initiator
+  * Enhanced exchange history to create records for both participants
+  * Active exchanges now properly removed from UI after completion (deleteDoc instead of status update)
+  * Complete button styling now matches dashboard design (gradient green styling)
+  * Exchange history displays partner ratings and notes for comprehensive feedback
+  * Fixed Firebase import issues and proper timestamp handling for exchange completion
+  * Both users see exchange records in their history with proper partner information
 ```
 
 ## User Preferences

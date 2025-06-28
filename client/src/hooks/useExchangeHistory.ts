@@ -56,6 +56,10 @@ export function useExchangeHistory() {
           initiatedBy: data.initiatedBy,
           exchangeAmount: data.exchangeDetails?.giveAmount || 0,
           exchangeType: data.exchangeDetails?.giveType || 'cash',
+          waitingForRating: data.waitingForRating || false,
+          partnerRating: data.partnerRating || 0,
+          partnerNotes: data.partnerNotes || '',
+          ratedByPartner: data.ratedByPartner || false
         };
       }) as CompletedExchange[];
       

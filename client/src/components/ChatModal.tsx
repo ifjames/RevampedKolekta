@@ -21,7 +21,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCollection, useFirestoreOperations } from '@/hooks/useFirestore';
-import { where, orderBy, limit, doc, getDoc, collection, query, onSnapshot, serverTimestamp } from 'firebase/firestore';
+import { where, orderBy, limit, doc, getDoc, collection, query, onSnapshot, serverTimestamp, deleteDoc, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { toast } from 'react-hot-toast';
 import { formatTime } from '@/utils/timeUtils';
@@ -253,8 +253,7 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
       const partnerName = exchange.userA === user.uid ? exchange.userBName : exchange.userAName;
 
       // Update match status to completed
-      const { doc, updateDoc, getDoc } = await import('firebase/firestore');
-      const { db } = await import('@/lib/firebase');
+      const { updateDoc } = await import('firebase/firestore');
       
       try {
         await updateDoc(doc(db, 'matches', exchange.id), {
@@ -267,30 +266,22 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
           completedBy: user.uid
         });
         
-        // Remove from active exchanges
+        // Remove from active exchanges completely
         const activeExchangeRef = doc(db, 'activeExchanges', exchange.id);
-        await updateDoc(activeExchangeRef, {
-          status: 'completed',
-          completedAt
-        });
+        await deleteDoc(activeExchangeRef);
         
         console.log('Updated match and active exchange status to completed');
       } catch (error) {
         console.error('Error updating match:', error);
       }
 
-      // Create exchange history record for current user with proper timestamp
-      const historyData = {
+      // Create exchange history records for BOTH users
+      const baseHistoryData = {
         exchangeId: exchange.id,
         matchId: exchange.id,
-        userId: user.uid,
-        partnerUserId: partnerId,
-        partnerName: partnerName,
-        participants: [user.uid, partnerId], // For querying
-        completedAt: completedAt, // Use the same timestamp
+        participants: [user.uid, partnerId],
+        completedAt: completedAt,
         duration,
-        rating: selectedRating,
-        notes: exchangeNotes,
         exchangeDetails: {
           giveAmount: exchange.exchangeDetails?.giveAmount || 1000,
           giveType: exchange.exchangeDetails?.giveType || 'cash',
@@ -299,13 +290,38 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
         },
         initiatedBy: exchange.initiatedBy
       };
+
+      // History for current user (the one completing)
+      const currentUserHistory = {
+        ...baseHistoryData,
+        userId: user.uid,
+        partnerUserId: partnerId,
+        partnerName: partnerName,
+        rating: selectedRating,
+        notes: exchangeNotes,
+        ratedBy: user.uid
+      };
+
+      // History for partner (they will rate separately later)
+      const partnerHistory = {
+        ...baseHistoryData,
+        userId: partnerId,
+        partnerUserId: user.uid,
+        partnerName: user.displayName || 'Exchange Partner',
+        rating: 0, // Will be updated when partner rates
+        notes: '',
+        ratedBy: null,
+        waitingForRating: true // Flag to show they need to rate
+      };
       
-      console.log('Saving exchange history:', historyData);
+      console.log('Saving exchange history for both users:', { currentUserHistory, partnerHistory });
       try {
-        // Use direct Firebase method for reliability
         const { addDoc, collection } = await import('firebase/firestore');
-        const docRef = await addDoc(collection(db, 'exchangeHistory'), historyData);
-        console.log('Exchange history saved with ID:', docRef.id);
+        const [currentDoc, partnerDoc] = await Promise.all([
+          addDoc(collection(db, 'exchangeHistory'), currentUserHistory),
+          addDoc(collection(db, 'exchangeHistory'), partnerHistory)
+        ]);
+        console.log('Exchange history saved for both users:', currentDoc.id, partnerDoc.id);
       } catch (error) {
         console.error('Error saving exchange history:', error);
       }
@@ -345,6 +361,27 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
         return Math.max(-0.5, Math.min(0.5, impact)); // Cap impact between -0.5 and +0.5
       };
 
+      // Check if partner has already completed their rating
+      const { getDocs } = await import('firebase/firestore');
+      const existingRatingQuery = query(
+        collection(db, 'exchangeHistory'),
+        where('matchId', '==', exchange.id),
+        where('userId', '==', partnerId)
+      );
+      
+      const existingRatingSnapshot = await getDocs(existingRatingQuery);
+      const partnerAlreadyRated = !existingRatingSnapshot.empty;
+      
+      // Update the partner's existing history record to show they've been rated
+      if (partnerAlreadyRated) {
+        const partnerHistoryDoc = existingRatingSnapshot.docs[0];
+        await updateDoc(doc(db, 'exchangeHistory', partnerHistoryDoc.id), {
+          partnerRating: selectedRating,
+          partnerNotes: exchangeNotes,
+          ratedByPartner: true
+        });
+      }
+      
       // Update user ratings and profile with smart rating system
       await addDocument('userRatings', {
         ratedUserId: partnerId,
@@ -445,11 +482,13 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
 
       // Close the modal after a brief delay to show the success message
       setTimeout(() => {
-        console.log('Reloading page to refresh data...');
+        console.log('Closing modal and refreshing data...');
         onClose();
-        // Reload the page to refresh all data
-        window.location.reload();
-      }, 2000);
+        // Trigger a data refresh instead of full page reload
+        if (window.location.pathname === '/') {
+          window.location.reload();
+        }
+      }, 1500);
 
     } catch (error) {
       console.error('Error completing exchange:', error);
@@ -570,8 +609,8 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
               <div ref={messagesEndRef} />
             </CardContent>
 
-            {/* Exchange Actions */}
-            {!isExchangeCompleted && exchange?.initiatedBy === user?.uid && (
+            {/* Exchange Actions - Both users can complete */}
+            {!isExchangeCompleted && (
               <div className="px-4 py-2 border-t border-gray-700 bg-gray-900">
                 <Button
                   onClick={completeExchange}
@@ -579,7 +618,7 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
                   className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white w-full border-0 shadow-lg"
                 >
                   <CheckCircle2 className="h-4 w-4 mr-2" />
-                  Complete Exchange
+                  Complete
                 </Button>
               </div>
             )}
