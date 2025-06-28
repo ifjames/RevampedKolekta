@@ -609,19 +609,7 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
               <div ref={messagesEndRef} />
             </CardContent>
 
-            {/* Exchange Actions - Both users can complete */}
-            {!isExchangeCompleted && (
-              <div className="px-4 py-2 border-t border-gray-700 bg-gray-900">
-                <Button
-                  onClick={completeExchange}
-                  size="sm"
-                  className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white w-full border-0 shadow-lg"
-                >
-                  <CheckCircle2 className="h-4 w-4 mr-2" />
-                  Complete
-                </Button>
-              </div>
-            )}
+
 
             {/* Message Input */}
             <div className="p-4 border-t border-gray-700 bg-gray-900">

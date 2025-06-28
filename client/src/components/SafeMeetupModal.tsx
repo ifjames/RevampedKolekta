@@ -1,23 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  MapPin,
-  X,
-  Shield,
-  Clock,
-  Users,
-  Star,
-  Navigation,
-  Coffee,
-  Building,
-  Zap
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Shield, 
+  X, 
+  MapPin, 
+  Clock, 
+  Star, 
+  Navigation,
+  Building,
+  Zap,
+  Coffee,
+  Users
+} from 'lucide-react';
 import { useLocation } from '@/contexts/LocationContext';
-import { distance } from '@/lib/geohash';
 
 interface SafeLocation {
   id: string;
@@ -42,88 +41,131 @@ interface SafeMeetupModalProps {
 export function SafeMeetupModal({ isOpen, onClose, onLocationSelect, userLocation }: SafeMeetupModalProps) {
   const { location } = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedType, setSelectedType] = useState<string>('all');
+  const [selectedType, setSelectedType] = useState('all');
   const [safeLocations, setSafeLocations] = useState<SafeLocation[]>([]);
 
-  // Generate safe locations based on user location
-  const generateNearbyLocations = (userLoc: { lat: number; lng: number }): SafeLocation[] => [
-    {
-      id: '1',
-      name: 'SM City Manila',
-      type: 'mall',
-      address: 'J. Abad Santos Street, Sampaloc, Manila',
-      coordinates: { lat: 14.6042, lng: 120.9822 },
-      operatingHours: '10:00 AM - 10:00 PM',
-      safety_rating: 4.8,
-      features: ['Security Guards', 'CCTV', 'Well-lit', 'Public Area'],
-      verified: true
-    },
-    {
-      id: '2',
-      name: '7-Eleven Taft Avenue',
-      type: 'convenience_store',
-      address: '1234 Taft Avenue, Manila',
-      coordinates: { lat: 14.5995, lng: 120.9842 },
-      operatingHours: '24/7',
-      safety_rating: 4.5,
-      features: ['24/7 Open', 'CCTV', 'Staff Present'],
-      verified: true
-    },
-    {
-      id: '3',
-      name: 'Starbucks Robinsons Manila',
-      type: 'cafe',
-      address: 'Robinsons Place Manila, Pedro Gil Street',
-      coordinates: { lat: 14.5865, lng: 120.9897 },
-      operatingHours: '6:00 AM - 12:00 AM',
-      safety_rating: 4.7,
-      features: ['Indoor Seating', 'WiFi', 'Security', 'Public Space'],
-      verified: true
-    },
-    {
-      id: '4',
-      name: 'LRT Carriedo Station',
-      type: 'terminal',
-      address: 'Rizal Avenue, Santa Cruz, Manila',
-      coordinates: { lat: 14.5979, lng: 120.9792 },
-      operatingHours: '5:00 AM - 10:00 PM',
-      safety_rating: 4.2,
-      features: ['Transit Hub', 'Security Personnel', 'High Traffic'],
-      verified: true
-    },
-    {
-      id: '5',
-      name: 'BDO Ermita Branch',
-      type: 'bank',
-      address: 'M.H. del Pilar Street, Ermita, Manila',
-      coordinates: { lat: 14.5834, lng: 120.9854 },
-      operatingHours: '9:00 AM - 5:00 PM (Mon-Fri)',
-      safety_rating: 4.9,
-      features: ['Bank Security', 'CCTV', 'ATM Area', 'Guards'],
-      verified: true
-    },
-    {
-      id: '6',
-      name: 'Manila City Hall',
-      type: 'government',
-      address: 'Arroceros Street, Manila',
-      coordinates: { lat: 14.5907, lng: 120.9774 },
-      operatingHours: '8:00 AM - 5:00 PM (Mon-Fri)',
-      safety_rating: 4.6,
-      features: ['Government Building', 'High Security', 'Public Area'],
-      verified: true
+  // Distance calculation function
+  const distance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371; // Earth's radius in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
+
+  const generateNearbyLocations = (userLoc: { lat: number; lng: number }) => {
+    // Batangas Area Locations
+    const batangasLocations: SafeLocation[] = [
+      {
+        id: 'b1',
+        name: 'SM City Batangas',
+        type: 'mall',
+        address: 'Pastor M. Recto Ave, Batangas City',
+        coordinates: { lat: 13.7565, lng: 121.0583 },
+        operatingHours: '10:00 AM - 9:00 PM',
+        safety_rating: 4.8,
+        features: ['Security Guards', 'CCTV', 'Food Court', 'ATM'],
+        verified: true
+      },
+      {
+        id: 'b2',
+        name: 'Batangas City Hall',
+        type: 'government',
+        address: 'Rizal Avenue, Batangas City',
+        coordinates: { lat: 13.7567, lng: 121.0584 },
+        operatingHours: '8:00 AM - 5:00 PM (Mon-Fri)',
+        safety_rating: 4.9,
+        features: ['High Security', 'Government Building', 'Public Area'],
+        verified: true
+      },
+      {
+        id: 'b3',
+        name: 'Jollibee Batangas Grand Terminal',
+        type: 'cafe',
+        address: 'Grand Terminal, Batangas City',
+        coordinates: { lat: 13.7575, lng: 121.0590 },
+        operatingHours: '6:00 AM - 11:00 PM',
+        safety_rating: 4.5,
+        features: ['24/7 Security', 'Well-lit Area', 'Public Space'],
+        verified: true
+      },
+      {
+        id: 'b4',
+        name: 'BDO Batangas Main',
+        type: 'bank',
+        address: 'P. Burgos Street, Batangas City',
+        coordinates: { lat: 13.7560, lng: 121.0580 },
+        operatingHours: '9:00 AM - 4:00 PM (Mon-Fri)',
+        safety_rating: 4.9,
+        features: ['Bank Security', 'ATM Area', 'CCTV Monitoring'],
+        verified: true
+      }
+    ];
+
+    // Manila Area Locations
+    const manilaLocations: SafeLocation[] = [
+      {
+        id: 'm1',
+        name: 'SM Mall of Asia',
+        type: 'mall',
+        address: 'Seaside Blvd, Pasay City',
+        coordinates: { lat: 14.5352, lng: 120.9822 },
+        operatingHours: '10:00 AM - 10:00 PM',
+        safety_rating: 4.8,
+        features: ['24/7 Security', 'CCTV', 'Food Court', 'Well-lit'],
+        verified: true
+      },
+      {
+        id: 'm2',
+        name: 'Ayala Museum',
+        type: 'government',
+        address: 'Makati Avenue, Makati City',
+        coordinates: { lat: 14.5547, lng: 121.0244 },
+        operatingHours: '9:00 AM - 6:00 PM (Tue-Sun)',
+        safety_rating: 4.7,
+        features: ['Museum Security', 'Public Area', 'Well-maintained'],
+        verified: true
+      },
+      {
+        id: 'm3',
+        name: 'Starbucks Greenbelt',
+        type: 'cafe',
+        address: 'Greenbelt 3, Makati City',
+        coordinates: { lat: 14.5516, lng: 121.0227 },
+        operatingHours: '6:00 AM - 12:00 AM',
+        safety_rating: 4.7,
+        features: ['Indoor Seating', 'WiFi', 'Security', 'Public Space'],
+        verified: true
+      }
+    ];
+
+    // Return locations based on proximity - prioritize closer areas
+    const isInBatangas = userLoc.lat < 14.2 && userLoc.lat > 13.5;
+    
+    if (isInBatangas) {
+      return [...batangasLocations, ...manilaLocations];
+    } else {
+      return [...manilaLocations, ...batangasLocations];
     }
-  ];
+  };
 
   useEffect(() => {
     if (location) {
-      const nearbyLocations = generateNearbyLocations(location);
+      const userLoc = { lat: location.lat, lng: location.lng };
+      const nearbyLocations = generateNearbyLocations(userLoc);
       const locationsWithDistance = nearbyLocations.map((loc: SafeLocation) => ({
         ...loc,
-        distance: distance(location.lat, location.lng, loc.coordinates.lat, loc.coordinates.lng)
+        distance: distance(userLoc.lat, userLoc.lng, loc.coordinates.lat, loc.coordinates.lng)
       })).sort((a: SafeLocation, b: SafeLocation) => (a.distance || 0) - (b.distance || 0));
       
       setSafeLocations(locationsWithDistance);
+    } else {
+      // If no location, still show default locations
+      const defaultLocations = generateNearbyLocations({ lat: 14.5995, lng: 120.9842 }); // Manila center
+      setSafeLocations(defaultLocations);
     }
   }, [location]);
 
@@ -141,56 +183,62 @@ export function SafeMeetupModal({ isOpen, onClose, onLocationSelect, userLocatio
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'mall': return 'text-purple-400';
+      case 'mall': return 'text-blue-400';
       case 'convenience_store': return 'text-green-400';
       case 'cafe': return 'text-yellow-400';
-      case 'terminal': return 'text-blue-400';
-      case 'bank': return 'text-emerald-400';
-      case 'government': return 'text-red-400';
-      default: return 'text-gray-400';
+      case 'terminal': return 'text-purple-400';
+      case 'bank': return 'text-red-400';
+      case 'government': return 'text-gray-400';
+      default: return 'text-blue-400';
     }
   };
-
-  const filteredLocations = safeLocations.filter(location => {
-    const matchesSearch = location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         location.address.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesType = selectedType === 'all' || location.type === selectedType;
-    return matchesSearch && matchesType;
-  });
 
   const locationTypes = [
     { value: 'all', label: 'All Locations' },
     { value: 'mall', label: 'Malls' },
-    { value: 'convenience_store', label: 'Convenience Stores' },
-    { value: 'cafe', label: 'Cafes' },
-    { value: 'terminal', label: 'Terminals' },
     { value: 'bank', label: 'Banks' },
-    { value: 'government', label: 'Government Buildings' }
+    { value: 'cafe', label: 'Cafes' },
+    { value: 'government', label: 'Government' },
+    { value: 'terminal', label: 'Terminals' },
+    { value: 'convenience_store', label: 'Stores' }
   ];
+
+  const filteredLocations = useMemo(() => {
+    return safeLocations.filter(location => {
+      const matchesType = selectedType === 'all' || location.type === selectedType;
+      const matchesSearch = location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           location.address.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesType && matchesSearch;
+    });
+  }, [safeLocations, selectedType, searchQuery]);
+
+  if (!isOpen) return null;
 
   return (
     <AnimatePresence>
-      {isOpen && (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center p-4"
+        onClick={onClose}
+      >
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
-          onClick={onClose}
+          initial={{ scale: 0.95, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.95, opacity: 0 }}
+          className="w-full max-w-2xl"
+          onClick={(e) => e.stopPropagation()}
         >
-          <motion.div
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.95, opacity: 0 }}
-            className="glass-effect rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden border-white/20"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-white/10">
+          <Card className="glass-effect border-white/20">
+            <CardHeader className="flex flex-row items-center justify-between pb-4">
               <div className="flex items-center space-x-3">
-                <Shield className="h-6 w-6 text-green-400" />
+                <div className="bg-green-500 rounded-full p-2">
+                  <Shield className="h-5 w-5 text-white" />
+                </div>
                 <div>
                   <CardTitle className="text-white">Safe Meetup Locations</CardTitle>
-                  <p className="text-blue-100 text-sm">Choose a verified safe location for your exchange</p>
+                  <p className="text-blue-200 text-sm">Choose a verified safe location for your exchange</p>
                 </div>
               </div>
               <Button
@@ -316,7 +364,7 @@ export function SafeMeetupModal({ isOpen, onClose, onLocationSelect, userLocatio
                             
                             <Button
                               size="sm"
-                              className="bg-blue-500 hover:bg-blue-600 text-white ml-4"
+                              className="bg-blue-500 hover:bg-blue-600 text-white border-0 shadow-lg ml-4"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 onLocationSelect(location);
@@ -338,9 +386,9 @@ export function SafeMeetupModal({ isOpen, onClose, onLocationSelect, userLocatio
                 )}
               </div>
             </CardContent>
-          </motion.div>
+          </Card>
         </motion.div>
-      )}
+      </motion.div>
     </AnimatePresence>
   );
 }

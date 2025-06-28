@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Coins, X, UserPlus, LogIn } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/contexts/AuthContext';
 import { toastError } from '@/utils/notifications';
 
@@ -26,6 +27,11 @@ const signInSchema = z.object({
 const signUpSchema = signInSchema.extend({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   phone: z.string().optional(),
+  confirmPassword: z.string().min(6, 'Please confirm your password'),
+  agreeToTerms: z.boolean().refine(val => val === true, 'You must agree to the terms and conditions'),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
 });
 
 type SignInFormData = z.infer<typeof signInSchema>;
@@ -56,7 +62,9 @@ export function AuthModal({ isOpen, onClose, initialMode = 'signin' }: AuthModal
       name: '',
       email: '',
       password: '',
+      confirmPassword: '',
       phone: '',
+      agreeToTerms: false,
     },
   });
 
@@ -171,6 +179,42 @@ export function AuthModal({ isOpen, onClose, initialMode = 'signin' }: AuthModal
                     </p>
                   )}
                 </div>
+
+                <div>
+                  <Label htmlFor="confirmPassword" className="text-blue-100">Confirm Password</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    {...signUpForm.register('confirmPassword')}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-blue-200 focus:ring-blue-400"
+                    placeholder="Confirm your password"
+                  />
+                  {signUpForm.formState.errors.confirmPassword && (
+                    <p className="text-red-400 text-sm mt-1">
+                      {signUpForm.formState.errors.confirmPassword.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex items-start space-x-2">
+                  <Checkbox
+                    id="agreeToTerms"
+                    {...signUpForm.register('agreeToTerms')}
+                    className="mt-1"
+                  />
+                  <Label htmlFor="agreeToTerms" className="text-blue-100 text-sm leading-tight">
+                    I agree to the{' '}
+                    <a href="#" className="text-cyan-400 hover:underline">Terms of Service</a>
+                    {' '}and{' '}
+                    <a href="#" className="text-cyan-400 hover:underline">Privacy Policy</a>
+                    {'. '}I understand that by using Kolekta, I am responsible for my own safety during cash exchanges and should always meet in public, well-lit locations.
+                  </Label>
+                </div>
+                {signUpForm.formState.errors.agreeToTerms && (
+                  <p className="text-red-400 text-sm mt-1">
+                    {signUpForm.formState.errors.agreeToTerms.message}
+                  </p>
+                )}
 
                 <Button 
                   type="submit" 
