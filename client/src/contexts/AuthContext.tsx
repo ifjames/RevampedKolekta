@@ -69,7 +69,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
               name: profileData.name || user.displayName || 'User',
               email: profileData.email || user.email || '',
               verified: profileData.verified === true,
-              rating: profileData.rating || profileData.averageRating || 0, // Use actual rating from DB
+              rating: profileData.averageRating || profileData.rating || 0, // Use averageRating first (updated by rating system)
               completedExchanges: profileData.completedExchanges || 0,
               phone: profileData.phone,
               createdAt: profileData.createdAt?.toDate ? profileData.createdAt.toDate() : new Date(profileData.createdAt || Date.now())

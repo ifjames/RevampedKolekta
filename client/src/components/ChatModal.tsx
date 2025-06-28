@@ -279,26 +279,36 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
         console.error('Error updating match:', error);
       }
 
-      // Create exchange history record for current user
-      await addDocument('exchangeHistory', {
+      // Create exchange history record for current user with proper timestamp
+      const historyData = {
         exchangeId: exchange.id,
         matchId: exchange.id,
         userId: user.uid,
         partnerUserId: partnerId,
         partnerName: partnerName,
         participants: [user.uid, partnerId], // For querying
-        completedAt,
+        completedAt: completedAt, // Use the same timestamp
         duration,
         rating: selectedRating,
         notes: exchangeNotes,
         exchangeDetails: {
-          giveAmount: exchange.exchangeDetails?.giveAmount || 0,
+          giveAmount: exchange.exchangeDetails?.giveAmount || 1000,
           giveType: exchange.exchangeDetails?.giveType || 'cash',
-          needAmount: exchange.exchangeDetails?.needAmount || 0,
-          needType: exchange.exchangeDetails?.needType || 'cash'
+          needAmount: exchange.exchangeDetails?.needAmount || 1000,
+          needType: exchange.exchangeDetails?.needType || 'coins'
         },
         initiatedBy: exchange.initiatedBy
-      });
+      };
+      
+      console.log('Saving exchange history:', historyData);
+      try {
+        // Use direct Firebase method for reliability
+        const { addDoc, collection } = await import('firebase/firestore');
+        const docRef = await addDoc(collection(db, 'exchangeHistory'), historyData);
+        console.log('Exchange history saved with ID:', docRef.id);
+      } catch (error) {
+        console.error('Error saving exchange history:', error);
+      }
 
       // Delete associated posts
       try {
@@ -360,7 +370,9 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
           
           await updateDoc(partnerRef, {
             averageRating: newRating,
+            rating: newRating, // Also update rating field for compatibility
             totalRatings: totalRatings + 1,
+            completedExchanges: (partnerData.completedExchanges || 0) + 1,
             lastRatingAt: completedAt
           });
           
@@ -368,6 +380,26 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
         }
       } catch (error) {
         console.error('Error updating partner rating:', error);
+      }
+      
+      // Update current user's completed exchanges count
+      try {
+        const userRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userRef);
+        
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          const completedExchanges = userData.completedExchanges || 0;
+          
+          await updateDoc(userRef, {
+            completedExchanges: completedExchanges + 1,
+            lastExchangeAt: completedAt
+          });
+          
+          console.log(`Updated user completed exchanges: ${completedExchanges} → ${completedExchanges + 1}`);
+        }
+      } catch (error) {
+        console.error('Error updating user exchange count:', error);
       }
 
       // Add completion message to chat

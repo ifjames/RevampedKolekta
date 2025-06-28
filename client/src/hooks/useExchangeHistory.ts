@@ -30,40 +30,43 @@ export function useExchangeHistory() {
       return;
     }
 
-    // Listen to completed exchanges from matches collection
-    const matchesQuery = query(
-      collection(db, 'matches'),
-      where('status', '==', 'completed')
+    // Listen to completed exchanges from exchangeHistory collection
+    const historyQuery = query(
+      collection(db, 'exchangeHistory'),
+      where('userId', '==', user.uid)
     );
 
-    const unsubscribe = onSnapshot(matchesQuery, (snapshot) => {
-      const allMatches = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        completedAt: doc.data().completedAt?.toDate() || new Date(),
-      }));
+    const unsubscribe = onSnapshot(historyQuery, (snapshot) => {
+      console.log('Exchange history query result:', snapshot.docs.length, 'documents');
       
-      const userExchanges = allMatches
-        .filter((match: any) => match.userA === user.uid || match.userB === user.uid)
-        .map((match: any) => ({
-          id: match.id,
-          matchId: match.id,
-          partnerUserId: match.userA === user.uid ? match.userB : match.userA,
-          partnerName: 'Exchange Partner',
-          completedAt: match.completedAt,
-          duration: match.duration || 30,
-          rating: match.rating || 5,
-          notes: match.notes || '',
-          completedBy: match.completedBy || match.userA,
-          initiatedBy: match.userA,
-          exchangeAmount: 1000,
-          exchangeType: 'cash',
-        })) as CompletedExchange[];
+      const userExchanges = snapshot.docs.map(doc => {
+        const data = doc.data();
+        console.log('Exchange history document:', doc.id, data);
+        
+        return {
+          id: doc.id,
+          matchId: data.matchId || data.exchangeId,
+          partnerUserId: data.partnerUserId,
+          partnerName: data.partnerName || 'Exchange Partner',
+          completedAt: data.completedAt?.toDate() || new Date(),
+          duration: data.duration || 0,
+          rating: data.rating || 0,
+          notes: data.notes || '',
+          completedBy: data.userId,
+          initiatedBy: data.initiatedBy,
+          exchangeAmount: data.exchangeDetails?.giveAmount || 0,
+          exchangeType: data.exchangeDetails?.giveType || 'cash',
+        };
+      }) as CompletedExchange[];
       
-      // Sort by completion date (most recent first)
+      // Sort by completion date on client side (most recent first)
       userExchanges.sort((a, b) => b.completedAt.getTime() - a.completedAt.getTime());
       
+      console.log('Processed exchange history:', userExchanges);
       setCompletedExchanges(userExchanges);
+      setLoading(false);
+    }, (error) => {
+      console.error('Error fetching exchange history:', error);
       setLoading(false);
     });
 
