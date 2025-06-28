@@ -354,7 +354,12 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center p-4"
-          onClick={onClose}
+          onClick={(e) => {
+            // Only close if not showing rating modal and clicking on the overlay
+            if (!showRatingModal && e.target === e.currentTarget) {
+              onClose();
+            }
+          }}
         >
           <motion.div
             initial={{ scale: 0.95, opacity: 0 }}
@@ -513,8 +518,12 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center"
+              onClick={(e) => e.stopPropagation()}
             >
-              <Card className="glass-effect border-white/20 p-6 max-w-sm w-full mx-4">
+              <Card 
+                className="glass-effect border-white/20 p-6 max-w-sm w-full mx-4"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <div className="text-center">
                   <Star className="h-12 w-12 text-yellow-400 mx-auto mb-4" />
                   <h3 className="text-white font-bold text-lg mb-2">Complete Exchange</h3>
@@ -526,7 +535,10 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
                     {[1, 2, 3, 4, 5].map((rating) => (
                       <button
                         key={rating}
-                        onClick={() => setSelectedRating(rating)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedRating(rating);
+                        }}
                         disabled={completingExchange}
                         className={`p-2 rounded-full transition-colors ${
                           rating <= selectedRating
@@ -543,6 +555,8 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
                     <Textarea
                       value={exchangeNotes}
                       onChange={(e) => setExchangeNotes(e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                      onFocus={(e) => e.stopPropagation()}
                       placeholder="Add notes about your experience (optional)"
                       className="bg-blue-900/30 border-white/20 text-white placeholder-blue-300 text-sm"
                       rows={3}
@@ -555,14 +569,20 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
                   <div className="flex space-x-3">
                     <Button
                       variant="outline"
-                      onClick={() => setShowRatingModal(false)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowRatingModal(false);
+                      }}
                       disabled={completingExchange}
                       className="flex-1 text-white border-white/20 hover:bg-white/10 bg-transparent"
                     >
                       Cancel
                     </Button>
                     <Button
-                      onClick={submitRating}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        submitRating();
+                      }}
                       disabled={selectedRating === 0 || completingExchange}
                       className="flex-1 bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white border-0"
                     >
