@@ -24,6 +24,7 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
   const markersRef = useRef<L.Marker[]>([]);
   const { location } = useLocation();
   const [isMapReady, setIsMapReady] = useState(false);
+  const [selectedMapPost, setSelectedMapPost] = useState<ExchangePost | null>(null);
 
   // Initialize map
   useEffect(() => {
@@ -78,17 +79,20 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
       }
     }, 100);
 
-    // Add click handler for location selection
-    if (isLocationPicker && onLocationSelect) {
-      map.on('click', (e) => {
+    // Add click handler for location selection or closing UI
+    map.on('click', (e) => {
+      if (isLocationPicker && onLocationSelect) {
         const { lat, lng } = e.latlng;
         onLocationSelect({ lat, lng });
         
         // Add a temporary marker to show selection
         const marker = L.marker([lat, lng]).addTo(map);
         setTimeout(() => map.removeLayer(marker), 2000);
-      });
-    }
+      } else {
+        // Close the selected post UI when clicking on empty map areas
+        setSelectedMapPost(null);
+      }
+    });
 
     mapInstanceRef.current = map;
     setIsMapReady(true);
@@ -187,7 +191,7 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
 
     // Add exchange post markers
     postsToShow.forEach((post) => {
-      const isSelected = selectedPost?.id === post.id;
+      const isSelected = selectedMapPost?.id === post.id;
       const dist = location ? distance(location.lat, location.lng, post.location.lat, post.location.lng) : 0;
       
       const markerIcon = L.divIcon({
@@ -226,8 +230,9 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
 
       const marker = L.marker([post.location.lat, post.location.lng], { icon: markerIcon })
         .addTo(mapInstanceRef.current!)
-        .on('click', () => {
-          onPostSelect?.(post);
+        .on('click', (e) => {
+          e.originalEvent?.stopPropagation(); // Prevent map click event
+          setSelectedMapPost(post);
         });
 
       const popupContent = `
@@ -350,7 +355,7 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
       markersRef.current.forEach(marker => marker.remove());
       markersRef.current = [];
     };
-  }, [posts, selectedPost, location, isMapReady, onPostSelect, isLocationPicker]);
+  }, [posts, selectedMapPost, location, isMapReady, onPostSelect, isLocationPicker]);
 
   const centerOnUser = () => {
     if (mapInstanceRef.current && location) {
@@ -416,7 +421,7 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
       </div>
 
       {/* Selected Post Info */}
-      {selectedPost && (
+      {selectedMapPost && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -429,16 +434,16 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
                 <div className="flex-1">
                   <div className="flex items-center space-x-2 mb-2">
                     <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
-                      {selectedPost.userInfo?.name?.[0] || 'U'}
+                      {selectedMapPost.userInfo?.name?.[0] || 'U'}
                     </div>
                     <div>
-                      <h3 className="text-white font-semibold">{selectedPost.userInfo?.name || 'Anonymous User'}</h3>
+                      <h3 className="text-white font-semibold">{selectedMapPost.userInfo?.name || 'Anonymous User'}</h3>
                       <div className="flex items-center space-x-2">
                         <div className="flex items-center">
                           <span className="text-yellow-400 text-sm">⭐</span>
-                          <span className="text-white text-sm ml-1 font-medium">{selectedPost.userInfo?.rating || 0}</span>
+                          <span className="text-white text-sm ml-1 font-medium">{selectedMapPost.userInfo?.rating || 0}</span>
                         </div>
-                        {selectedPost.userInfo?.verified && (
+                        {selectedMapPost.userInfo?.verified && (
                           <Badge className="bg-green-500 text-white text-xs">Verified</Badge>
                         )}
                       </div>
@@ -447,25 +452,39 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
                   <div className="grid grid-cols-2 gap-4 mb-3">
                     <div>
                       <p className="text-green-400 text-sm font-medium">Giving</p>
-                      <p className="text-white font-semibold">₱{selectedPost.giveAmount} {selectedPost.giveType}</p>
+                      <p className="text-white font-semibold">₱{selectedMapPost.giveAmount} {selectedMapPost.giveType}</p>
                     </div>
                     <div>
                       <p className="text-blue-400 text-sm font-medium">Needs</p>
-                      <p className="text-white font-semibold">₱{selectedPost.needAmount} {selectedPost.needType}</p>
+                      <p className="text-white font-semibold">₱{selectedMapPost.needAmount} {selectedMapPost.needType}</p>
                     </div>
                   </div>
-                  {selectedPost.distance && (
-                    <p className="text-white text-sm font-medium">📍 {selectedPost.distance.toFixed(1)}km away</p>
+                  {location && (
+                    <p className="text-white text-sm font-medium">📍 {distance(location.lat, location.lng, selectedMapPost.location.lat, selectedMapPost.location.lng).toFixed(1)}km away</p>
                   )}
                 </div>
-                <Button
-                  onClick={() => onPostSelect?.(selectedPost)}
-                  size="sm"
-                  className="ml-4 bg-blue-500 hover:bg-blue-600 text-white"
-                >
-                  <Handshake className="h-4 w-4 mr-2" />
-                  Match
-                </Button>
+                <div className="flex flex-col space-y-2">
+                  <Button
+                    onClick={() => {
+                      onPostSelect?.(selectedMapPost);
+                      setSelectedMapPost(null); // Close UI after matching
+                    }}
+                    size="sm"
+                    className="bg-blue-500 hover:bg-blue-600 text-white"
+                  >
+                    <Handshake className="h-4 w-4 mr-2" />
+                    Match
+                  </Button>
+                  <Button
+                    onClick={() => setSelectedMapPost(null)}
+                    size="sm"
+                    variant="outline"
+                    className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Close
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
