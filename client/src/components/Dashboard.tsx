@@ -45,6 +45,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { toast } from '@/hooks/use-toast';
 import { getGreeting, formatDate } from '@/utils/timeUtils';
 import { useFirestoreOperations } from '@/hooks/useFirestore';
+import { useActiveExchanges } from '@/hooks/useActiveExchanges';
 import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { ExchangePost } from '@/types';
@@ -58,9 +59,9 @@ export function Dashboard({ onLogout }: DashboardProps) {
   const { location, hasPermission } = useLocation();
   const { matches: nearbyPosts = [], matchRequests: allMatchRequests = [], isSearching: loading, requestMatch } = useMatching();
   const { completedExchanges, getRecentExchanges, formatDuration } = useExchangeHistory();
+  const { activeExchanges } = useActiveExchanges();
   
-  // Use confirmed matches as active exchanges
-  const activeExchanges = allMatchRequests.filter(match => match.status === 'confirmed');
+  // Get pending requests from match requests
   const pendingRequests = allMatchRequests.filter(match => match.status === 'pending' && match.userB === user?.uid);
   const [showAllHistory, setShowAllHistory] = useState(false);
   
@@ -181,8 +182,8 @@ export function Dashboard({ onLogout }: DashboardProps) {
         <h2 className="text-2xl font-bold text-white mb-4">Active Exchanges</h2>
         <div className="space-y-4">
           {activeExchanges.length > 0 ? (
-            activeExchanges.map((match) => (
-              <Card key={match.id} className="glass-effect border-white/20">
+            activeExchanges.map((exchange) => (
+              <Card key={exchange.id} className="glass-effect border-white/20">
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between">
                     <div className="flex-1 mr-4">
@@ -192,10 +193,9 @@ export function Dashboard({ onLogout }: DashboardProps) {
                       </div>
                       <p className="text-blue-100 text-sm mb-2">
                         Partner: {(() => {
-                          const extMatch = match as any;
-                          return match.userA === user?.uid 
-                            ? (extMatch.userBName || 'Exchange Partner')
-                            : (extMatch.userAName || 'Exchange Partner');
+                          return exchange.userA === user?.uid 
+                            ? (exchange.userBName || 'Exchange Partner')
+                            : (exchange.userAName || 'Exchange Partner');
                         })()}
                       </p>
                       <p className="text-blue-200 text-xs">
@@ -206,7 +206,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
                       <Button
                         size="sm"
                         onClick={() => {
-                          setSelectedChatExchange(match);
+                          setSelectedChatExchange(exchange);
                           setShowChat(true);
                         }}
                         className="bg-blue-500 hover:bg-blue-600 text-white"
@@ -214,11 +214,11 @@ export function Dashboard({ onLogout }: DashboardProps) {
                         <MessageSquare className="h-4 w-4 mr-1" />
                         Chat
                       </Button>
-                      {match.userA === user?.uid && (
+                      {exchange.initiatedBy === user?.uid && (
                         <Button
                           size="sm"
                           onClick={() => {
-                            setSelectedExchangeForCompletion(match);
+                            setSelectedExchangeForCompletion(exchange);
                             setShowExchangeCompletion(true);
                           }}
                           className="bg-green-500 hover:bg-green-600 text-white"
@@ -479,10 +479,10 @@ export function Dashboard({ onLogout }: DashboardProps) {
             </h3>
             <div className="space-y-4">
               {activeExchanges.length > 0 ? (
-                activeExchanges.map((match) => (
-                  <Card key={match.id} className="glass-dark border-white/10 hover:bg-white/5 transition-colors cursor-pointer"
+                activeExchanges.map((exchange) => (
+                  <Card key={exchange.id} className="glass-dark border-white/10 hover:bg-white/5 transition-colors cursor-pointer"
                     onClick={() => {
-                      setSelectedChatExchange(match);
+                      setSelectedChatExchange(exchange);
                       setShowChat(true);
                     }}
                   >
@@ -495,10 +495,9 @@ export function Dashboard({ onLogout }: DashboardProps) {
                           <div>
                             <p className="text-white font-medium">
                               {(() => {
-                                const extMatch = match as any;
-                                return match.userA === user?.uid 
-                                  ? (extMatch.userBName || 'Exchange Partner')
-                                  : (extMatch.userAName || 'Exchange Partner');
+                                return exchange.userA === user?.uid 
+                                  ? (exchange.userBName || 'Exchange Partner')
+                                  : (exchange.userAName || 'Exchange Partner');
                               })()}
                             </p>
                             <p className="text-blue-100 text-sm">Active exchange • Click to chat</p>

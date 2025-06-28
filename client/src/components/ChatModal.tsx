@@ -25,6 +25,7 @@ import { toastSuccess, toastError } from '@/utils/notifications';
 
 interface ChatMessage {
   id: string;
+  matchId?: string;
   sender: string;
   text: string;
   timestamp: Date;
@@ -70,23 +71,29 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
 
   // Mark messages as read when chat opens
   useEffect(() => {
-    if (!matchId || !user?.uid || !messages) return;
+    if (!matchId || !user?.uid || !messages || messages.length === 0) return;
 
     const unreadMessages = messages.filter(msg => 
-      msg.sender !== user.uid && !msg.read
+      msg.sender !== user.uid && !msg.read && msg.id
     );
 
-    unreadMessages.forEach(msg => {
-      updateDocument('messages', msg.id, { read: true });
-    });
-  }, [messages, matchId, user?.uid, updateDocument]);
+    // Only update if there are actually unread messages
+    if (unreadMessages.length > 0) {
+      unreadMessages.forEach(msg => {
+        if (msg.id) {
+          updateDocument('messages', msg.id, { read: true }).catch(error => {
+            console.error('Error marking message as read:', error);
+          });
+        }
+      });
+    }
+  }, [matchId, user?.uid]); // Removed messages and updateDocument from dependencies to prevent infinite loop
 
   const sendMessage = async (data: MessageFormData) => {
     if (!matchId || !user?.uid) return;
 
     try {
-      const message: ChatMessage = {
-        id: '', // Will be set by Firestore
+      const messageData = {
         matchId,
         sender: user.uid,
         text: data.message.trim(),
@@ -94,7 +101,7 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
         read: false
       };
 
-      await addDocument('messages', message);
+      await addDocument('messages', messageData);
       reset();
     } catch (error) {
       console.error('Error sending message:', error);

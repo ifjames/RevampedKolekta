@@ -1,0 +1,85 @@
+useFirestore.ts:135 Uncaught (in promise) FirebaseError: Invalid document reference. Document references must have an even number of segments, but messages has 1.
+react-dom.development.js:86 Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+    at ChatModal (https://95616e81-1763-48d0-8e15-4de3079e4049-00-regsjxm5iw0q.pike.replit.dev/src/components/ChatModal.tsx?t=1751070162636:42:29)
+    at div
+    at Dashboard (https://95616e81-1763-48d0-8e15-4de3079e4049-00-regsjxm5iw0q.pike.replit.dev/src/components/Dashboard.tsx?t=1751070290544:62:29)
+    at AppContent (https://95616e81-1763-48d0-8e15-4de3079e4049-00-regsjxm5iw0q.pike.replit.dev/src/App.tsx?t=1751070290544&v=expOOE41x1eNeLJ-1cLSD:27:29)
+    at LocationProvider (https://95616e81-1763-48d0-8e15-4de3079e4049-00-regsjxm5iw0q.pike.replit.dev/src/contexts/LocationContext.tsx:31:36)
+    at AuthProvider (https://95616e81-1763-48d0-8e15-4de3079e4049-00-regsjxm5iw0q.pike.replit.dev/src/contexts/AuthContext.tsx:39:32)
+    at App
+printWarning @ react-dom.development.js:86
+error @ react-dom.development.js:60
+checkForNestedUpdates @ react-dom.development.js:27339
+scheduleUpdateOnFiber @ react-dom.development.js:25514
+dispatchSetState @ react-dom.development.js:16708
+updateDocument @ useFirestore.ts:121
+(anonymous) @ ChatModal.tsx:80
+(anonymous) @ ChatModal.tsx:79
+commitHookEffectListMount @ react-dom.development.js:23189
+commitPassiveMountOnFiber @ react-dom.development.js:24965
+commitPassiveMountEffects_complete @ react-dom.development.js:24930
+commitPassiveMountEffects_begin @ react-dom.development.js:24917
+commitPassiveMountEffects @ react-dom.development.js:24905
+flushPassiveEffectsImpl @ react-dom.development.js:27078
+flushPassiveEffects @ react-dom.development.js:27023
+(anonymous) @ react-dom.development.js:26808
+workLoop @ scheduler.development.js:266
+flushWork @ scheduler.development.js:239
+performWorkUntilDeadline @ scheduler.development.js:533
+54useFirestore.ts:135 Uncaught (in promise) FirebaseError: Invalid document reference. Document references must have an even number of segments, but messages has 1.
+react-dom.development.js:86 Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+    at ChatModal (https://95616e81-1763-48d0-8e15-4de3079e4049-00-regsjxm5iw0q.pike.replit.dev/src/components/ChatModal.tsx?t=1751070162636:42:29)
+    at div
+    at Dashboard (https://95616e81-1763-48d0-8e15-4de3079e4049-00-regsjxm5iw0q.pike.replit.dev/src/components/Dashboard.tsx?t=1751070290544:62:29)
+    at AppContent (https://95616e81-1763-48d0-8e15-4de3079e4049-00-regsjxm5iw0q.pike.replit.dev/src/App.tsx?t=1751070290544&v=expOOE41x1eNeLJ-1cLSD:27:29)
+    at LocationProvider (https://95616e81-1763-48d0-8e15-4de3079e4049-00-regsjxm5iw0q.pike.replit.dev/src/contexts/LocationContext.tsx:31:36)
+    at AuthProvider (https://95616e81-1763-48d0-8e15-4de3079e4049-00-regsjxm5iw0q.pike.replit.dev/src/contexts/AuthContext.tsx:39:32)
+    at App
+printWarning @ react-dom.development.js:86
+error @ react-dom.development.js:60
+checkForNestedUpdates @ react-dom.development.js:27339
+scheduleUpdateOnFiber @ react-dom.development.js:25514
+dispatchSetState @ react-dom.development.js:16708
+updateDocument @ useFirestore.ts:121
+(anonymous) @ ChatModal.tsx:80
+(anonymous) @ ChatModal.tsx:79
+commitHookEffectListMount @ react-dom.development.js:23189
+commitPassiveMountOnFiber @ react-dom.development.js:24965
+commitPassiveMountEffects_complete @ react-dom.development.js:24930
+commitPassiveMountEffects_begin @ react-dom.development.js:24917
+commitPassiveMountEffects @ react-dom.development.js:24905
+flushPassiveEffectsImpl @ react-dom.development.js:27078
+flushPassiveEffects @ react-dom.development.js:27023
+(anonymous) @ react-dom.development.js:26808
+workLoop @ scheduler.development.js:266
+flushWork @ scheduler.development.js:239
+performWorkUntilDeadline @ scheduler.development.js:533
+51useFirestore.ts:135 Uncaught (in promise) FirebaseError: Invalid document reference. Document references must have an even number of segments, but messages has 1.
+react-dom.development.js:86 Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+    at ChatModal (https://95616e81-1763-48d0-8e15-4de3079e4049-00-regsjxm5iw0q.pike.replit.dev/src/components/ChatModal.tsx?t=1751070162636:42:29)
+    at div
+    at Dashboard (https://95616e81-1763-48d0-8e15-4de3079e4049-00-regsjxm5iw0q.pike.replit.dev/src/components/Dashboard.tsx?t=1751070290544:62:29)
+    at AppContent (https://95616e81-1763-48d0-8e15-4de3079e4049-00-regsjxm5iw0q.pike.replit.dev/src/App.tsx?t=1751070290544&v=expOOE41x1eNeLJ-1cLSD:27:29)
+    at LocationProvider (https://95616e81-1763-48d0-8e15-4de3079e4049-00-regsjxm5iw0q.pike.replit.dev/src/contexts/LocationContext.tsx:31:36)
+    at AuthProvider (https://95616e81-1763-48d0-8e15-4de3079e4049-00-regsjxm5iw0q.pike.replit.dev/src/contexts/AuthContext.tsx:39:32)
+    at App
+printWarning @ react-dom.development.js:86
+error @ react-dom.development.js:60
+checkForNestedUpdates @ react-dom.development.js:27339
+scheduleUpdateOnFiber @ react-dom.development.js:25514
+dispatchSetState @ react-dom.development.js:16708
+updateDocument @ useFirestore.ts:121
+(anonymous) @ ChatModal.tsx:80
+(anonymous) @ ChatModal.tsx:79
+commitHookEffectListMount @ react-dom.development.js:23189
+commitPassiveMountOnFiber @ react-dom.development.js:24965
+commitPassiveMountEffects_complete @ react-dom.development.js:24930
+commitPassiveMountEffects_begin @ react-dom.development.js:24917
+commitPassiveMountEffects @ react-dom.development.js:24905
+flushPassiveEffectsImpl @ react-dom.development.js:27078
+flushPassiveEffects @ react-dom.development.js:27023
+(anonymous) @ react-dom.development.js:26808
+workLoop @ scheduler.development.js:266
+flushWork @ scheduler.development.js:239
+performWorkUntilDeadline @ scheduler.development.js:533
+52useFirestore.ts:135 Uncaught (in promise) FirebaseError: Invalid document reference. Document references must have an even number of segments, but messages has 1.
