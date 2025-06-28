@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
   MessageSquare,
@@ -58,7 +59,12 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
   const [showPartnerProfile, setShowPartnerProfile] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<MessageFormData>();
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<MessageFormData>({
+    resolver: zodResolver(messageSchema),
+    defaultValues: {
+      message: ''
+    }
+  });
 
   // Listen to chat messages with real-time updates
   const { data: messages, loading } = useCollection<ChatMessage>('messages', 
@@ -74,36 +80,43 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
     
     const partnerId = exchange.userA === user.uid ? exchange.userB : exchange.userA;
     if (partnerId) {
-      // Get actual user profile data
-      getDoc(doc(db, 'userProfiles', partnerId))
-        .then((snapshot: any) => {
-          if (snapshot.exists()) {
-            const profileData = snapshot.data();
-            setPartnerProfile({
-              name: profileData.name || partnerName,
-              verified: profileData.verified === true,
-              averageRating: profileData.averageRating || 0,
-              totalRatings: profileData.totalRatings || 0
-            });
-          } else {
-            // If no profile exists, create minimal profile from auth data
-            setPartnerProfile({
-              name: partnerName,
-              verified: false,
-              averageRating: 0,
-              totalRatings: 0
-            });
-          }
-        })
-        .catch((error: any) => {
-          console.error('Error fetching partner profile:', error);
+      // Try multiple collections to get the most complete profile data
+      Promise.all([
+        getDoc(doc(db, 'userProfiles', partnerId)),
+        getDoc(doc(db, 'users', partnerId))
+      ]).then(([userProfileSnapshot, userSnapshot]) => {
+        let profileData = null;
+        
+        if (userProfileSnapshot.exists()) {
+          profileData = userProfileSnapshot.data();
+        } else if (userSnapshot.exists()) {
+          profileData = userSnapshot.data();
+        }
+        
+        if (profileData) {
+          setPartnerProfile({
+            name: profileData.name || partnerName,
+            verified: profileData.verified === true,
+            averageRating: profileData.averageRating ?? profileData.rating ?? 0,
+            totalRatings: profileData.totalRatings ?? profileData.completedExchanges ?? 0
+          });
+        } else {
           setPartnerProfile({
             name: partnerName,
             verified: false,
             averageRating: 0,
             totalRatings: 0
           });
+        }
+      }).catch((error: any) => {
+        console.error('Error fetching partner profile:', error);
+        setPartnerProfile({
+          name: partnerName,
+          verified: false,
+          averageRating: 0,
+          totalRatings: 0
         });
+      });
     }
   }, [exchange, user?.uid, partnerName]);
 
@@ -144,13 +157,16 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
   }, [matchId, user?.uid]); // Removed messages and updateDocument from dependencies to prevent infinite loop
 
   const sendMessage = async (data: MessageFormData) => {
-    if (!matchId || !user?.uid) return;
+    if (!matchId || !user?.uid || !data?.message) return;
 
     try {
+      const messageText = data.message?.trim?.() || '';
+      if (!messageText) return;
+
       const messageData = {
         matchId,
         sender: user.uid,
-        text: data.message.trim(),
+        text: messageText,
         timestamp: new Date(),
         read: false
       };
@@ -166,7 +182,7 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
         if (messagesEndRef.current) {
           messagesEndRef.current.scrollIntoView({ behavior: 'auto', block: 'end' });
         }
-      }, 50);
+      }, 100);
       
     } catch (error) {
       console.error('Error sending message:', error);
@@ -450,7 +466,7 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
                   {partnerProfile.verified && (
                     <Badge className="bg-blue-500 text-white mb-3">Verified User</Badge>
                   )}
-                  {partnerProfile.averageRating && (
+                  {(partnerProfile.averageRating !== undefined && partnerProfile.averageRating !== null) && (
                     <div className="flex items-center justify-center space-x-2 mb-4">
                       <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
                       <span className="text-yellow-400 font-semibold">{partnerProfile.averageRating.toFixed(1)}</span>
