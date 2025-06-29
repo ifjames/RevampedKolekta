@@ -243,14 +243,14 @@ export function Dashboard({ onLogout }: DashboardProps) {
                         <h3 className="text-white font-semibold">Active Exchange</h3>
                         <Badge className="bg-green-500">Confirmed</Badge>
                       </div>
-                      <p className="text-blue-100 text-sm mb-2">
+                      <p className="text-purple-100 text-sm mb-2">
                         Partner: {(() => {
                           return exchange.userA === user?.uid 
                             ? (exchange.userBName || 'Exchange Partner')
                             : (exchange.userAName || 'Exchange Partner');
                         })()}
                       </p>
-                      <p className="text-blue-200 text-xs">
+                      <p className="text-purple-200 text-xs">
                         Chat with your partner to coordinate the meetup and exchange
                       </p>
                     </div>
@@ -261,7 +261,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
                           setSelectedChatExchange(exchange);
                           setShowChat(true);
                         }}
-                        className="bg-blue-500 hover:bg-blue-600 text-white"
+                        className="cosmic-gradient hover:opacity-80 text-white"
                       >
                         <MessageSquare className="h-4 w-4 mr-1" />
                         Chat
@@ -458,7 +458,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
                   <CardContent className="p-4 text-center">
                     <Button
                       onClick={() => setShowFindExchange(true)}
-                      className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
+                      className="cosmic-gradient hover:opacity-80 text-white"
                     >
                       <Eye className="mr-2 h-4 w-4" />
                       View All Exchanges ({nearbyPosts.length})
@@ -816,7 +816,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
                         <div className="flex justify-between items-start mb-2">
                           <div>
                             <h4 className="text-white font-medium">Exchange Completed</h4>
-                            <p className="text-blue-100 text-sm">
+                            <p className="text-purple-100 text-sm">
                               {exchange.completedAt.toLocaleDateString()}
                             </p>
                           </div>
@@ -833,7 +833,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
                             ))}
                           </div>
                         </div>
-                        <div className="text-blue-200 text-xs space-y-1 mb-2">
+                        <div className="text-purple-200 text-xs space-y-1 mb-2">
                           <p>Partner: {exchange.partnerName}</p>
                           <p>Duration: {formatDuration(exchange.duration)}</p>
                           {exchange.notes && <p>Notes: {exchange.notes}</p>}
@@ -904,11 +904,11 @@ export function Dashboard({ onLogout }: DashboardProps) {
                   ))}
                 </div>
                 <p className="text-sm text-white">{(userProfile?.rating || 0).toFixed(1)}</p>
-                <p className="text-blue-100 text-xs">Rating</p>
+                <p className="text-purple-100 text-xs">Rating</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-white">0</p>
-                <p className="text-blue-100 text-sm">This Month</p>
+                <p className="text-purple-100 text-sm">This Month</p>
               </div>
             </div>
           </CardContent>
@@ -934,7 +934,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-700 to-cyan-500">
+    <div className="min-h-screen">
       {/* Desktop/Mobile Header */}
       <motion.header 
         initial={{ opacity: 0, y: -50 }}
@@ -946,7 +946,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
             <img src="/kolekta-logo.png" alt="Kolekta" className="w-10 h-10" />
             <div>
               <h1 className="text-white font-bold">Kolekta</h1>
-              <p className="text-blue-100 text-sm lg:hidden">
+              <p className="text-purple-100 text-sm lg:hidden">
                 {getGreeting()}, {userProfile?.name || user?.displayName || 'User'}!
               </p>
             </div>
@@ -963,7 +963,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
                   activeTab === item.id
                     ? 'bg-white/20 text-white'
-                    : 'text-blue-100 hover:text-white hover:bg-white/10'
+                    : 'text-purple-100 hover:text-white hover:bg-white/10'
                 }`}
               >
                 <item.icon className="h-4 w-4" />
@@ -1024,7 +1024,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
                   <CardContent className="p-4">
                     <stat.icon className={`h-6 w-6 ${stat.color} mb-2 mx-auto`} />
                     <p className="text-white font-bold text-lg">{stat.value}</p>
-                    <p className="text-blue-100 text-sm">{stat.label}</p>
+                    <p className="text-purple-100 text-sm">{stat.label}</p>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -1046,7 +1046,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
                   </div>
                   <div className="flex-1">
                     <h3 className="text-white font-semibold">Location Access Needed</h3>
-                    <p className="text-blue-100 text-sm">
+                    <p className="text-purple-100 text-sm">
                       Allow location access to find nearby exchanges and create posts.
                     </p>
                   </div>
@@ -1186,7 +1186,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
               <MapPin className="h-5 w-5 mr-2" />
               {selectedPostForMap?.userInfo?.name || 'User'}'s Exchange Location
             </DialogTitle>
-            <DialogDescription className="text-blue-200">
+            <DialogDescription className="text-purple-200">
               View the exact location where this exchange is available
             </DialogDescription>
           </DialogHeader>

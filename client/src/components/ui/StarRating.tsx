@@ -45,17 +45,17 @@ export function StarRating({
   return (
     <div className={cn(
       'flex items-center',
-      layout === 'vertical' ? 'flex-col space-y-1' : 'space-x-1',
+      layout === 'vertical' ? 'flex-col space-y-1' : 'flex-row space-x-1',
       className
     )}>
       <div className={cn(
-        'flex',
-        layout === 'vertical' ? 'flex-col space-y-1' : 'space-x-1'
+        'flex items-center',
+        layout === 'vertical' ? 'flex-col space-y-1' : 'flex-row space-x-1'
       )}>
         {stars}
       </div>
       {showValue && (
-        <span className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+        <span className="text-sm text-muted-foreground ml-2">
           {rating.toFixed(1)}
         </span>
       )}

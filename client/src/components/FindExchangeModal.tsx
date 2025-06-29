@@ -206,13 +206,13 @@ export function FindExchangeModal({ isOpen, onClose, onSelectPost }: FindExchang
     <>
       {/* Main Find Exchange Dialog */}
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-2xl w-[95vw] h-[95vh] sm:h-auto glass-effect border-white/20 bg-blue-900/95 max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogContent className="sm:max-w-2xl w-[95vw] h-[95vh] sm:h-auto glass-effect border-white/20 max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader className="pb-6 border-b border-white/10 relative">
             <DialogTitle className="text-white text-2xl flex items-center pr-10">
               <Search className="mr-3 h-6 w-6" />
               Find Safe Exchange
             </DialogTitle>
-            <DialogDescription className="text-blue-100 text-base mt-2">
+            <DialogDescription className="text-purple-100 text-base mt-2">
               Search for nearby exchange opportunities and filter by your preferences
             </DialogDescription>
           </DialogHeader>
@@ -350,13 +350,13 @@ export function FindExchangeModal({ isOpen, onClose, onSelectPost }: FindExchang
 
               {loading ? (
                 <div className="text-center py-12">
-                  <div className="text-blue-200 text-lg">Finding exchanges...</div>
+                  <div className="text-purple-200 text-lg">Finding exchanges...</div>
                 </div>
               ) : filteredPosts.length === 0 ? (
                 <div className="text-center py-12">
-                  <Users className="h-16 w-16 text-blue-300 mx-auto mb-4" />
-                  <div className="text-blue-200 mb-2 text-lg">No exchanges found</div>
-                  <div className="text-blue-300">Try adjusting your filters or search terms</div>
+                  <Users className="h-16 w-16 text-purple-300 mx-auto mb-4" />
+                  <div className="text-purple-200 mb-2 text-lg">No exchanges found</div>
+                  <div className="text-purple-300">Try adjusting your filters or search terms</div>
                 </div>
               ) : (
                 filteredPosts.map((post) => {
@@ -379,7 +379,7 @@ export function FindExchangeModal({ isOpen, onClose, onSelectPost }: FindExchang
                                   <Shield className="h-3 w-3 text-green-400" />
                                 )}
                               </div>
-                              <div className="flex items-center space-x-2 text-xs text-blue-200">
+                              <div className="flex items-center space-x-2 text-xs text-purple-200">
                                 <Star className="h-3 w-3" />
                                 <span>{(post.userInfo?.rating || 0).toFixed(1)}</span>
                                 <span>•</span>
@@ -410,7 +410,7 @@ export function FindExchangeModal({ isOpen, onClose, onSelectPost }: FindExchang
                             <ArrowLeftRight className="h-4 w-4" />
                           </div>
                           <div className="text-center">
-                            <div className="text-blue-300 text-xs">Needs</div>
+                            <div className="text-purple-300 text-xs">Needs</div>
                             <div className="flex items-center justify-center space-x-1">
                               <img 
                                 src={post.needType === 'bill' ? '/cash-icon.png' : '/coin-icon.png'} 
@@ -419,13 +419,13 @@ export function FindExchangeModal({ isOpen, onClose, onSelectPost }: FindExchang
                               />
                               <span className="text-white font-bold">₱{post.needAmount}</span>
                             </div>
-                            <div className="text-blue-200 text-xs">{post.needType}</div>
+                            <div className="text-purple-200 text-xs">{post.needType}</div>
                           </div>
                         </div>
 
                         {/* Notes */}
                         {post.notes && (
-                          <div className="p-2 bg-white/5 rounded text-blue-100 text-sm mb-3">
+                          <div className="p-2 bg-white/5 rounded text-purple-100 text-sm mb-3">
                             {post.notes}
                           </div>
                         )}

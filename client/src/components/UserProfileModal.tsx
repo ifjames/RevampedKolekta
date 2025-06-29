@@ -44,9 +44,9 @@ export function UserProfileModal({ isOpen, onClose, userInfo }: UserProfileModal
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[95vw] max-w-md glass-effect border-white/20 bg-blue-900/95">
+      <DialogContent className="w-[95vw] max-w-md glass-effect border-white/20">
         <DialogHeader className="text-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 cosmic-gradient rounded-full flex items-center justify-center mx-auto mb-4">
             <User className="h-8 w-8 text-white" />
           </div>
           <DialogTitle className="text-white text-xl flex items-center justify-center space-x-2">
@@ -67,7 +67,7 @@ export function UserProfileModal({ isOpen, onClose, userInfo }: UserProfileModal
               <Badge className={`${trustLevel.color} text-white px-3 py-1 mb-2`}>
                 {trustLevel.level}
               </Badge>
-              <div className="text-blue-200 text-sm">
+              <div className="text-purple-200 text-sm">
                 Based on rating and exchange history
               </div>
             </CardContent>
@@ -87,7 +87,7 @@ export function UserProfileModal({ isOpen, onClose, userInfo }: UserProfileModal
                 layout="horizontal" 
                 size="md"
               />
-              <div className="text-blue-200 text-xs mt-1">
+              <div className="text-purple-200 text-xs mt-1">
                 {(userInfo.rating || 0) >= 4.5 ? 'Excellent' : 
                  (userInfo.rating || 0) >= 3.5 ? 'Good' : 
                  (userInfo.rating || 0) >= 2.5 ? 'Fair' : 'Needs Improvement'}
@@ -105,7 +105,7 @@ export function UserProfileModal({ isOpen, onClose, userInfo }: UserProfileModal
                   <span className="text-white font-bold">{userInfo.completedExchanges || 0}</span>
                 </div>
               </div>
-              <div className="text-blue-200 text-xs">
+              <div className="text-purple-200 text-xs">
                 {(userInfo.completedExchanges || 0) === 0 ? 'No completed exchanges yet' :
                  (userInfo.completedExchanges || 0) === 1 ? '1 successful exchange' :
                  `${userInfo.completedExchanges} successful exchanges`}
