@@ -219,6 +219,9 @@ Changelog:
   * Updated peso sign (₱) in Create Exchange Post title replacing dollar sign
   * Integrated Kolekta logo in all map markers and legends for consistent branding
   * Enhanced map markers to display Kolekta logo alongside exchange amounts for better brand recognition
+  * Made Location Permission page mobile-responsive and compact for better UX
+  * Added platform detection (browser vs app) with appropriate location service instructions
+  * Streamlined location permission UI with reduced modal size and clearer instructions
 ```
 
 ## User Preferences

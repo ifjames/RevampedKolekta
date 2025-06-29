@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,9 @@ import {
   Lock, 
   CheckCircle, 
   AlertTriangle,
-  Navigation
+  Navigation,
+  Smartphone,
+  Monitor
 } from 'lucide-react';
 
 interface LocationPermissionPageProps {
@@ -19,100 +21,91 @@ interface LocationPermissionPageProps {
 
 export function LocationPermissionPage({ onAllowLocation, onTryAgain }: LocationPermissionPageProps) {
   const [showDetails, setShowDetails] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
+  const [platform, setPlatform] = useState<'browser' | 'app'>('browser');
+
+  useEffect(() => {
+    // Detect if running as PWA/standalone app
+    const standalone = window.matchMedia('(display-mode: standalone)').matches || 
+                     (window.navigator as any).standalone || 
+                     document.referrer.includes('android-app://');
+    
+    setIsStandalone(standalone);
+    setPlatform(standalone ? 'app' : 'browser');
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 flex items-center justify-center p-3">
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="w-full max-w-lg"
+        className="w-full max-w-md"
       >
         <Card className="glass-effect border-white/20">
-          <CardHeader className="text-center pb-4">
-            <div className="mx-auto bg-red-500 rounded-full p-4 w-16 h-16 mb-4">
-              <MapPin className="h-8 w-8 text-white" />
+          <CardHeader className="text-center pb-3 pt-4">
+            <div className="mx-auto bg-red-500 rounded-full p-3 w-12 h-12 mb-3">
+              <MapPin className="h-6 w-6 text-white" />
             </div>
-            <CardTitle className="text-white text-2xl mb-2">Location Access Required</CardTitle>
-            <p className="text-blue-200 text-sm">
-              Kolekta needs your location to find safe exchange partners nearby and ensure secure transactions.
-            </p>
+            <CardTitle className="text-white text-xl mb-2">Location Access Required</CardTitle>
+            <div className="flex items-center justify-center space-x-2 mb-2">
+              {platform === 'app' ? (
+                <Smartphone className="h-4 w-4 text-blue-300" />
+              ) : (
+                <Monitor className="h-4 w-4 text-blue-300" />
+              )}
+              <p className="text-blue-200 text-xs">
+                {platform === 'app' ? 'App location services required' : 'Browser location access required'}
+              </p>
+            </div>
           </CardHeader>
 
-          <CardContent className="p-6 space-y-6">
-            {/* Why We Need Location */}
-            <div className="space-y-4">
-              <h3 className="text-white font-semibold flex items-center">
-                <Shield className="h-5 w-5 text-green-400 mr-2" />
+          <CardContent className="p-4 space-y-4">
+            {/* Compact Why We Need Location */}
+            <div className="bg-white/5 rounded-lg p-3">
+              <h3 className="text-white font-medium text-sm mb-2 flex items-center">
+                <Shield className="h-4 w-4 text-green-400 mr-2" />
                 Why Location is Essential
               </h3>
-              
-              <div className="space-y-3">
-                <div className="flex items-start space-x-3 bg-white/5 p-3 rounded-lg">
-                  <CheckCircle className="h-5 w-5 text-green-400 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-white text-sm font-medium">Safe Partner Matching</p>
-                    <p className="text-blue-200 text-xs">Find verified users within walking distance for secure exchanges</p>
-                  </div>
+              <div className="space-y-1 text-blue-200 text-xs">
+                <div className="flex items-center">
+                  <CheckCircle className="h-3 w-3 text-green-400 mr-2 flex-shrink-0" />
+                  <span>Find safe exchange partners nearby</span>
                 </div>
-
-                <div className="flex items-start space-x-3 bg-white/5 p-3 rounded-lg">
-                  <CheckCircle className="h-5 w-5 text-green-400 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-white text-sm font-medium">Safe Zone Recommendations</p>
-                    <p className="text-blue-200 text-xs">Discover verified public spaces like malls and banks near you</p>
-                  </div>
+                <div className="flex items-center">
+                  <CheckCircle className="h-3 w-3 text-green-400 mr-2 flex-shrink-0" />
+                  <span>Recommend verified safe zones (malls, banks)</span>
                 </div>
-
-                <div className="flex items-start space-x-3 bg-white/5 p-3 rounded-lg">
-                  <CheckCircle className="h-5 w-5 text-green-400 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-white text-sm font-medium">Risk Prevention</p>
-                    <p className="text-blue-200 text-xs">Prevent fraud by ensuring all parties are in legitimate locations</p>
-                  </div>
+                <div className="flex items-center">
+                  <CheckCircle className="h-3 w-3 text-green-400 mr-2 flex-shrink-0" />
+                  <span>Prevent fraud through proximity verification</span>
                 </div>
               </div>
             </div>
 
-            {/* Privacy Protection */}
-            <div className="bg-blue-900/30 border border-blue-400/30 rounded-lg p-4">
-              <h4 className="text-white font-medium flex items-center mb-2">
+            {/* Privacy Protection - Compact */}
+            <div className="bg-blue-900/30 border border-blue-400/30 rounded-lg p-3">
+              <h4 className="text-white font-medium text-sm flex items-center mb-2">
                 <Lock className="h-4 w-4 text-blue-400 mr-2" />
-                Your Privacy is Protected
+                Privacy Protected
               </h4>
-              <div className="space-y-2 text-blue-200 text-xs">
+              <div className="space-y-1 text-blue-200 text-xs">
                 <div className="flex items-center">
-                  <Eye className="h-3 w-3 mr-2" />
-                  <span>Location is only shared when you create an exchange post</span>
+                  <Eye className="h-3 w-3 mr-2 flex-shrink-0" />
+                  <span>Only approximate distance shown (~100m radius)</span>
                 </div>
                 <div className="flex items-center">
-                  <Eye className="h-3 w-3 mr-2" />
-                  <span>Exact coordinates are never revealed to other users</span>
-                </div>
-                <div className="flex items-center">
-                  <Eye className="h-3 w-3 mr-2" />
-                  <span>Only approximate distance is shown (within 100m radius)</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Warning */}
-            <div className="bg-red-900/30 border border-red-400/30 rounded-lg p-4">
-              <div className="flex items-start space-x-2">
-                <AlertTriangle className="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-red-100 text-sm font-medium">Cannot Continue Without Location</p>
-                  <p className="text-red-200 text-xs">
-                    Kolekta requires location access to ensure safe cash exchanges. Without this, we cannot verify user proximity or recommend safe meetup locations.
-                  </p>
+                  <Eye className="h-3 w-3 mr-2 flex-shrink-0" />
+                  <span>Exact coordinates never shared</span>
                 </div>
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="space-y-3">
+            <div className="space-y-2">
               <Button
                 onClick={onAllowLocation}
                 className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white"
+                size="sm"
               >
                 <Navigation className="h-4 w-4 mr-2" />
                 Allow Location Access
@@ -122,12 +115,13 @@ export function LocationPermissionPage({ onAllowLocation, onTryAgain }: Location
                 onClick={onTryAgain}
                 variant="outline"
                 className="w-full bg-white/10 text-white border-white/30 hover:bg-white/20 hover:border-white/50"
+                size="sm"
               >
                 Try Again
               </Button>
             </div>
 
-            {/* How to Enable */}
+            {/* Platform-specific instructions */}
             <div className="text-center">
               <Button
                 variant="ghost"
@@ -135,7 +129,7 @@ export function LocationPermissionPage({ onAllowLocation, onTryAgain }: Location
                 onClick={() => setShowDetails(!showDetails)}
                 className="text-blue-300 hover:text-white hover:bg-white/10 text-xs"
               >
-                {showDetails ? 'Hide' : 'Show'} How to Enable Location
+                {showDetails ? 'Hide' : 'Show'} How to Enable
               </Button>
             </div>
 
@@ -143,22 +137,43 @@ export function LocationPermissionPage({ onAllowLocation, onTryAgain }: Location
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
-                className="bg-white/5 rounded-lg p-4 space-y-3"
+                className="bg-white/5 rounded-lg p-3"
               >
-                <h5 className="text-white font-medium text-sm">How to Enable Location:</h5>
-                <div className="space-y-2 text-blue-200 text-xs">
-                  <div className="flex items-start">
-                    <span className="font-mono bg-white/10 px-1 rounded mr-2">1.</span>
-                    <span>Look for the location icon in your browser's address bar</span>
-                  </div>
-                  <div className="flex items-start">
-                    <span className="font-mono bg-white/10 px-1 rounded mr-2">2.</span>
-                    <span>Click on it and select "Allow" for this site</span>
-                  </div>
-                  <div className="flex items-start">
-                    <span className="font-mono bg-white/10 px-1 rounded mr-2">3.</span>
-                    <span>Refresh the page and try again</span>
-                  </div>
+                <h5 className="text-white font-medium text-xs mb-2">
+                  {platform === 'app' ? 'Enable in App Settings:' : 'Enable in Browser:'}
+                </h5>
+                <div className="space-y-1 text-blue-200 text-xs">
+                  {platform === 'app' ? (
+                    <>
+                      <div className="flex items-start">
+                        <span className="font-mono bg-white/10 px-1 rounded mr-2 text-xs">1.</span>
+                        <span>Open device Settings &gt; Privacy &amp; Security &gt; Location Services</span>
+                      </div>
+                      <div className="flex items-start">
+                        <span className="font-mono bg-white/10 px-1 rounded mr-2 text-xs">2.</span>
+                        <span>Find Kolekta app and enable location access</span>
+                      </div>
+                      <div className="flex items-start">
+                        <span className="font-mono bg-white/10 px-1 rounded mr-2 text-xs">3.</span>
+                        <span>Return to app and try again</span>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-start">
+                        <span className="font-mono bg-white/10 px-1 rounded mr-2 text-xs">1.</span>
+                        <span>Look for location icon 📍 in browser address bar</span>
+                      </div>
+                      <div className="flex items-start">
+                        <span className="font-mono bg-white/10 px-1 rounded mr-2 text-xs">2.</span>
+                        <span>Click it and select "Allow" for this site</span>
+                      </div>
+                      <div className="flex items-start">
+                        <span className="font-mono bg-white/10 px-1 rounded mr-2 text-xs">3.</span>
+                        <span>Refresh page if needed</span>
+                      </div>
+                    </>
+                  )}
                 </div>
               </motion.div>
             )}
