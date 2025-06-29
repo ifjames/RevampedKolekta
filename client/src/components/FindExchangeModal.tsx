@@ -21,7 +21,8 @@ import {
   Users,
   Map,
   ArrowLeftRight,
-  Handshake
+  Handshake,
+  User
 } from 'lucide-react';
 import { ExchangePost } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
@@ -32,6 +33,7 @@ import { db } from '@/lib/firebase';
 import { distance } from '@/lib/geohash';
 import { formatTimeAgo } from '@/utils/timeUtils';
 import { MapView } from './MapView';
+import { UserProfileModal } from './UserProfileModal';
 
 interface FindExchangeModalProps {
   isOpen: boolean;
@@ -61,6 +63,8 @@ export function FindExchangeModal({ isOpen, onClose, onSelectPost }: FindExchang
   const [loading, setLoading] = useState(true);
   const [selectedPostForMap, setSelectedPostForMap] = useState<ExchangePost | null>(null);
   const [showMapView, setShowMapView] = useState(false);
+  const [showUserProfile, setShowUserProfile] = useState(false);
+  const [selectedUserProfile, setSelectedUserProfile] = useState<any>(null);
   
   const [filters, setFilters] = useState<FilterOptions>({
     maxDistance: 10, // km
@@ -358,8 +362,8 @@ export function FindExchangeModal({ isOpen, onClose, onSelectPost }: FindExchang
                 filteredPosts.map((post) => {
                   const dist = location ? distance(location.lat, location.lng, post.location.lat, post.location.lng) : 0;
                   return (
-                    <Card key={post.id} className="glass-dark border-white/10 hover:border-white/20 transition-all duration-200 cursor-pointer">
-                      <CardContent className="p-4" onClick={() => handleSelectPost(post)}>
+                    <Card key={post.id} className="glass-dark border-white/10 hover:border-white/20 transition-all duration-200">
+                      <CardContent className="p-4">
                         {/* Compact Header */}
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center space-x-2">
@@ -431,7 +435,20 @@ export function FindExchangeModal({ isOpen, onClose, onSelectPost }: FindExchang
                           <Button
                             size="sm"
                             variant="outline"
-                            className="flex-1 bg-white/10 text-white border-white/30 hover:bg-white/20"
+                            className="bg-white/10 text-white border-white/30 hover:bg-white/20"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedUserProfile(post.userInfo);
+                              setShowUserProfile(true);
+                            }}
+                          >
+                            <User className="h-3 w-3 mr-1" />
+                            Profile
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="bg-white/10 text-white border-white/30 hover:bg-white/20"
                             onClick={(e) => {
                               e.stopPropagation();
                               setSelectedPostForMap(post);
@@ -443,7 +460,7 @@ export function FindExchangeModal({ isOpen, onClose, onSelectPost }: FindExchang
                           </Button>
                           <Button
                             size="sm"
-                            className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
+                            className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleSelectPost(post);
@@ -497,6 +514,13 @@ export function FindExchangeModal({ isOpen, onClose, onSelectPost }: FindExchang
 
         </DialogContent>
       </Dialog>
+
+      {/* User Profile Modal */}
+      <UserProfileModal
+        isOpen={showUserProfile}
+        onClose={() => setShowUserProfile(false)}
+        userInfo={selectedUserProfile}
+      />
     </>
   );
 }
