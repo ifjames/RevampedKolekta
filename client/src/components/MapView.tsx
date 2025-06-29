@@ -218,7 +218,7 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
             font-family: system-ui, -apple-system, sans-serif;
           ">
             <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 2px;">
-              <img src="${post.giveType === 'bill' ? '/cash-icon.png' : '/coin-icon.png'}" 
+              <img src="/kolekta-logo.png" 
                    style="width: 12px; height: 12px; margin-right: 3px;" />
               <span style="font-size: 13px; line-height: 1;">₱${post.giveAmount}</span>
             </div>
@@ -412,7 +412,9 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
                 <span className="text-white font-medium">Your Location</span>
               </div>
               <div className="flex items-center space-x-2">
-                <div className="w-5 h-3 bg-blue-500 rounded border-2 border-black flex items-center justify-center text-white text-[8px] font-bold">₱</div>
+                <div className="w-5 h-3 bg-blue-500 rounded border-2 border-black flex items-center justify-center">
+                  <img src="/kolekta-logo.png" alt="Exchange" className="w-3 h-3" />
+                </div>
                 <span className="text-white font-medium">Exchange Posts</span>
               </div>
               <div className="flex items-center space-x-2">

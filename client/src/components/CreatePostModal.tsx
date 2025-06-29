@@ -77,6 +77,10 @@ export function CreatePostModal({ isOpen, onClose, editingPost }: CreatePostModa
     },
   });
 
+  // Watch form values for dynamic icon changes
+  const watchedGiveType = form.watch('giveType');
+  const watchedNeedType = form.watch('needType');
+
   // Reset form when editingPost changes
   useEffect(() => {
     if (editingPost) {
@@ -176,7 +180,7 @@ export function CreatePostModal({ isOpen, onClose, editingPost }: CreatePostModa
       <DialogContent className="w-[95vw] max-w-lg max-h-[90vh] overflow-y-auto glass-effect border-white/20 bg-blue-900/95">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-white flex items-center">
-            <DollarSign className="mr-2 h-6 w-6" />
+            <span className="mr-2 text-2xl">₱</span>
             {editingPost ? 'Edit Exchange Post' : 'Create Exchange Post'}
           </DialogTitle>
           <DialogDescription className="text-blue-100">
@@ -189,7 +193,11 @@ export function CreatePostModal({ isOpen, onClose, editingPost }: CreatePostModa
           <Card className="glass-dark border-white/10">
             <CardContent className="p-4">
               <h3 className="text-white font-semibold mb-4 flex items-center">
-                <img src="/cash-icon.png" alt="Cash" className="w-5 h-5 mr-2" />
+                <img 
+                  src={watchedGiveType === 'bill' ? '/cash-icon.png' : '/coin-icon.png'} 
+                  alt={watchedGiveType === 'bill' ? 'Cash' : 'Coins'} 
+                  className="w-5 h-5 mr-2" 
+                />
                 What you have
               </h3>
               
@@ -232,7 +240,11 @@ export function CreatePostModal({ isOpen, onClose, editingPost }: CreatePostModa
           <Card className="glass-dark border-white/10">
             <CardContent className="p-4">
               <h3 className="text-white font-semibold mb-4 flex items-center">
-                <img src="/coin-icon.png" alt="Coins" className="w-5 h-5 mr-2" />
+                <img 
+                  src={watchedNeedType === 'bill' ? '/cash-icon.png' : '/coin-icon.png'} 
+                  alt={watchedNeedType === 'bill' ? 'Cash' : 'Coins'} 
+                  className="w-5 h-5 mr-2" 
+                />
                 What you need
               </h3>
               

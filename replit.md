@@ -215,6 +215,10 @@ Changelog:
   * Enhanced map legend with visual cash-to-coin flow indicators using new icons
   * Created proper PWA manifest with custom branding for mobile installation
   * All branding now consistent across the entire application
+  * Added dynamic icon changes in Create Exchange Post modal - icons update based on selected type (bills/coins)
+  * Updated peso sign (₱) in Create Exchange Post title replacing dollar sign
+  * Integrated Kolekta logo in all map markers and legends for consistent branding
+  * Enhanced map markers to display Kolekta logo alongside exchange amounts for better brand recognition
 ```
 
 ## User Preferences

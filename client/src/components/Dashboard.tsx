@@ -360,6 +360,12 @@ export function Dashboard({ onLogout }: DashboardProps) {
                   <span className="text-white text-xs">Your Location</span>
                 </div>
                 <div className="flex items-center space-x-2">
+                  <div className="w-4 h-3 bg-blue-500 rounded border border-white flex items-center justify-center">
+                    <img src="/kolekta-logo.png" alt="Exchange" className="w-2 h-2" />
+                  </div>
+                  <span className="text-white text-xs">Exchange Posts</span>
+                </div>
+                <div className="flex items-center space-x-2">
                   <div className="flex items-center space-x-1">
                     <img src="/cash-icon.png" alt="Cash" className="w-3 h-3" />
                     <span className="text-white text-xs">→</span>
