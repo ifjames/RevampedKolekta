@@ -173,7 +173,7 @@ export function NotificationSystem({ isOpen, onClose, onExchangeCompleted }: Not
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-start justify-center pt-20"
+          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-start justify-center pt-4 sm:pt-20 p-2 sm:p-4"
           onClick={onClose}
         >
           <motion.div

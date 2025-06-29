@@ -173,7 +173,7 @@ export function CreatePostModal({ isOpen, onClose, editingPost }: CreatePostModa
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg glass-effect border-white/20 bg-blue-900/95 max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[95vw] max-w-lg max-h-[90vh] overflow-y-auto glass-effect border-white/20 bg-blue-900/95">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-white flex items-center">
             <DollarSign className="mr-2 h-6 w-6" />

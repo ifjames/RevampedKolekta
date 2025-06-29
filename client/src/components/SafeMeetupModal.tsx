@@ -244,14 +244,14 @@ export function SafeMeetupModal({ isOpen, onClose, onLocationSelect, userLocatio
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center p-2 sm:p-4"
         onClick={onClose}
       >
         <motion.div
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
-          className="w-full max-w-2xl"
+          className="w-[95vw] max-w-2xl"
           onClick={(e) => e.stopPropagation()}
         >
           <Card className="glass-effect border-white/20">

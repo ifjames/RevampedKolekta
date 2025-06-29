@@ -510,7 +510,7 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center p-2 sm:p-4"
           onClick={(e) => {
             // Only close if not showing rating modal and clicking on the overlay
             if (!showRatingModal && e.target === e.currentTarget) {
@@ -522,7 +522,7 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
-            className="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-lg h-[600px] flex flex-col"
+            className="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-lg h-[95vh] sm:h-[600px] max-h-[600px] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}

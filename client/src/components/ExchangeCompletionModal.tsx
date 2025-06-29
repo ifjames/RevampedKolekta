@@ -218,7 +218,7 @@ export function ExchangeCompletionModal({ isOpen, onClose, exchange }: ExchangeC
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="glass-effect border-white/20 text-white max-w-md">
+      <DialogContent className="w-[95vw] max-w-md max-h-[90vh] overflow-y-auto glass-effect border-white/20 text-white">
         <DialogHeader className="text-center">
           <DialogTitle className="text-xl text-white mb-4">Complete Exchange</DialogTitle>
           <DialogDescription className="text-blue-100">

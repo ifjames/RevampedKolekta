@@ -94,11 +94,11 @@ export function LandingPage({ onGetStarted, onLogin }: LandingPageProps) {
             transition={{ duration: 0.6 }}
             className="text-center md:text-left"
           >
-            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
               Change the way you{' '}
               <span className="text-yellow-400">get change</span>
             </h1>
-            <p className="text-xl text-blue-100 mb-8 leading-relaxed">
+            <p className="text-lg sm:text-xl text-blue-100 mb-8 leading-relaxed">
               Real-time peer-to-peer cash exchange for commuters and daily use. Never worry about exact change again.
             </p>
             

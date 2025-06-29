@@ -144,7 +144,7 @@ export function ProfileModal({ isOpen, onClose, onLogout, onOpenVerification }: 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md glass-effect border-white/20 bg-blue-900/95">
+      <DialogContent className="w-[95vw] max-w-md max-h-[90vh] overflow-y-auto glass-effect border-white/20 bg-blue-900/95">
         <DialogHeader className="text-center">
           <motion.div
             initial={{ scale: 0 }}

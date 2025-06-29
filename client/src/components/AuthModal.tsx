@@ -100,7 +100,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'signin' }: AuthModal
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md glass-effect border-white/20 bg-blue-900/95">
+      <DialogContent className="w-[95vw] max-w-md max-h-[90vh] overflow-y-auto glass-effect border-white/20 bg-blue-900/95">
         <DialogHeader className="text-center">
           <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
             <Coins className="h-8 w-8 text-blue-600" />
