@@ -197,8 +197,8 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
       const markerIcon = L.divIcon({
         html: `
           <div style="
-            width: 55px; 
-            height: 40px; 
+            width: 60px; 
+            height: 45px; 
             background: ${isSelected ? '#10b981' : '#3b82f6'}; 
             border: 3px solid white; 
             border-radius: 12px; 
@@ -217,8 +217,12 @@ export function MapView({ posts, onPostSelect, selectedPost, showUserLocation = 
             z-index: 500;
             font-family: system-ui, -apple-system, sans-serif;
           ">
-            <div style="font-size: 14px; line-height: 1; margin-bottom: 1px;">₱${post.giveAmount}</div>
-            <div style="font-size: 9px; line-height: 1; opacity: 0.9; text-transform: uppercase;">
+            <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 2px;">
+              <img src="${post.giveType === 'bill' ? '/cash-icon.png' : '/coin-icon.png'}" 
+                   style="width: 12px; height: 12px; margin-right: 3px;" />
+              <span style="font-size: 13px; line-height: 1;">₱${post.giveAmount}</span>
+            </div>
+            <div style="font-size: 8px; line-height: 1; opacity: 0.9; text-transform: uppercase;">
               ${post.giveType === 'bill' ? 'Bills' : 'Coins'}
             </div>
           </div>

@@ -206,6 +206,15 @@ Changelog:
   * Fixed Leaflet map initialization errors with proper null checks and error handling
   * Map now shows user location and nearby exchange posts with interactive markers
   * Enhanced modal management system to prevent interference between modals
+- June 29, 2025. Migration to Replit environment and custom branding implementation:
+  * Successfully migrated project from Replit Agent to standard Replit environment
+  * Updated all Kolekta logos throughout app with custom logo from user-provided image
+  * Replaced favicon, app icons, and header logos in LandingPage, Dashboard, and AuthModal
+  * Added custom cash and coin icons throughout the system for better visual representation
+  * Updated ExchangeCard, MapView markers, CreatePostModal, FindExchangeModal with new cash/coin icons
+  * Enhanced map legend with visual cash-to-coin flow indicators using new icons
+  * Created proper PWA manifest with custom branding for mobile installation
+  * All branding now consistent across the entire application
 ```
 
 ## User Preferences

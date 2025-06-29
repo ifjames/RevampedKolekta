@@ -189,7 +189,7 @@ export function CreatePostModal({ isOpen, onClose, editingPost }: CreatePostModa
           <Card className="glass-dark border-white/10">
             <CardContent className="p-4">
               <h3 className="text-white font-semibold mb-4 flex items-center">
-                <HandCoins className="text-green-400 mr-2 h-5 w-5" />
+                <img src="/cash-icon.png" alt="Cash" className="w-5 h-5 mr-2" />
                 What you have
               </h3>
               
@@ -232,7 +232,7 @@ export function CreatePostModal({ isOpen, onClose, editingPost }: CreatePostModa
           <Card className="glass-dark border-white/10">
             <CardContent className="p-4">
               <h3 className="text-white font-semibold mb-4 flex items-center">
-                <DollarSign className="text-blue-400 mr-2 h-5 w-5" />
+                <img src="/coin-icon.png" alt="Coins" className="w-5 h-5 mr-2" />
                 What you need
               </h3>
               

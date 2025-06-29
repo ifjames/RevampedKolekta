@@ -360,15 +360,27 @@ export function Dashboard({ onLogout }: DashboardProps) {
                   <span className="text-white text-xs">Your Location</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <div className="flex items-center space-x-1">
+                    <img src="/cash-icon.png" alt="Cash" className="w-3 h-3" />
+                    <span className="text-white text-xs">→</span>
+                    <img src="/coin-icon.png" alt="Coins" className="w-3 h-3" />
+                  </div>
                   <span className="text-white text-xs">Cash to Coins</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                  <div className="flex items-center space-x-1">
+                    <img src="/coin-icon.png" alt="Coins" className="w-3 h-3" />
+                    <span className="text-white text-xs">→</span>
+                    <img src="/cash-icon.png" alt="Cash" className="w-3 h-3" />
+                  </div>
                   <span className="text-white text-xs">Coins to Cash</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                  <div className="flex items-center space-x-1">
+                    <img src="/cash-icon.png" alt="Cash" className="w-3 h-3" />
+                    <span className="text-white text-xs">⇄</span>
+                    <img src="/coin-icon.png" alt="Coins" className="w-3 h-3" />
+                  </div>
                   <span className="text-white text-xs">Both Ways</span>
                 </div>
               </div>

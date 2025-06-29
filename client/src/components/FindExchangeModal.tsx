@@ -392,7 +392,14 @@ export function FindExchangeModal({ isOpen, onClose, onSelectPost }: FindExchang
                         <div className="flex items-center justify-between mb-3 p-3 bg-white/5 rounded-lg">
                           <div className="text-center">
                             <div className="text-green-300 text-xs">Gives</div>
-                            <div className="text-white font-bold">₱{post.giveAmount}</div>
+                            <div className="flex items-center justify-center space-x-1">
+                              <img 
+                                src={post.giveType === 'bill' ? '/cash-icon.png' : '/coin-icon.png'} 
+                                alt={post.giveType} 
+                                className="w-4 h-4"
+                              />
+                              <span className="text-white font-bold">₱{post.giveAmount}</span>
+                            </div>
                             <div className="text-green-200 text-xs">{post.giveType}</div>
                           </div>
                           <div className="text-cyan-400">
@@ -400,7 +407,14 @@ export function FindExchangeModal({ isOpen, onClose, onSelectPost }: FindExchang
                           </div>
                           <div className="text-center">
                             <div className="text-blue-300 text-xs">Needs</div>
-                            <div className="text-white font-bold">₱{post.needAmount}</div>
+                            <div className="flex items-center justify-center space-x-1">
+                              <img 
+                                src={post.needType === 'bill' ? '/cash-icon.png' : '/coin-icon.png'} 
+                                alt={post.needType} 
+                                className="w-4 h-4"
+                              />
+                              <span className="text-white font-bold">₱{post.needAmount}</span>
+                            </div>
                             <div className="text-blue-200 text-xs">{post.needType}</div>
                           </div>
                         </div>

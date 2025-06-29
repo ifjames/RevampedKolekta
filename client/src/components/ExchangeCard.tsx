@@ -72,7 +72,14 @@ export function ExchangeCard({ post, onMatch, onViewMap, isMatching = false }: E
           
           <div className="grid grid-cols-3 gap-4 items-center mb-4">
             <div className="text-center">
-              <p className="text-green-400 font-bold text-lg">₱{post.giveAmount}</p>
+              <div className="flex items-center justify-center space-x-1 mb-1">
+                <img 
+                  src={post.giveType === 'bill' ? '/cash-icon.png' : '/coin-icon.png'} 
+                  alt={post.giveType} 
+                  className="w-5 h-5"
+                />
+                <p className="text-green-400 font-bold text-lg">₱{post.giveAmount}</p>
+              </div>
               <p className="text-blue-100 text-sm capitalize">{post.giveType}</p>
               <Badge variant="outline" className="text-xs border-green-400/50 text-green-400">
                 Give
@@ -82,7 +89,14 @@ export function ExchangeCard({ post, onMatch, onViewMap, isMatching = false }: E
               <ArrowLeftRight className="h-6 w-6 text-cyan-400 mx-auto" />
             </div>
             <div className="text-center">
-              <p className="text-blue-400 font-bold text-lg">₱{post.needAmount}</p>
+              <div className="flex items-center justify-center space-x-1 mb-1">
+                <img 
+                  src={post.needType === 'bill' ? '/cash-icon.png' : '/coin-icon.png'} 
+                  alt={post.needType} 
+                  className="w-5 h-5"
+                />
+                <p className="text-blue-400 font-bold text-lg">₱{post.needAmount}</p>
+              </div>
               <p className="text-blue-100 text-sm capitalize">{post.needType}</p>
               <Badge variant="outline" className="text-xs border-blue-400/50 text-blue-400">
                 Need
