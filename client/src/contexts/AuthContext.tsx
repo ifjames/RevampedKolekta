@@ -6,6 +6,9 @@ import {
   signOut,
   onAuthStateChanged,
   updateProfile,
+  updatePassword,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
@@ -20,6 +23,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, name: string, phone?: string) => Promise<void>;
   logout: () => Promise<void>;
   updateUserProfile: (data: Partial<UserProfile>) => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -170,6 +174,31 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
+  const changePassword = async (currentPassword: string, newPassword: string) => {
+    if (!user || !user.email) throw new Error('No user logged in');
+    
+    try {
+      // Re-authenticate user before password change
+      const credential = EmailAuthProvider.credential(user.email, currentPassword);
+      await reauthenticateWithCredential(user, credential);
+      
+      // Update password
+      await updatePassword(user, newPassword);
+      
+      toastSuccess('Password updated successfully');
+    } catch (error: any) {
+      console.error('Change password error:', error);
+      if (error.code === 'auth/wrong-password') {
+        toastError('Current password is incorrect');
+      } else if (error.code === 'auth/weak-password') {
+        toastError('New password is too weak');
+      } else {
+        toastError('Failed to update password');
+      }
+      throw error;
+    }
+  };
+
   const value: AuthContextType = {
     user,
     userProfile,
@@ -178,6 +207,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     signUp,
     logout,
     updateUserProfile,
+    changePassword,
   };
 
   return (

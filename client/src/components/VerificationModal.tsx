@@ -93,10 +93,17 @@ export function VerificationModal({ isOpen, onClose }: VerificationModalProps) {
 
     setIsSubmitting(true);
     try {
-      // In a real app, this would call an SMS service
+      // For now, simulate SMS sending with random 6-digit code
+      // In production, integrate with SMS service like Twilio
+      const mockCode = Math.floor(100000 + Math.random() * 900000).toString();
+      console.log('SMS Code for testing:', mockCode); // For demo purposes
+      
+      // Store the mock code temporarily (in production, server would handle this)
+      localStorage.setItem('temp_sms_code', mockCode);
+      
       await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate API call
       setSmsCodeSent(true);
-      toastSuccess('SMS verification code sent to your phone');
+      toastSuccess(`SMS verification code sent to your phone. For demo: ${mockCode}`);
       setVerificationStep('sms_verify');
     } catch (error) {
       toastError('Failed to send SMS code. Please try again.');
@@ -113,7 +120,7 @@ export function VerificationModal({ isOpen, onClose }: VerificationModalProps) {
 
     setIsSubmitting(true);
     try {
-      let verificationData = {
+      let verificationData: any = {
         userId: user.uid,
         type: data.verificationType,
         status: 'pending',
@@ -130,12 +137,23 @@ export function VerificationModal({ isOpen, onClose }: VerificationModalProps) {
           uploadedFiles: uploadedFiles
         };
       } else if (data.verificationType === 'phone_sms') {
+        // Validate SMS code against stored mock code (in production, server validates)
+        const storedCode = localStorage.getItem('temp_sms_code');
+        if (data.smsCode !== storedCode) {
+          toastError('Invalid SMS code. Please check and try again.');
+          setIsSubmitting(false);
+          return;
+        }
+        
         verificationData = {
           ...verificationData,
           phoneNumber: data.phoneNumber,
           smsCode: data.smsCode,
           verified: true // SMS verification is instant
         };
+        
+        // Clean up temporary code
+        localStorage.removeItem('temp_sms_code');
       }
 
       await addDocument('verifications', verificationData);
@@ -298,13 +316,30 @@ export function VerificationModal({ isOpen, onClose }: VerificationModalProps) {
                   </p>
                 </div>
 
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full bg-blue-500 hover:bg-blue-600 text-white"
-                >
-                  {isSubmitting ? 'Verifying...' : 'Verify Phone Number'}
-                </Button>
+                <div className="space-y-3">
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full bg-blue-500 hover:bg-blue-600 text-white"
+                  >
+                    {isSubmitting ? 'Verifying...' : 'Verify Phone Number'}
+                  </Button>
+                  
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setVerificationStep('select');
+                      setSmsCodeSent(false);
+                      localStorage.removeItem('temp_sms_code');
+                      setValue('phoneNumber', '');
+                      setValue('smsCode', '');
+                    }}
+                    variant="outline"
+                    className="w-full border-gray-500 text-gray-300 hover:bg-gray-800 hover:text-white"
+                  >
+                    Cancel
+                  </Button>
+                </div>
               </div>
             )}
           </div>
@@ -436,14 +471,17 @@ export function VerificationModal({ isOpen, onClose }: VerificationModalProps) {
                   <p className="text-blue-100 text-sm">Verify your account for increased trust and limits</p>
                 </div>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onClose}
-                className="text-white hover:bg-white/10"
-              >
-                <X className="h-5 w-5" />
-              </Button>
+              {/* Only show X button if not in phone verification step */}
+              {verificationStep !== 'sms_verify' && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onClose}
+                  className="text-white hover:bg-white/10"
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              )}
             </CardHeader>
 
             <CardContent className="p-6">

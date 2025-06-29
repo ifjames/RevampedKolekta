@@ -20,7 +20,8 @@ import {
   LogOut,
   Calendar,
   Mail,
-  Phone
+  Phone,
+  Key
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDate } from '@/utils/timeUtils';
@@ -36,13 +37,19 @@ interface ProfileModalProps {
 }
 
 export function ProfileModal({ isOpen, onClose, onLogout, onOpenVerification }: ProfileModalProps) {
-  const { user, userProfile, logout, updateUserProfile } = useAuth();
+  const { user, userProfile, logout, updateUserProfile, changePassword } = useAuth();
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [showVerification, setShowVerification] = useState(false);
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [editForm, setEditForm] = useState({
     name: userProfile?.name || '',
     phone: userProfile?.phone || ''
+  });
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
   });
 
   const handleLogout = async () => {
@@ -93,6 +100,35 @@ export function ProfileModal({ isOpen, onClose, onLogout, onOpenVerification }: 
       name: userProfile?.name || '',
       phone: userProfile?.phone || ''
     });
+  };
+
+  const handleChangePassword = async () => {
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toastInfo('New passwords do not match');
+      return;
+    }
+
+    if (passwordForm.newPassword.length < 6) {
+      toastInfo('New password must be at least 6 characters');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await changePassword(passwordForm.currentPassword, passwordForm.newPassword);
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setShowPasswordForm(false);
+      toastInfo('Password changed successfully!');
+    } catch (error) {
+      console.error('Password change error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancelPasswordChange = () => {
+    setShowPasswordForm(false);
+    setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
   };
 
 
@@ -244,6 +280,59 @@ export function ProfileModal({ isOpen, onClose, onLogout, onOpenVerification }: 
                 </Button>
               </div>
             </div>
+          ) : showPasswordForm ? (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="currentPassword" className="text-white">Current Password</Label>
+                <Input
+                  id="currentPassword"
+                  type="password"
+                  value={passwordForm.currentPassword}
+                  onChange={(e) => setPasswordForm(prev => ({ ...prev, currentPassword: e.target.value }))}
+                  className="glass-dark text-white border-white/20"
+                  placeholder="Enter current password"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="newPassword" className="text-white">New Password</Label>
+                <Input
+                  id="newPassword"
+                  type="password"
+                  value={passwordForm.newPassword}
+                  onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
+                  className="glass-dark text-white border-white/20"
+                  placeholder="Enter new password"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword" className="text-white">Confirm New Password</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  value={passwordForm.confirmPassword}
+                  onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                  className="glass-dark text-white border-white/20"
+                  placeholder="Confirm new password"
+                />
+              </div>
+              <div className="flex space-x-2">
+                <Button
+                  onClick={handleChangePassword}
+                  disabled={loading}
+                  className="flex-1 bg-green-500 hover:bg-green-600 text-white"
+                >
+                  Change Password
+                </Button>
+                <Button
+                  onClick={handleCancelPasswordChange}
+                  disabled={loading}
+                  className="flex-1 glass-dark text-white hover:bg-white/10 border-white/20"
+                  variant="outline"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
           ) : (
             <>
               <Button
@@ -269,6 +358,15 @@ export function ProfileModal({ isOpen, onClose, onLogout, onOpenVerification }: 
               >
                 <Shield className="mr-2 h-4 w-4" />
                 Verification
+              </Button>
+
+              <Button
+                onClick={() => setShowPasswordForm(true)}
+                className="w-full glass-dark text-white hover:bg-white/10 border-white/20"
+                variant="outline"
+              >
+                <Key className="mr-2 h-4 w-4" />
+                Change Password
               </Button>
             </>
           )}

@@ -513,29 +513,44 @@ export function Dashboard({ onLogout }: DashboardProps) {
                   </CardContent>
                 </Card>
               ) : userPosts.length > 0 ? (
-                userPosts.map((post) => (
-                  <Card key={post.id} className="glass-dark border-white/10">
-                    <CardContent className="p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <h4 className="text-white font-medium">
-                            Exchange ₱{post.giveAmount} {post.giveType} → ₱{post.needAmount} {post.needType}
-                          </h4>
-                          <p className="text-blue-100 text-sm">
-                            {post.notes || 'No additional notes'}
-                          </p>
+                <>
+                  {userPosts.slice(0, 3).map((post) => (
+                    <Card key={post.id} className="glass-dark border-white/10">
+                      <CardContent className="p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <h4 className="text-white font-medium">
+                              Exchange ₱{post.giveAmount} {post.giveType} → ₱{post.needAmount} {post.needType}
+                            </h4>
+                            <p className="text-blue-100 text-sm">
+                              {post.notes || 'No additional notes'}
+                            </p>
+                          </div>
+                          <Badge variant="outline" className="text-green-400 border-green-400">
+                            Active
+                          </Badge>
                         </div>
-                        <Badge variant="outline" className="text-green-400 border-green-400">
-                          Active
-                        </Badge>
-                      </div>
-                      <div className="flex items-center text-blue-200 text-xs">
-                        <MapPin className="h-3 w-3 mr-1" />
-                        {post.location ? `${post.location.lat.toFixed(4)}, ${post.location.lng.toFixed(4)}` : 'Location not available'}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
+                        <div className="flex items-center text-blue-200 text-xs">
+                          <MapPin className="h-3 w-3 mr-1" />
+                          {post.location ? `${post.location.lat.toFixed(4)}, ${post.location.lng.toFixed(4)}` : 'Location not available'}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                  {userPosts.length > 3 && (
+                    <Card className="glass-dark border-white/10">
+                      <CardContent className="p-4 text-center">
+                        <Button
+                          onClick={() => setShowMyPosts(true)}
+                          className="bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white"
+                        >
+                          <Eye className="mr-2 h-4 w-4" />
+                          View All Posts ({userPosts.length})
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )}
+                </>
               ) : (
                 <Card className="glass-dark border-white/10">
                   <CardContent className="p-4 text-center">

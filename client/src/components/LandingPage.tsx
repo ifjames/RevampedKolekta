@@ -276,7 +276,7 @@ export function LandingPage({ onGetStarted, onLogin }: LandingPageProps) {
             </div>
             <span className="text-white font-bold text-xl">Kolekta</span>
           </div>
-          <p className="text-blue-100 mb-4">"Kolekta—barya or buo, you choose."</p>
+          <p className="bg-gradient-to-r from-yellow-400 via-cyan-400 to-green-400 bg-clip-text text-transparent font-semibold text-lg mb-4">"Kolekta—barya or buo, you choose."</p>
           <p className="text-blue-200 text-sm">© 2024 Kolekta. Building communities through cash exchange.</p>
         </div>
       </motion.footer>
