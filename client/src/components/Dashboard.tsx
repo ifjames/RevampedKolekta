@@ -925,9 +925,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-              <Coins className="h-6 w-6 text-blue-600" />
-            </div>
+            <img src="/kolekta-logo.png" alt="Kolekta" className="w-10 h-10" />
             <div>
               <h1 className="text-white font-bold">Kolekta</h1>
               <p className="text-blue-100 text-sm lg:hidden">

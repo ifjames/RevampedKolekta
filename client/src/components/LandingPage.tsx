@@ -70,9 +70,7 @@ export function LandingPage({ onGetStarted, onLogin }: LandingPageProps) {
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-              <Coins className="h-5 w-5 text-blue-600" />
-            </div>
+            <img src="/kolekta-logo.png" alt="Kolekta" className="w-8 h-8" />
             <span className="text-white font-bold text-xl">Kolekta</span>
           </div>
           <Button 
@@ -271,9 +269,7 @@ export function LandingPage({ onGetStarted, onLogin }: LandingPageProps) {
       >
         <div className="max-w-6xl mx-auto text-center">
           <div className="flex items-center justify-center space-x-2 mb-4">
-            <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-              <Coins className="h-5 w-5 text-blue-600" />
-            </div>
+            <img src="/kolekta-logo.png" alt="Kolekta" className="w-8 h-8" />
             <span className="text-white font-bold text-xl">Kolekta</span>
           </div>
           <p className="bg-gradient-to-r from-yellow-400 via-cyan-400 to-green-400 bg-clip-text text-transparent font-semibold text-lg mb-4">"Kolekta—barya or buo, you choose."</p>

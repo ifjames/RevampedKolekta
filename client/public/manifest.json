@@ -1,0 +1,21 @@
+{
+  "name": "Kolekta - Change the way you get change",
+  "short_name": "Kolekta",
+  "description": "Real-time peer-to-peer cash exchange for commuters and daily use",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1e40af",
+  "theme_color": "#1e40af",
+  "icons": [
+    {
+      "src": "/kolekta-logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/kolekta-logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

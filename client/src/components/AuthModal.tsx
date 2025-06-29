@@ -102,9 +102,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'signin' }: AuthModal
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="w-[95vw] max-w-md max-h-[90vh] overflow-y-auto glass-effect border-white/20 bg-blue-900/95">
         <DialogHeader className="text-center">
-          <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
-            <Coins className="h-8 w-8 text-blue-600" />
-          </div>
+          <img src="/kolekta-logo.png" alt="Kolekta" className="w-16 h-16 mx-auto mb-4" />
           <DialogTitle className="text-2xl font-bold text-white">
             {isSignUp ? 'Join Kolekta' : 'Welcome Back'}
           </DialogTitle>
