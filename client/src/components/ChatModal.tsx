@@ -267,18 +267,64 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
       
       try {
         // 1. Delete active exchange documents
-        console.log('Looking for active exchanges with matchId:', exchange.id);
+        console.log('🧹 Starting cleanup for matchId:', exchange.id);
+        console.log('🧹 Exchange object:', exchange);
+        
         const activeExchangeQuery = query(
           collection(db, 'activeExchanges'),
           where('matchId', '==', exchange.id)
         );
         const activeExchangeDocs = await getDocs(activeExchangeQuery);
         
-        console.log('Found', activeExchangeDocs.size, 'active exchange documents to delete');
-        for (const docSnapshot of activeExchangeDocs.docs) {
-          console.log('Deleting active exchange:', docSnapshot.id, docSnapshot.data());
-          await deleteDoc(docSnapshot.ref);
-          console.log('✅ Deleted active exchange document:', docSnapshot.id);
+        console.log('🔍 Found', activeExchangeDocs.size, 'active exchange documents to delete');
+        
+        if (activeExchangeDocs.size === 0) {
+          // Try searching by other possible IDs
+          console.log('⚠️ No active exchanges found with matchId, trying other search methods...');
+          
+          // Try searching by document ID
+          const altQuery1 = query(
+            collection(db, 'activeExchanges'),
+            where('id', '==', exchange.id)
+          );
+          const altDocs1 = await getDocs(altQuery1);
+          console.log('🔍 Found', altDocs1.size, 'active exchanges with id field');
+          
+          // Try getting all active exchanges for this user
+          const userExchangesQuery = query(
+            collection(db, 'activeExchanges'),
+            where('userA', '==', user.uid)
+          );
+          const userExchanges1 = await getDocs(userExchangesQuery);
+          
+          const otherUserExchangesQuery = query(
+            collection(db, 'activeExchanges'),
+            where('userB', '==', user.uid)
+          );
+          const userExchanges2 = await getDocs(otherUserExchangesQuery);
+          
+          console.log('🔍 Found', userExchanges1.size + userExchanges2.size, 'total active exchanges for user');
+          
+          // Combine all found documents
+          const allFoundDocs = [...altDocs1.docs, ...userExchanges1.docs, ...userExchanges2.docs];
+          
+          for (const docSnapshot of allFoundDocs) {
+            const data = docSnapshot.data();
+            console.log('📄 Active exchange document:', docSnapshot.id, data);
+            
+            // Delete if it matches our exchange
+            if (data.matchId === exchange.id || data.id === exchange.id) {
+              console.log('🗑️ Deleting matching active exchange:', docSnapshot.id);
+              await deleteDoc(docSnapshot.ref);
+              console.log('✅ Deleted active exchange document:', docSnapshot.id);
+            }
+          }
+        } else {
+          for (const docSnapshot of activeExchangeDocs.docs) {
+            console.log('🗑️ Deleting active exchange:', docSnapshot.id, docSnapshot.data());
+            await deleteDoc(docSnapshot.ref);
+            console.log('✅ Deleted active exchange document:', docSnapshot.id);
+          }
         }
         
         // 2. Delete chat documents 
@@ -361,36 +407,76 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
         initiatedBy: exchange.initiatedBy
       };
 
-      // History for current user (the one completing)
-      const currentUserHistory = {
-        ...baseHistoryData,
-        userId: user.uid,
-        partnerUserId: partnerId,
-        partnerName: partnerName,
-        rating: selectedRating,
-        notes: exchangeNotes,
-        ratedBy: user.uid
-      };
-
-      // History for partner (they will rate separately later)
-      const partnerHistory = {
-        ...baseHistoryData,
-        userId: partnerId,
-        partnerUserId: user.uid,
-        partnerName: user.displayName || 'Exchange Partner',
-        rating: 0, // Will be updated when partner rates
-        notes: '',
-        ratedBy: null,
-        waitingForRating: true // Flag to show they need to rate
-      };
+      // Save exchange history with corrected logic
+      console.log('🔄 Creating exchange history records with corrected logic...');
       
-      console.log('Saving exchange history for both users:', { currentUserHistory, partnerHistory });
+      // When you rate Katrina:
+      // - Your history should show what Katrina rated YOU (empty for now, filled when she rates you)
+      // - Katrina's history should show what YOU rated HER (your rating and notes)
+      
       try {
-        const [currentDoc, partnerDoc] = await Promise.all([
-          addDoc(collection(db, 'exchangeHistory'), currentUserHistory),
-          addDoc(collection(db, 'exchangeHistory'), partnerHistory)
-        ]);
-        console.log('Exchange history saved for both users:', currentDoc.id, partnerDoc.id);
+        // 1. Create/update partner's history record with YOUR rating of THEM
+        const partnerHistoryRecord = {
+          ...baseHistoryData,
+          userId: partnerId, // This goes in Katrina's history
+          partnerUserId: user.uid,
+          partnerName: user.displayName || user.email || 'Exchange Partner',
+          rating: selectedRating, // YOUR rating of Katrina goes in HER history
+          notes: exchangeNotes,   // YOUR notes about Katrina go in HER history
+          ratedBy: user.uid,
+          completedBy: user.uid
+        };
+
+        // Check if partner already has a history record
+        const partnerExistingQuery = query(
+          collection(db, 'exchangeHistory'),
+          where('matchId', '==', exchange.id),
+          where('userId', '==', partnerId)
+        );
+        const partnerExistingDocs = await getDocs(partnerExistingQuery);
+        
+        if (partnerExistingDocs.empty) {
+          await addDoc(collection(db, 'exchangeHistory'), partnerHistoryRecord);
+          console.log('✅ Created new history record for partner with your rating');
+        } else {
+          const partnerDoc = partnerExistingDocs.docs[0];
+          await updateDoc(doc(db, 'exchangeHistory', partnerDoc.id), {
+            rating: selectedRating,
+            notes: exchangeNotes,
+            ratedBy: user.uid,
+            completedBy: user.uid
+          });
+          console.log('✅ Updated partner history record with your rating');
+        }
+
+        // 2. Create/update your own history record (waiting for partner to rate you)
+        const myHistoryRecord = {
+          ...baseHistoryData,
+          userId: user.uid, // This goes in YOUR history
+          partnerUserId: partnerId,
+          partnerName: partnerName,
+          rating: 0, // Will be filled when Katrina rates YOU
+          notes: '', // Will be filled when Katrina rates YOU
+          ratedBy: null, // Will be set when partner rates you
+          waitingForPartnerRating: true,
+          completedBy: user.uid
+        };
+
+        // Check if you already have a history record
+        const myExistingQuery = query(
+          collection(db, 'exchangeHistory'),
+          where('matchId', '==', exchange.id),
+          where('userId', '==', user.uid)
+        );
+        const myExistingDocs = await getDocs(myExistingQuery);
+        
+        if (myExistingDocs.empty) {
+          await addDoc(collection(db, 'exchangeHistory'), myHistoryRecord);
+          console.log('✅ Created placeholder history record for yourself');
+        } else {
+          console.log('✅ Your history record already exists');
+        }
+
       } catch (error) {
         console.error('Error saving exchange history:', error);
       }
@@ -428,30 +514,11 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
         return Math.max(-0.5, Math.min(0.5, impact)); // Cap impact between -0.5 and +0.5
       };
 
-      // Check if partner has already completed their rating
-      const existingRatingQuery = query(
-        collection(db, 'exchangeHistory'),
-        where('matchId', '==', exchange.id),
-        where('userId', '==', partnerId)
-      );
-      
-      const existingRatingSnapshot = await getDocs(existingRatingQuery);
-      const partnerAlreadyRated = !existingRatingSnapshot.empty;
-      
-      // Update the partner's existing history record to show they've been rated
-      if (partnerAlreadyRated) {
-        const partnerHistoryDoc = existingRatingSnapshot.docs[0];
-        await updateDoc(doc(db, 'exchangeHistory', partnerHistoryDoc.id), {
-          partnerRating: selectedRating,
-          partnerNotes: exchangeNotes,
-          ratedByPartner: true
-        });
-      }
-      
-      // Update user ratings and profile with smart rating system
+      // Save individual rating record
+      console.log('💫 Saving rating record: User', user.uid, 'rating', partnerId, 'with', selectedRating, 'stars');
       await addDocument('userRatings', {
-        ratedUserId: partnerId,
-        raterUserId: user.uid,
+        ratedUserId: partnerId, // The person being rated
+        raterUserId: user.uid,  // The person giving the rating
         rating: selectedRating,
         notes: exchangeNotes,
         matchId: exchange.id,
@@ -460,12 +527,22 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
 
       // Update partner's rating with multiplier system
       try {
-        const partnerRef = doc(db, 'users', partnerId);
-        const partnerDoc = await getDoc(partnerRef);
+        console.log('🎯 Updating rating for partner:', partnerId, 'with rating:', selectedRating);
+        
+        // Try users collection first
+        let partnerRef = doc(db, 'users', partnerId);
+        let partnerDoc = await getDoc(partnerRef);
+        
+        // If not found in users, try userProfiles
+        if (!partnerDoc.exists()) {
+          console.log('Partner not found in users, trying userProfiles...');
+          partnerRef = doc(db, 'userProfiles', partnerId);
+          partnerDoc = await getDoc(partnerRef);
+        }
         
         if (partnerDoc.exists()) {
           const partnerData = partnerDoc.data();
-          const currentRating = partnerData.averageRating || 3.0;
+          const currentRating = partnerData.averageRating || partnerData.rating || 3.0;
           const totalRatings = partnerData.totalRatings || 0;
           
           const ratingImpact = calculateRatingImpact(selectedRating, currentRating, totalRatings);
@@ -479,7 +556,9 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
             lastRatingAt: completedAt
           });
           
-          console.log(`Updated partner rating: ${currentRating} -> ${newRating} (impact: ${ratingImpact})`);
+          console.log(`✅ Updated partner rating: ${currentRating} -> ${newRating} (impact: ${ratingImpact})`);
+        } else {
+          console.error('❌ Partner document not found in either collection:', partnerId);
         }
       } catch (error) {
         console.error('Error updating partner rating:', error);

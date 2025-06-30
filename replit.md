@@ -274,6 +274,13 @@ Changelog:
   * Improved logging to show exactly what documents are being deleted during cleanup
   * Removed dependency on non-existent match documents - focused on actual data cleanup
   * Exchange completion now properly removes all traces of the exchange from database
+- June 30, 2025. Fixed critical exchange history and rating system issues:
+  * Corrected exchange history logic - your history now shows what others rated YOU, not what you rated them
+  * Fixed rating system to properly update partner's profile instead of your own profile
+  * Enhanced partner profile lookup to check both 'users' and 'userProfiles' collections
+  * Implemented proper mutual rating system where both users can rate each other independently
+  * Added detailed logging to track rating flow and identify where ratings are being applied
+  * Fixed "not-found" errors when rating partners by improving database document lookup
 ```
 
 ## User Preferences
