@@ -190,7 +190,7 @@ export function SafeMeetupModal({ isOpen, onClose, onLocationSelect, userLocatio
       case 'mall': return 'text-blue-400';
       case 'convenience_store': return 'text-green-400';
       case 'cafe': return 'text-yellow-400';
-      case 'terminal': return 'text-purple-400';
+      case 'terminal': return 'text-blue-400';
       case 'bank': return 'text-red-400';
       case 'government': return 'text-gray-400';
       default: return 'text-blue-400';
