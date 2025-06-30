@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { Edit, Trash2, MapPin, Clock, DollarSign } from 'lucide-react';
 import { ExchangePost } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
@@ -21,6 +22,17 @@ export function MyPostsModal({ isOpen, onClose, onEditPost }: MyPostsModalProps)
   const { user } = useAuth();
   const [userPosts, setUserPosts] = useState<ExchangePost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    description: '',
+    onConfirm: () => {},
+  });
 
   useEffect(() => {
     if (!user || !isOpen) return;
@@ -51,19 +63,20 @@ export function MyPostsModal({ isOpen, onClose, onEditPost }: MyPostsModalProps)
   }, [user, isOpen]);
 
   const handleDeletePost = async (postId: string) => {
-    const confirmed = window.confirm(
-      'Delete Exchange Post?\n\nThis action cannot be undone. Your exchange request will be permanently removed.'
-    );
-
-    if (confirmed) {
-      try {
-        await deleteDoc(doc(db, 'posts', postId));
-        toast.success('Exchange post deleted successfully');
-      } catch (error) {
-        console.error('Error deleting post:', error);
-        toast.error('Failed to delete post');
-      }
-    }
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Delete Exchange Post?',
+      description: 'This action cannot be undone. Your exchange request will be permanently removed.',
+      onConfirm: async () => {
+        try {
+          await deleteDoc(doc(db, 'posts', postId));
+          toast.success('Exchange post deleted successfully');
+        } catch (error) {
+          console.error('Error deleting post:', error);
+          toast.error('Failed to delete post');
+        }
+      },
+    });
   };
 
   const getStatusColor = (status: string) => {
@@ -192,6 +205,17 @@ export function MyPostsModal({ isOpen, onClose, onEditPost }: MyPostsModalProps)
           </Button>
         </div>
       </DialogContent>
+
+      <ConfirmationDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+        onConfirm={confirmDialog.onConfirm}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="destructive"
+      />
     </Dialog>
   );
 }

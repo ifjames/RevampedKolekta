@@ -31,19 +31,23 @@ export const showError = (title: string, message?: string) => {
   });
 };
 
+// Deprecated functions - use ConfirmationDialog and MatchConfirmationDialog components instead
+// These are kept only for legacy compatibility during migration
 export const showConfirm = (title: string, message: string) => {
-  return Promise.resolve({
-    isConfirmed: window.confirm(`${title}\n\n${message}`)
+  console.warn('showConfirm is deprecated. Use ConfirmationDialog component instead.');
+  return new Promise<{ isConfirmed: boolean }>((resolve) => {
+    const confirmed = window.confirm(`${title}\n\n${message}`);
+    resolve({ isConfirmed: confirmed });
   });
 };
 
 export const showMatchFound = (matchDetails: any) => {
-  const confirmed = window.confirm(
-    `Match Found! 🎉\n\nPerfect match found nearby!\n\nGive: ₱${matchDetails.giveAmount}\nGet: ₱${matchDetails.needAmount}\n\nTap OK to confirm match or Cancel to skip.`
-  );
-  
-  return Promise.resolve({
-    isConfirmed: confirmed
+  console.warn('showMatchFound is deprecated. Use MatchConfirmationDialog component instead.');
+  return new Promise<{ isConfirmed: boolean }>((resolve) => {
+    const confirmed = window.confirm(
+      `Match Found! 🎉\n\nPerfect match found nearby!\n\nGive: ₱${matchDetails.giveAmount}\nGet: ₱${matchDetails.needAmount}\n\nTap OK to confirm match or Cancel to skip.`
+    );
+    resolve({ isConfirmed: confirmed });
   });
 };
 

@@ -12,6 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import {
   User,
   ExternalLink,
@@ -25,7 +26,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDate } from "@/utils/timeUtils";
-import { showConfirm, toastInfo } from "@/utils/notifications";
+import { toastInfo } from "@/utils/notifications";
 import { VerificationModal } from "./VerificationModal";
 import { StarRating } from "@/components/ui/StarRating";
 
@@ -48,6 +49,7 @@ export function ProfileModal({
   const [isEditing, setIsEditing] = useState(false);
   const [showVerification, setShowVerification] = useState(false);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [editForm, setEditForm] = useState({
     name: userProfile?.name || "",
     phone: userProfile?.phone || "",
@@ -59,22 +61,19 @@ export function ProfileModal({
   });
 
   const handleLogout = async () => {
-    const result = await showConfirm(
-      "Logout?",
-      "Are you sure you want to logout?",
-    );
+    setShowLogoutConfirm(true);
+  };
 
-    if (result.isConfirmed) {
-      setLoading(true);
-      try {
-        await logout();
-        onLogout();
-        onClose();
-      } catch (error) {
-        // Error is handled in the context
-      } finally {
-        setLoading(false);
-      }
+  const confirmLogout = async () => {
+    setLoading(true);
+    try {
+      await logout();
+      onLogout();
+      onClose();
+    } catch (error) {
+      // Error is handled in the context
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -448,6 +447,18 @@ export function ProfileModal({
       <VerificationModal
         isOpen={showVerification}
         onClose={() => setShowVerification(false)}
+      />
+
+      {/* Logout Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={confirmLogout}
+        title="Logout?"
+        description="Are you sure you want to logout?"
+        confirmText="Logout"
+        cancelText="Cancel"
+        variant="destructive"
       />
     </Dialog>
   );
