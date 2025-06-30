@@ -247,42 +247,102 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
 
     setCompletingExchange(true);
     try {
+      // Import all Firebase functions needed
+      const { 
+        getDocs, 
+        query, 
+        where, 
+        collection, 
+        deleteDoc, 
+        updateDoc, 
+        getDoc, 
+        addDoc, 
+        doc 
+      } = await import('firebase/firestore');
+
       const completedAt = new Date();
       const duration = Math.round((completedAt.getTime() - (exchange.createdAt?.getTime() || Date.now())) / (1000 * 60));
       const partnerId = exchange.userA === user.uid ? exchange.userB : exchange.userA;
       const partnerName = exchange.userA === user.uid ? exchange.userBName : exchange.userAName;
-
-      // Update match status to completed
-      const { updateDoc } = await import('firebase/firestore');
       
       try {
-        await updateDoc(doc(db, 'matches', exchange.id), {
-          status: 'completed',
-          completedAt,
-          duration,
-          [`${user.uid}_rating`]: selectedRating,
-          [`${user.uid}_notes`]: exchangeNotes,
-          [`${user.uid}_completed`]: true,
-          completedBy: user.uid
-        });
-        
-        // Remove from active exchanges completely - find the actual active exchange document
-        const { getDocs, query, where, collection } = await import('firebase/firestore');
+        // 1. Delete active exchange documents
+        console.log('Looking for active exchanges with matchId:', exchange.id);
         const activeExchangeQuery = query(
           collection(db, 'activeExchanges'),
           where('matchId', '==', exchange.id)
         );
         const activeExchangeDocs = await getDocs(activeExchangeQuery);
         
-        // Delete all matching active exchange documents
-        for (const doc of activeExchangeDocs.docs) {
-          await deleteDoc(doc.ref);
-          console.log('Deleted active exchange document:', doc.id);
+        console.log('Found', activeExchangeDocs.size, 'active exchange documents to delete');
+        for (const docSnapshot of activeExchangeDocs.docs) {
+          console.log('Deleting active exchange:', docSnapshot.id, docSnapshot.data());
+          await deleteDoc(docSnapshot.ref);
+          console.log('✅ Deleted active exchange document:', docSnapshot.id);
         }
         
-        console.log('Updated match and active exchange status to completed');
+        // 2. Delete chat documents 
+        console.log('Looking for chats with matchId:', exchange.id);
+        const chatQuery = query(
+          collection(db, 'chats'),
+          where('matchId', '==', exchange.id)
+        );
+        const chatDocs = await getDocs(chatQuery);
+        
+        console.log('Found', chatDocs.size, 'chat documents to delete');
+        for (const doc of chatDocs.docs) {
+          await deleteDoc(doc.ref);
+          console.log('✅ Deleted chat document:', doc.id);
+        }
+        
+        // 3. Delete message documents for this match
+        console.log('Looking for messages with matchId:', exchange.id);
+        const messageQuery = query(
+          collection(db, 'messages'),
+          where('matchId', '==', exchange.id)
+        );
+        const messageDocs = await getDocs(messageQuery);
+        
+        console.log('Found', messageDocs.size, 'message documents to delete');
+        for (const doc of messageDocs.docs) {
+          await deleteDoc(doc.ref);
+          console.log('✅ Deleted message document:', doc.id);
+        }
+        
+        // 4. Delete related posts
+        if (exchange.postAId && exchange.postAId !== 'quick-match') {
+          try {
+            const postARef = doc(db, 'posts', exchange.postAId);
+            const postADoc = await getDoc(postARef);
+            if (postADoc.exists()) {
+              await deleteDoc(postARef);
+              console.log('✅ Deleted Post A:', exchange.postAId);
+            } else {
+              console.log('Post A already deleted or not found:', exchange.postAId);
+            }
+          } catch (error) {
+            console.log('Error deleting Post A:', error);
+          }
+        }
+        
+        if (exchange.postBId && exchange.postBId !== 'quick-match') {
+          try {
+            const postBRef = doc(db, 'posts', exchange.postBId);
+            const postBDoc = await getDoc(postBRef);
+            if (postBDoc.exists()) {
+              await deleteDoc(postBRef);
+              console.log('✅ Deleted Post B:', exchange.postBId);
+            } else {
+              console.log('Post B already deleted or not found:', exchange.postBId);
+            }
+          } catch (error) {
+            console.log('Error deleting Post B:', error);
+          }
+        }
+        
+        console.log('✅ Successfully cleaned up all exchange-related documents');
       } catch (error) {
-        console.error('Error updating match:', error);
+        console.error('Error during cleanup:', error);
       }
 
       // Create exchange history records for BOTH users
@@ -326,7 +386,6 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
       
       console.log('Saving exchange history for both users:', { currentUserHistory, partnerHistory });
       try {
-        const { addDoc, collection } = await import('firebase/firestore');
         const [currentDoc, partnerDoc] = await Promise.all([
           addDoc(collection(db, 'exchangeHistory'), currentUserHistory),
           addDoc(collection(db, 'exchangeHistory'), partnerHistory)
@@ -338,8 +397,6 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
 
       // Delete associated posts
       try {
-        const { deleteDoc, doc, getDoc } = await import('firebase/firestore');
-        const { db } = await import('@/lib/firebase');
         
         if (exchange.postAId && exchange.postAId !== 'quick-match') {
           const postARef = doc(db, 'posts', exchange.postAId);
@@ -372,7 +429,6 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
       };
 
       // Check if partner has already completed their rating
-      const { getDocs } = await import('firebase/firestore');
       const existingRatingQuery = query(
         collection(db, 'exchangeHistory'),
         where('matchId', '==', exchange.id),

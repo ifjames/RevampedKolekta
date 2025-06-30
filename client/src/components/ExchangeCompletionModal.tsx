@@ -56,9 +56,36 @@ export function ExchangeCompletionModal({ isOpen, onClose, exchange }: ExchangeC
         const activeExchangeDocs = await getDocs(activeExchangeQuery);
         
         // Delete all matching active exchange documents
-        for (const doc of activeExchangeDocs.docs) {
-          await deleteDoc(doc.ref);
-          console.log('Deleted active exchange document:', doc.id);
+        console.log('Found', activeExchangeDocs.size, 'active exchange documents to delete');
+        for (const docSnapshot of activeExchangeDocs.docs) {
+          console.log('Deleting active exchange:', docSnapshot.id, docSnapshot.data());
+          await deleteDoc(docSnapshot.ref);
+          console.log('✅ Deleted active exchange document:', docSnapshot.id);
+        }
+        
+        // Also clean up chats and messages
+        const chatQuery = query(
+          collection(db, 'chats'),
+          where('matchId', '==', exchange.id)
+        );
+        const chatDocs = await getDocs(chatQuery);
+        
+        console.log('Found', chatDocs.size, 'chat documents to delete');
+        for (const docSnapshot of chatDocs.docs) {
+          await deleteDoc(docSnapshot.ref);
+          console.log('✅ Deleted chat document:', docSnapshot.id);
+        }
+        
+        const messageQuery = query(
+          collection(db, 'messages'),
+          where('matchId', '==', exchange.id)
+        );
+        const messageDocs = await getDocs(messageQuery);
+        
+        console.log('Found', messageDocs.size, 'message documents to delete');
+        for (const docSnapshot of messageDocs.docs) {
+          await deleteDoc(docSnapshot.ref);
+          console.log('✅ Deleted message document:', docSnapshot.id);
         }
         
         console.log('Updated match and active exchange status to completed');
