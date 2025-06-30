@@ -231,37 +231,37 @@ export function Dashboard({ onLogout }: DashboardProps) {
         transition={{ delay: 0.2 }}
         className="max-w-6xl mx-auto mb-8"
       >
-        <h2 className="text-2xl font-bold text-white mb-4">Active Exchanges</h2>
+        <h2 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4">Active Exchanges</h2>
         <div className="space-y-4">
           {activeExchanges.length > 0 ? (
             activeExchanges.map((exchange) => (
               <Card key={exchange.id} className="glass-effect border-white/20">
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 mr-4">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-white font-semibold">Active Exchange</h3>
-                        <Badge className="bg-green-500">Confirmed</Badge>
+                <CardContent className="p-3 sm:p-4">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                    <div className="flex-1">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+                        <h3 className="text-white font-semibold text-sm sm:text-base">Active Exchange</h3>
+                        <Badge className="bg-green-500 w-fit">Confirmed</Badge>
                       </div>
-                      <p className="text-purple-100 text-sm mb-2">
+                      <p className="text-blue-100 text-sm mb-2">
                         Partner: {(() => {
                           return exchange.userA === user?.uid 
                             ? (exchange.userBName || 'Exchange Partner')
                             : (exchange.userAName || 'Exchange Partner');
                         })()}
                       </p>
-                      <p className="text-purple-200 text-xs">
+                      <p className="text-blue-200 text-xs">
                         Chat with your partner to coordinate the meetup and exchange
                       </p>
                     </div>
-                    <div className="flex flex-col gap-2 min-w-fit">
+                    <div className="flex flex-row sm:flex-col gap-2 sm:min-w-fit">
                       <Button
                         size="sm"
                         onClick={() => {
                           setSelectedChatExchange(exchange);
                           setShowChat(true);
                         }}
-                        className="cosmic-gradient hover:opacity-80 text-white"
+                        className="bg-blue-600 hover:bg-blue-700 text-white flex-1 sm:flex-none"
                       >
                         <MessageSquare className="h-4 w-4 mr-1" />
                         Chat
@@ -273,7 +273,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
                             setSelectedExchangeForCompletion(exchange);
                             setShowExchangeCompletion(true);
                           }}
-                          className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white border-0 shadow-lg"
+                          className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white border-0 shadow-lg flex-1 sm:flex-none"
                         >
                           <Handshake className="h-4 w-4 mr-1" />
                           Complete
@@ -286,10 +286,10 @@ export function Dashboard({ onLogout }: DashboardProps) {
             ))
           ) : (
             <Card className="glass-effect border-white/20">
-              <CardContent className="p-8 text-center">
-                <Clock className="h-12 w-12 text-blue-300 mx-auto mb-3" />
-                <p className="text-white font-semibold">No active exchanges</p>
-                <p className="text-blue-100 text-sm">Create a post to start exchanging!</p>
+              <CardContent className="p-4 sm:p-8 text-center">
+                <Clock className="h-8 w-8 sm:h-12 sm:w-12 text-blue-300 mx-auto mb-2 sm:mb-3" />
+                <p className="text-white font-semibold text-sm sm:text-base">No active exchanges</p>
+                <p className="text-blue-100 text-xs sm:text-sm">Create a post to start exchanging!</p>
               </CardContent>
             </Card>
           )}
@@ -303,13 +303,13 @@ export function Dashboard({ onLogout }: DashboardProps) {
         transition={{ delay: 0.4 }}
         className="max-w-6xl mx-auto"
       >
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold text-white">Nearby Exchanges</h2>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 mb-3 sm:mb-4">
+          <h2 className="text-xl sm:text-2xl font-bold text-white">Nearby Exchanges</h2>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => window.location.reload()}
-            className="glass-effect text-white hover:bg-white/10"
+            className="glass-effect text-white hover:bg-white/10 w-fit"
           >
             <RotateCcw className="mr-2 h-4 w-4" />
             Refresh

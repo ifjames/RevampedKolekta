@@ -100,13 +100,13 @@ export function AuthModal({ isOpen, onClose, initialMode = 'signin' }: AuthModal
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[95vw] max-w-md max-h-[90vh] overflow-y-auto glass-effect border-white/20 bg-blue-900/95">
+      <DialogContent className="w-[95vw] max-w-sm max-h-[95vh] overflow-y-auto glass-effect border-white/20 bg-blue-900/95 p-4 sm:p-6">
         <DialogHeader className="text-center">
-          <img src="/kolekta-logo.png" alt="Kolekta" className="w-16 h-16 mx-auto mb-4" />
-          <DialogTitle className="text-2xl font-bold text-white">
+          <img src="/kolekta-logo.png" alt="Kolekta" className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-2 sm:mb-4" />
+          <DialogTitle className="text-xl sm:text-2xl font-bold text-white">
             {isSignUp ? 'Join Kolekta' : 'Welcome Back'}
           </DialogTitle>
-          <DialogDescription className="text-blue-100 mt-2">
+          <DialogDescription className="text-blue-100 mt-1 sm:mt-2 text-sm">
             {isSignUp ? 'Join the community of cash exchangers' : 'Sign in to your account'}
           </DialogDescription>
         </DialogHeader>
@@ -120,7 +120,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'signin' }: AuthModal
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.3 }}
             >
-              <form onSubmit={signUpForm.handleSubmit(handleSignUp)} className="space-y-4">
+              <form onSubmit={signUpForm.handleSubmit(handleSignUp)} className="space-y-3 sm:space-y-4">
                 <div>
                   <Label htmlFor="name" className="text-blue-100">Full Name</Label>
                   <Input
@@ -197,14 +197,22 @@ export function AuthModal({ isOpen, onClose, initialMode = 'signin' }: AuthModal
                 <div className="flex items-start space-x-2">
                   <Checkbox
                     id="agreeToTerms"
-                    {...signUpForm.register('agreeToTerms')}
+                    checked={signUpForm.watch('agreeToTerms')}
+                    onCheckedChange={(checked) => signUpForm.setValue('agreeToTerms', checked === true)}
                     className="mt-1"
                   />
-                  <Label htmlFor="agreeToTerms" className="text-blue-100 text-sm leading-tight">
+                  <Label 
+                    htmlFor="agreeToTerms" 
+                    className="text-blue-100 text-sm leading-tight cursor-pointer"
+                    onClick={() => {
+                      const currentValue = signUpForm.getValues('agreeToTerms');
+                      signUpForm.setValue('agreeToTerms', !currentValue);
+                    }}
+                  >
                     I agree to the{' '}
-                    <a href="#" className="text-cyan-400 hover:underline">Terms of Service</a>
+                    <a href="#" className="text-cyan-400 hover:underline" onClick={(e) => e.stopPropagation()}>Terms of Service</a>
                     {' '}and{' '}
-                    <a href="#" className="text-cyan-400 hover:underline">Privacy Policy</a>
+                    <a href="#" className="text-cyan-400 hover:underline" onClick={(e) => e.stopPropagation()}>Privacy Policy</a>
                     {'. '}I understand that by using Kolekta, I am responsible for my own safety during cash exchanges and should always meet in public, well-lit locations.
                   </Label>
                 </div>
@@ -238,7 +246,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'signin' }: AuthModal
               exit={{ opacity: 0, x: 20 }}
               transition={{ duration: 0.3 }}
             >
-              <form onSubmit={signInForm.handleSubmit(handleSignIn)} className="space-y-4">
+              <form onSubmit={signInForm.handleSubmit(handleSignIn)} className="space-y-3 sm:space-y-4">
                 <div>
                   <Label htmlFor="email" className="text-blue-100">Email</Label>
                   <Input

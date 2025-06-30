@@ -27,11 +27,57 @@
   z-index: 700 !important;
 }
 
-/* Mobile map fixes */
+/* Mobile responsiveness fixes */
 @media (max-width: 768px) {
   .leaflet-container {
     height: 100% !important;
     min-height: 300px !important;
+  }
+  
+  /* Make dialogs and modals more mobile-friendly */
+  [data-radix-dialog-content] {
+    max-width: 90vw !important;
+    max-height: 95vh !important;
+    padding: 1rem !important;
+  }
+  
+  /* Make buttons smaller on mobile */
+  button {
+    min-height: 2.5rem !important;
+    font-size: 0.875rem !important;
+  }
+  
+  /* Make form inputs more compact */
+  input {
+    min-height: 2.5rem !important;
+    font-size: 0.875rem !important;
+  }
+  
+  /* Make text smaller where needed */
+  .text-2xl {
+    font-size: 1.25rem !important;
+  }
+  
+  .text-xl {
+    font-size: 1.125rem !important;
+  }
+  
+  /* Reduce spacing */
+  .space-y-4 > * + * {
+    margin-top: 0.75rem !important;
+  }
+  
+  .space-y-6 > * + * {
+    margin-top: 1rem !important;
+  }
+  
+  /* Make cards more compact */
+  .p-6 {
+    padding: 1rem !important;
+  }
+  
+  .p-4 {
+    padding: 0.75rem !important;
   }
 }
 
@@ -49,48 +95,48 @@
 }
 
 :root {
-  --background: hsl(240, 50%, 4%);
-  --foreground: hsl(300, 20%, 95%);
-  --muted: hsl(250, 30%, 12%);
-  --muted-foreground: hsl(300, 10%, 70%);
-  --popover: hsl(245, 35%, 8%);
-  --popover-foreground: hsl(300, 15%, 90%);
-  --card: hsl(245, 35%, 8%);
-  --card-foreground: hsl(300, 15%, 90%);
-  --border: hsl(250, 25%, 20%);
-  --input: hsl(250, 25%, 15%);
-  --primary: hsl(280, 70%, 65%);
-  --primary-foreground: hsl(300, 20%, 98%);
-  --secondary: hsl(260, 30%, 25%);
-  --secondary-foreground: hsl(300, 15%, 90%);
-  --accent: hsl(290, 80%, 70%);
-  --accent-foreground: hsl(300, 20%, 98%);
+  --background: hsl(220, 35%, 8%);
+  --foreground: hsl(210, 20%, 95%);
+  --muted: hsl(215, 30%, 12%);
+  --muted-foreground: hsl(210, 10%, 70%);
+  --popover: hsl(220, 35%, 8%);
+  --popover-foreground: hsl(210, 15%, 90%);
+  --card: hsl(220, 35%, 8%);
+  --card-foreground: hsl(210, 15%, 90%);
+  --border: hsl(215, 25%, 20%);
+  --input: hsl(215, 25%, 15%);
+  --primary: hsl(210, 85%, 55%);
+  --primary-foreground: hsl(210, 20%, 98%);
+  --secondary: hsl(215, 30%, 25%);
+  --secondary-foreground: hsl(210, 15%, 90%);
+  --accent: hsl(200, 80%, 60%);
+  --accent-foreground: hsl(210, 20%, 98%);
   --destructive: hsl(0, 84%, 60%);
-  --destructive-foreground: hsl(300, 20%, 98%);
-  --ring: hsl(280, 70%, 65%);
+  --destructive-foreground: hsl(210, 20%, 98%);
+  --ring: hsl(210, 85%, 55%);
   --radius: 0.75rem;
 }
 
 .dark {
-  --background: hsl(240, 50%, 4%);
-  --foreground: hsl(300, 20%, 95%);
-  --muted: hsl(250, 30%, 12%);
-  --muted-foreground: hsl(300, 10%, 70%);
-  --popover: hsl(245, 35%, 8%);
-  --popover-foreground: hsl(300, 15%, 90%);
-  --card: hsl(245, 35%, 8%);
-  --card-foreground: hsl(300, 15%, 90%);
-  --border: hsl(250, 25%, 20%);
-  --input: hsl(250, 25%, 15%);
-  --primary: hsl(280, 70%, 65%);
-  --primary-foreground: hsl(300, 20%, 98%);
-  --secondary: hsl(260, 30%, 25%);
-  --secondary-foreground: hsl(300, 15%, 90%);
-  --accent: hsl(290, 80%, 70%);
-  --accent-foreground: hsl(300, 20%, 98%);
+  --background: hsl(220, 35%, 8%);
+  --foreground: hsl(210, 20%, 95%);
+  --muted: hsl(215, 30%, 12%);
+  --muted-foreground: hsl(210, 10%, 70%);
+  --popover: hsl(220, 35%, 8%);
+  --popover-foreground: hsl(210, 15%, 90%);
+  --card: hsl(220, 35%, 8%);
+  --card-foreground: hsl(210, 15%, 90%);
+  --border: hsl(215, 25%, 20%);
+  --input: hsl(215, 25%, 15%);
+  --primary: hsl(210, 85%, 55%);
+  --primary-foreground: hsl(210, 20%, 98%);
+  --secondary: hsl(215, 30%, 25%);
+  --secondary-foreground: hsl(210, 15%, 90%);
+  --accent: hsl(200, 80%, 60%);
+  --accent-foreground: hsl(210, 20%, 98%);
   --destructive: hsl(0, 84%, 60%);
-  --destructive-foreground: hsl(300, 20%, 98%);
-  --ring: hsl(280, 70%, 65%);
+  --destructive-foreground: hsl(210, 20%, 98%);
+  --ring: hsl(210, 85%, 55%);
 }
 
 @layer base {
