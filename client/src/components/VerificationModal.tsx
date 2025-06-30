@@ -63,10 +63,10 @@ export function VerificationModal({ isOpen, onClose }: VerificationModalProps) {
   const watchedPhoneNumber = watch('phoneNumber');
 
   const idTypes = [
-    { value: 'drivers_license', label: 'Driver\'s License' },
-    { value: 'national_id', label: 'National ID (PhilID)' },
-    { value: 'passport', label: 'Passport' },
-    { value: 'voters_id', label: 'Voter\'s ID' }
+    { value: 'national_id', label: 'National ID (PhilID)', format: '1234-1234567-1' },
+    { value: 'passport', label: 'Philippine Passport', format: 'XX1234567' },
+    { value: 'drivers_license', label: 'Driver\'s License', format: 'A01-02-123456' },
+    { value: 'voters_id', label: 'Voter\'s ID', format: '1234-5678-9012-3456' }
   ];
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -91,22 +91,47 @@ export function VerificationModal({ isOpen, onClose }: VerificationModalProps) {
       return;
     }
 
+    // Validate Philippine phone number format
+    const phoneRegex = /^(\+63|0)9\d{9}$/;
+    if (!phoneRegex.test(watchedPhoneNumber)) {
+      toastError('Please enter a valid Philippine mobile number (e.g., +639123456789 or 09123456789)');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      // For now, simulate SMS sending with random 6-digit code
-      // In production, integrate with SMS service like Twilio
-      const mockCode = Math.floor(100000 + Math.random() * 900000).toString();
-      console.log('SMS Code for testing:', mockCode); // For demo purposes
+      // Generate verification code
+      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
       
-      // Store the mock code temporarily (in production, server would handle this)
-      localStorage.setItem('temp_sms_code', mockCode);
+      // For demo purposes using free SMS service - in production use paid API
+      const response = await fetch('/api/send-sms', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          phoneNumber: watchedPhoneNumber,
+          message: `Your Kolekta verification code is: ${verificationCode}. Do not share this code with anyone.`,
+          code: verificationCode
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send SMS');
+      }
+
+      const result = await response.json();
       
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate API call
-      setSmsCodeSent(true);
-      toastSuccess(`SMS verification code sent to your phone. For demo: ${mockCode}`);
-      setVerificationStep('sms_verify');
+      if (result.success) {
+        setSmsCodeSent(true);
+        toastSuccess('SMS verification code sent to your phone number');
+        console.log('Verification code for testing:', verificationCode); // For demo purposes
+      } else {
+        throw new Error(result.message || 'Failed to send SMS');
+      }
     } catch (error) {
-      toastError('Failed to send SMS code. Please try again.');
+      console.error('SMS sending error:', error);
+      toastError('Failed to send SMS code. Please check your number and try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -130,17 +155,51 @@ export function VerificationModal({ isOpen, onClose }: VerificationModalProps) {
       };
 
       if (data.verificationType === 'government_id') {
+        // Verify ID with backend API
+        const idVerifyResponse = await fetch('/api/verify-id', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            idType: data.idType,
+            idNumber: data.idNumber,
+            files: uploadedFiles
+          }),
+        });
+
+        const idVerifyResult = await idVerifyResponse.json();
+        
+        if (!idVerifyResult.success) {
+          toastError(idVerifyResult.message || 'Invalid ID information. Please check and try again.');
+          setIsSubmitting(false);
+          return;
+        }
+        
         verificationData = {
           ...verificationData,
           idType: data.idType,
           idNumber: data.idNumber,
-          uploadedFiles: uploadedFiles
+          uploadedFiles: uploadedFiles,
+          status: 'pending_review'
         };
       } else if (data.verificationType === 'phone_sms') {
-        // Validate SMS code against stored mock code (in production, server validates)
-        const storedCode = localStorage.getItem('temp_sms_code');
-        if (data.smsCode !== storedCode) {
-          toastError('Invalid SMS code. Please check and try again.');
+        // Verify SMS code with backend API
+        const verifyResponse = await fetch('/api/verify-sms', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            phoneNumber: data.phoneNumber,
+            code: data.smsCode
+          }),
+        });
+
+        const verifyResult = await verifyResponse.json();
+        
+        if (!verifyResult.success) {
+          toastError(verifyResult.message || 'Invalid SMS code. Please check and try again.');
           setIsSubmitting(false);
           return;
         }
@@ -151,9 +210,6 @@ export function VerificationModal({ isOpen, onClose }: VerificationModalProps) {
           smsCode: data.smsCode,
           verified: true // SMS verification is instant
         };
-        
-        // Clean up temporary code
-        localStorage.removeItem('temp_sms_code');
       }
 
       await addDocument('verifications', verificationData);
@@ -285,13 +341,27 @@ export function VerificationModal({ isOpen, onClose }: VerificationModalProps) {
             </div>
 
             {!smsCodeSent ? (
-              <Button
-                onClick={sendSMSCode}
-                disabled={isSubmitting || !watchedPhoneNumber}
-                className="w-full bg-green-500 hover:bg-green-600 text-white"
-              >
-                {isSubmitting ? 'Sending...' : 'Send SMS Code'}
-              </Button>
+              <div className="space-y-3">
+                <Button
+                  onClick={sendSMSCode}
+                  disabled={isSubmitting || !watchedPhoneNumber}
+                  className="w-full bg-green-500 hover:bg-green-600 text-white"
+                >
+                  {isSubmitting ? 'Sending...' : 'Send SMS Code'}
+                </Button>
+                
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setVerificationStep('select');
+                    setValue('phoneNumber', '');
+                  }}
+                  variant="outline"
+                  className="w-full border-gray-500 text-gray-300 hover:bg-gray-800 hover:text-white"
+                >
+                  Cancel
+                </Button>
+              </div>
             ) : (
               <div className="space-y-4">
                 <div>
@@ -374,11 +444,20 @@ export function VerificationModal({ isOpen, onClose }: VerificationModalProps) {
               <Input
                 id="idNumber"
                 {...register('idNumber')}
-                placeholder="Enter your ID number"
+                placeholder={
+                  watch('idType') 
+                    ? `Format: ${idTypes.find(t => t.value === watch('idType'))?.format}` 
+                    : "Enter your ID number"
+                }
                 className="bg-white/10 border-white/20 text-white placeholder-blue-200"
               />
               {errors.idNumber && (
                 <p className="text-red-400 text-sm mt-1">{errors.idNumber.message}</p>
+              )}
+              {watch('idType') && (
+                <p className="text-blue-300 text-xs mt-1">
+                  Expected format: {idTypes.find(t => t.value === watch('idType'))?.format}
+                </p>
               )}
             </div>
 
@@ -431,13 +510,29 @@ export function VerificationModal({ isOpen, onClose }: VerificationModalProps) {
               </div>
             </div>
 
-            <Button
-              type="submit"
-              disabled={isSubmitting || uploadedFiles.length === 0}
-              className="w-full bg-blue-500 hover:bg-blue-600 text-white"
-            >
-              {isSubmitting ? 'Submitting...' : 'Submit for Review'}
-            </Button>
+            <div className="space-y-3">
+              <Button
+                type="submit"
+                disabled={isSubmitting || uploadedFiles.length === 0}
+                className="w-full bg-blue-500 hover:bg-blue-600 text-white"
+              >
+                {isSubmitting ? 'Submitting...' : 'Submit for Review'}
+              </Button>
+              
+              <Button
+                type="button"
+                onClick={() => {
+                  setVerificationStep('select');
+                  setUploadedFiles([]);
+                  setValue('idType', undefined);
+                  setValue('idNumber', '');
+                }}
+                variant="outline"
+                className="w-full border-gray-500 text-gray-300 hover:bg-gray-800 hover:text-white"
+              >
+                Cancel
+              </Button>
+            </div>
           </div>
         );
 
