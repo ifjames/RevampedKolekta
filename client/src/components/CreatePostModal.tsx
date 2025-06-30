@@ -177,64 +177,65 @@ export function CreatePostModal({ isOpen, onClose, editingPost }: CreatePostModa
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[95vw] max-w-sm max-h-[95vh] overflow-y-auto glass-effect border-white/20 bg-blue-900/95 p-3">
-        <DialogHeader className="pb-3">
-          <DialogTitle className="text-lg sm:text-xl font-bold text-white flex items-center">
-            <span className="mr-2 text-lg sm:text-xl">₱</span>
+      <DialogContent className="w-[90vw] max-w-md sm:max-w-2xl glass-effect border-white/20 bg-blue-900/95 max-h-[85vh] flex flex-col p-4">
+        <DialogHeader>
+          <DialogTitle className="text-white text-xl flex items-center">
+            <span className="mr-2 text-xl">₱</span>
             {editingPost ? 'Edit Post' : 'Create Post'}
           </DialogTitle>
-          <DialogDescription className="text-blue-100 text-sm">
+          <DialogDescription className="text-blue-100">
             Create exchange request to find nearby cash denomination help.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-3">
-          {/* What you have section */}
-          <Card className="glass-dark border-white/10">
-            <CardContent className="p-3">
-              <h3 className="text-white font-medium mb-3 flex items-center text-sm">
-                <img 
-                  src={watchedGiveType === 'bill' ? '/cash-icon.png' : '/coin-icon.png'} 
-                  alt={watchedGiveType === 'bill' ? 'Cash' : 'Coins'} 
-                  className="w-4 h-4 mr-2" 
-                />
-                What you have
-              </h3>
-              
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label htmlFor="giveAmount" className="text-blue-100">Amount</Label>
-                  <Input
-                    id="giveAmount"
-                    type="number"
-                    {...form.register('giveAmount', { valueAsNumber: true })}
-                    className="bg-white/10 border-white/20 text-white placeholder:text-blue-200 focus:ring-green-400"
-                    placeholder="1000"
+        <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+            {/* What you have section */}
+            <Card className="glass-dark border-white/10">
+              <CardContent className="p-4">
+                <h3 className="text-white font-semibold mb-4 flex items-center">
+                  <img 
+                    src={watchedGiveType === 'bill' ? '/cash-icon.png' : '/coin-icon.png'} 
+                    alt={watchedGiveType === 'bill' ? 'Cash' : 'Coins'} 
+                    className="w-5 h-5 mr-2" 
                   />
-                  {form.formState.errors.giveAmount && (
-                    <p className="text-red-400 text-sm mt-1">
-                      {form.formState.errors.giveAmount.message}
-                    </p>
-                  )}
+                  What you have
+                </h3>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="giveAmount" className="text-blue-100">Amount</Label>
+                    <Input
+                      id="giveAmount"
+                      type="number"
+                      {...form.register('giveAmount', { valueAsNumber: true })}
+                      className="bg-white/10 border-white/20 text-white placeholder:text-blue-200 focus:ring-green-400"
+                      placeholder="1000"
+                    />
+                    {form.formState.errors.giveAmount && (
+                      <p className="text-red-400 text-sm mt-1">
+                        {form.formState.errors.giveAmount.message}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <Label htmlFor="giveType" className="text-blue-100">Type</Label>
+                    <Select 
+                      onValueChange={(value) => form.setValue('giveType', value as 'bill' | 'coins')}
+                      defaultValue="bill"
+                    >
+                      <SelectTrigger className="bg-white/10 border-white/20 text-white focus:ring-green-400">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="bill">Bills</SelectItem>
+                        <SelectItem value="coins">Coins</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <div>
-                  <Label htmlFor="giveType" className="text-blue-100">Type</Label>
-                  <Select 
-                    onValueChange={(value) => form.setValue('giveType', value as 'bill' | 'coins')}
-                    defaultValue="bill"
-                  >
-                    <SelectTrigger className="bg-white/10 border-white/20 text-white focus:ring-green-400">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="bill">Bills</SelectItem>
-                      <SelectItem value="coins">Coins</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
           {/* What you need section */}
           <Card className="glass-dark border-white/10">
@@ -384,7 +385,8 @@ export function CreatePostModal({ isOpen, onClose, editingPost }: CreatePostModa
               </>
             )}
           </Button>
-        </form>
+          </form>
+        </div>
       </DialogContent>
 
       {/* Location Picker Modal */}
