@@ -177,31 +177,31 @@ export function CreatePostModal({ isOpen, onClose, editingPost }: CreatePostModa
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[90vw] max-w-sm sm:max-w-lg max-h-[90vh] overflow-y-auto glass-effect border-white/20 bg-blue-900/95 p-4">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-white flex items-center">
-            <span className="mr-2 text-2xl">₱</span>
-            {editingPost ? 'Edit Exchange Post' : 'Create Exchange Post'}
+      <DialogContent className="w-[95vw] max-w-sm max-h-[95vh] overflow-y-auto glass-effect border-white/20 bg-blue-900/95 p-3">
+        <DialogHeader className="pb-3">
+          <DialogTitle className="text-lg sm:text-xl font-bold text-white flex items-center">
+            <span className="mr-2 text-lg sm:text-xl">₱</span>
+            {editingPost ? 'Edit Post' : 'Create Post'}
           </DialogTitle>
-          <DialogDescription className="text-blue-100">
-            Create a new exchange request to find people nearby who can help with your cash denomination needs.
+          <DialogDescription className="text-blue-100 text-sm">
+            Create exchange request to find nearby cash denomination help.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-3">
           {/* What you have section */}
           <Card className="glass-dark border-white/10">
-            <CardContent className="p-4">
-              <h3 className="text-white font-semibold mb-4 flex items-center">
+            <CardContent className="p-3">
+              <h3 className="text-white font-medium mb-3 flex items-center text-sm">
                 <img 
                   src={watchedGiveType === 'bill' ? '/cash-icon.png' : '/coin-icon.png'} 
                   alt={watchedGiveType === 'bill' ? 'Cash' : 'Coins'} 
-                  className="w-5 h-5 mr-2" 
+                  className="w-4 h-4 mr-2" 
                 />
                 What you have
               </h3>
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label htmlFor="giveAmount" className="text-blue-100">Amount</Label>
                   <Input

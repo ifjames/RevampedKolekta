@@ -91,7 +91,7 @@ export function MyPostsModal({ isOpen, onClose, onEditPost }: MyPostsModalProps)
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[90vw] max-w-md sm:max-w-2xl glass-effect border-white/20 bg-blue-900/95 max-h-[85vh] overflow-y-auto p-4">
+      <DialogContent className="w-[90vw] max-w-md sm:max-w-2xl glass-effect border-white/20 bg-blue-900/95 max-h-[85vh] flex flex-col p-4">
         <DialogHeader>
           <DialogTitle className="text-white text-xl">My Exchange Posts</DialogTitle>
           <DialogDescription className="text-blue-100">
@@ -99,8 +99,8 @@ export function MyPostsModal({ isOpen, onClose, onEditPost }: MyPostsModalProps)
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          {loading ? (
+        <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
+            {loading ? (
             <div className="text-center py-8">
               <div className="text-blue-200">Loading your posts...</div>
             </div>
@@ -189,7 +189,7 @@ export function MyPostsModal({ isOpen, onClose, onEditPost }: MyPostsModalProps)
                 </CardContent>
               </Card>
             ))
-          )}
+            )}
         </div>
 
         <div className="flex justify-end pt-4 border-t border-white/10">

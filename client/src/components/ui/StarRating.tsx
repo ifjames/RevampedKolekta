@@ -15,7 +15,7 @@ export function StarRating({
   maxRating = 5, 
   size = 'md', 
   layout = 'horizontal',
-  showValue = false,
+  showValue = true,
   className 
 }: StarRatingProps) {
   const sizeClasses = {
@@ -24,10 +24,13 @@ export function StarRating({
     lg: 'h-5 w-5'
   };
 
+  // Handle edge cases for rating
+  const normalizedRating = Math.max(0, Math.min(maxRating, rating || 0));
+  
   const stars = Array.from({ length: maxRating }, (_, index) => {
     const starNumber = index + 1;
-    const filled = starNumber <= rating;
-    const partial = starNumber > rating && starNumber - 1 < rating;
+    const filled = starNumber <= normalizedRating;
+    const partial = starNumber > normalizedRating && starNumber - 1 < normalizedRating;
     
     return (
       <Star
@@ -36,7 +39,7 @@ export function StarRating({
           sizeClasses[size],
           filled ? 'fill-yellow-400 text-yellow-400' : 
           partial ? 'fill-yellow-400/50 text-yellow-400' : 
-          'text-gray-300 dark:text-gray-600'
+          'fill-gray-300 text-gray-300'
         )}
       />
     );
@@ -44,19 +47,19 @@ export function StarRating({
 
   return (
     <div className={cn(
-      'flex items-center',
+      'flex items-center justify-center',
       layout === 'vertical' ? 'flex-col space-y-1' : 'space-x-1',
       className
     )}>
       <div className={cn(
-        'flex items-center',
+        'flex items-center justify-center',
         layout === 'vertical' ? 'flex-col space-y-1' : 'space-x-1'
       )}>
         {stars}
       </div>
       {showValue && (
-        <span className="text-sm text-muted-foreground ml-2">
-          {rating.toFixed(1)}
+        <span className="text-sm text-white font-medium ml-2">
+          {normalizedRating.toFixed(1)}
         </span>
       )}
     </div>

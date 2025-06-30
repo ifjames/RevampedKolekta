@@ -251,39 +251,39 @@ export function SafeMeetupModal({ isOpen, onClose, onLocationSelect, userLocatio
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
-          className="w-[95vw] max-w-2xl"
+          className="w-[90vw] max-w-md sm:max-w-lg max-h-[90vh] flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
-          <Card className="glass-effect border-white/20">
-            <CardHeader className="flex flex-row items-center justify-between pb-4">
-              <div className="flex items-center space-x-3">
-                <div className="bg-green-500 rounded-full p-2">
-                  <Shield className="h-5 w-5 text-white" />
+          <Card className="glass-effect border-white/20 bg-blue-900/95 flex flex-col h-full">
+            <CardHeader className="flex flex-row items-center justify-between pb-3 px-4 pt-4 flex-shrink-0">
+              <div className="flex items-center space-x-2">
+                <div className="bg-green-500 rounded-full p-1">
+                  <Shield className="h-4 w-4 text-white" />
                 </div>
                 <div>
-                  <CardTitle className="text-white">Safe Meetup Locations</CardTitle>
-                  <p className="text-blue-200 text-sm">Choose a verified safe location for your exchange</p>
+                  <CardTitle className="text-white text-lg">Safe Locations</CardTitle>
+                  <p className="text-blue-200 text-xs">Choose verified safe location</p>
                 </div>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={onClose}
-                className="text-white hover:bg-white/10"
+                className="text-white hover:bg-white/10 h-8 w-8 p-0"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4" />
               </Button>
             </CardHeader>
 
-            <CardContent className="p-6">
+            <CardContent className="p-4 flex-1 overflow-hidden flex flex-col min-h-0">
               {/* Current Location Display */}
               {currentLocation && (
-                <div className="bg-blue-900/30 border border-blue-400/30 rounded-lg p-4 mb-6">
+                <div className="bg-blue-900/30 border border-blue-400/30 rounded-lg p-3 mb-4 flex-shrink-0">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
-                      <MapPin className="h-5 w-5 text-blue-400" />
+                      <MapPin className="h-4 w-4 text-blue-400" />
                       <div>
-                        <p className="text-white text-sm font-medium">Current Location</p>
+                        <p className="text-white text-xs font-medium">Current Location</p>
                         <p className="text-blue-200 text-xs">
                           {currentLocation.lat.toFixed(4)}, {currentLocation.lng.toFixed(4)}
                         </p>
@@ -294,17 +294,17 @@ export function SafeMeetupModal({ isOpen, onClose, onLocationSelect, userLocatio
                       disabled={isRefreshing}
                       size="sm"
                       variant="outline"
-                      className="bg-white/10 text-white border-white/30 hover:bg-white/20"
+                      className="bg-white/10 text-white border-white/30 hover:bg-white/20 text-xs px-2 py-1"
                     >
-                      <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-                      {isRefreshing ? 'Refreshing...' : 'Refresh Location'}
+                      <RefreshCw className={`h-3 w-3 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
+                      {isRefreshing ? 'Refreshing...' : 'Refresh'}
                     </Button>
                   </div>
                 </div>
               )}
 
               {/* Search and Filter */}
-              <div className="space-y-4 mb-6">
+              <div className="space-y-3 mb-4 flex-shrink-0">
                 <Input
                   placeholder="Search locations..."
                   value={searchQuery}
@@ -361,13 +361,13 @@ export function SafeMeetupModal({ isOpen, onClose, onLocationSelect, userLocatio
               </div>
 
               {/* Safety Tips */}
-              <div className="bg-green-900/30 border border-green-400/30 rounded-lg p-3 mb-6">
+              <div className="bg-green-900/30 border border-green-400/30 rounded-lg p-2 mb-3 flex-shrink-0">
                 <div className="flex items-start space-x-2">
-                  <Shield className="h-5 w-5 text-green-400 flex-shrink-0 mt-0.5" />
+                  <Shield className="h-4 w-4 text-green-400 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-green-100 text-sm font-medium">Safety Guidelines</p>
+                    <p className="text-green-100 text-xs font-medium">Safety Guidelines</p>
                     <p className="text-green-200 text-xs">
-                      • Meet during operating hours • Stay in public areas • Trust your instincts • Bring exact amounts
+                      Meet during operating hours • Stay in public areas • Trust your instincts
                     </p>
                   </div>
                 </div>
@@ -417,19 +417,20 @@ export function SafeMeetupModal({ isOpen, onClose, onLocationSelect, userLocatio
               )}
 
               {/* Locations List */}
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                {filteredLocations.length > 0 ? (
-                  filteredLocations.map((location) => (
-                    <motion.div
-                      key={location.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      className="cursor-pointer"
-                      onClick={() => onLocationSelect(location)}
-                    >
-                      <Card className="glass-dark border-white/10 hover:bg-white/5 transition-all duration-200">
-                        <CardContent className="p-4">
-                          <div className="flex items-start justify-between">
+              <div className="flex-1 min-h-0 overflow-y-auto">
+                <div className="space-y-2 pr-2">
+                  {filteredLocations.length > 0 ? (
+                    filteredLocations.map((location) => (
+                      <motion.div
+                        key={location.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="cursor-pointer"
+                        onClick={() => onLocationSelect(location)}
+                      >
+                        <Card className="glass-dark border-white/10 hover:bg-white/5 transition-all duration-200">
+                          <CardContent className="p-3">
+                            <div className="flex items-start justify-between">
                             <div className="flex items-start space-x-3 flex-1">
                               <div className={`${getTypeColor(location.type)} mt-1`}>
                                 {getTypeIcon(location.type)}
@@ -507,6 +508,7 @@ export function SafeMeetupModal({ isOpen, onClose, onLocationSelect, userLocatio
                     <p className="text-blue-100 text-sm">Try adjusting your search or filters</p>
                   </div>
                 )}
+                </div>
               </div>
             </CardContent>
           </Card>
