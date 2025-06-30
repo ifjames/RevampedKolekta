@@ -714,11 +714,11 @@ export function Dashboard({ onLogout }: DashboardProps) {
                     >
                       <CardContent className="p-4">
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
+                          <div className="flex items-center space-x-3 flex-1">
                             <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
                               <MessageSquare className="h-5 w-5 text-white" />
                             </div>
-                            <div>
+                            <div className="flex-1">
                               <p className="text-white font-medium">
                                 {(() => {
                                   return exchange.userA === user?.uid 
@@ -726,7 +726,34 @@ export function Dashboard({ onLogout }: DashboardProps) {
                                     : (exchange.userAName || 'Exchange Partner');
                                 })()}
                               </p>
-                              <p className="text-blue-100 text-sm">Active exchange • Click to chat</p>
+                              {/* Enhanced exchange details display */}
+                              <div className="text-blue-100 text-sm space-y-1">
+                                {(exchange.exchangeDetails as any)?.myGiveAmount && (exchange.exchangeDetails as any)?.partnerGiveAmount ? (
+                                  <>
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <span className="text-green-400">You give:</span>
+                                      <span>₱{(exchange.exchangeDetails as any).myGiveAmount} {(exchange.exchangeDetails as any).myGiveType}</span>
+                                      <span className="text-blue-300">→</span>
+                                      <span className="text-orange-400">You get:</span>
+                                      <span>₱{(exchange.exchangeDetails as any).myNeedAmount} {(exchange.exchangeDetails as any).myNeedType}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <span className="text-orange-400">Partner gives:</span>
+                                      <span>₱{(exchange.exchangeDetails as any).partnerGiveAmount} {(exchange.exchangeDetails as any).partnerGiveType}</span>
+                                      <span className="text-blue-300">→</span>
+                                      <span className="text-green-400">Partner gets:</span>
+                                      <span>₱{(exchange.exchangeDetails as any).partnerNeedAmount} {(exchange.exchangeDetails as any).partnerNeedType}</span>
+                                    </div>
+                                  </>
+                                ) : (
+                                  <div className="flex items-center gap-2">
+                                    <span>₱{exchange.exchangeDetails?.giveAmount || 0} {exchange.exchangeDetails?.giveType || 'cash'}</span>
+                                    <span className="text-blue-300">↔</span>
+                                    <span>₱{exchange.exchangeDetails?.needAmount || 0} {exchange.exchangeDetails?.needType || 'cash'}</span>
+                                  </div>
+                                )}
+                                <p className="text-xs text-blue-200">Active exchange • Click to chat</p>
+                              </div>
                             </div>
                           </div>
                           <Badge className="bg-green-500">Active</Badge>

@@ -202,11 +202,13 @@ export function useMatching() {
     if (!user?.uid) throw new Error('User not authenticated');
 
     try {
-      // Check for existing match requests to prevent duplicates
+      // Check for existing match requests for the specific post combination
       const existingMatchQuery = query(
         collection(db, 'matches'),
         where('userA', '==', user.uid),
         where('userB', '==', targetPost.userId),
+        where('postAId', '==', userPost.id),
+        where('postBId', '==', targetPost.id),
         where('status', 'in', ['pending', 'confirmed'])
       );
       
@@ -214,7 +216,35 @@ export function useMatching() {
       if (!existingMatches.empty) {
         toast({
           title: "Match Request Already Sent",
-          description: "You already have a pending request with this user."
+          description: "You already have a pending request for this specific exchange."
+        });
+        return;
+      }
+
+      // Check for recent matches with the same user (cooldown period)
+      const recentMatchQuery = query(
+        collection(db, 'matches'),
+        where('userA', '==', user.uid),
+        where('userB', '==', targetPost.userId)
+      );
+      
+      const recentMatches = await getDocs(recentMatchQuery);
+      const now = new Date();
+      const cooldownMinutes = 2; // 2 minute cooldown
+      
+      const hasRecentMatch = recentMatches.docs.some(doc => {
+        const matchData = doc.data();
+        const createdAt = matchData.createdAt?.toDate();
+        if (!createdAt) return false;
+        
+        const timeDiff = (now.getTime() - createdAt.getTime()) / (1000 * 60); // in minutes
+        return timeDiff < cooldownMinutes;
+      });
+
+      if (hasRecentMatch) {
+        toast({
+          title: "Please Wait",
+          description: `You can send another match request to this user in ${cooldownMinutes} minutes.`
         });
         return;
       }
@@ -226,7 +256,22 @@ export function useMatching() {
         postBId: targetPost.id,
         status: 'pending' as const,
         chatOpened: false,
-        createdAt: new Date()
+        createdAt: new Date(),
+        // Enhanced match data for detailed display
+        userAPost: {
+          giveAmount: userPost.giveAmount,
+          giveType: userPost.giveType,
+          needAmount: userPost.needAmount,
+          needType: userPost.needType,
+          description: (userPost as any).description || ''
+        },
+        userBPost: {
+          giveAmount: targetPost.giveAmount,
+          giveType: targetPost.giveType,
+          needAmount: targetPost.needAmount,
+          needType: targetPost.needType,
+          description: (targetPost as any).description || ''
+        }
       };
 
       const matchRef = await addDocument('matches', matchData);
@@ -291,7 +336,10 @@ export function useMatching() {
           console.error('Error fetching post details:', error);
         }
         
-        // Create active exchange document for Dashboard display
+        // Create active exchange document for Dashboard display with detailed post information
+        const currentUserPost = match.userA === user?.uid ? postA : postB;
+        const partnerPost = match.userA === user?.uid ? postB : postA;
+        
         await addDocument('activeExchanges', {
           matchId,
           userA: match.userA,
@@ -306,12 +354,27 @@ export function useMatching() {
           initiatedBy: match.userA,
           partnerUser: match.userA === user?.uid ? match.userB : match.userA,
           partnerName: match.userA === user?.uid ? (postB?.userInfo?.name || 'Exchange Partner') : (postA?.userInfo?.name || 'Exchange Partner'),
+          // Enhanced exchange details with both posts
           exchangeDetails: {
-            giveAmount: postA?.giveAmount || 0,
-            giveType: postA?.giveType || 'cash',
-            needAmount: postA?.needAmount || 0,
-            needType: postA?.needType || 'cash',
-            location: postA?.location
+            // Current user's exchange details
+            myGiveAmount: currentUserPost?.giveAmount || 0,
+            myGiveType: currentUserPost?.giveType || 'cash',
+            myNeedAmount: currentUserPost?.needAmount || 0,
+            myNeedType: currentUserPost?.needType || 'cash',
+            // Partner's exchange details
+            partnerGiveAmount: partnerPost?.giveAmount || 0,
+            partnerGiveType: partnerPost?.giveType || 'cash',
+            partnerNeedAmount: partnerPost?.needAmount || 0,
+            partnerNeedType: partnerPost?.needType || 'cash',
+            // Location and description
+            location: currentUserPost?.location || partnerPost?.location,
+            myDescription: (currentUserPost as any)?.description || '',
+            partnerDescription: (partnerPost as any)?.description || '',
+            // Legacy compatibility
+            giveAmount: currentUserPost?.giveAmount || 0,
+            giveType: currentUserPost?.giveType || 'cash',
+            needAmount: currentUserPost?.needAmount || 0,
+            needType: currentUserPost?.needType || 'cash'
           }
         });
 
