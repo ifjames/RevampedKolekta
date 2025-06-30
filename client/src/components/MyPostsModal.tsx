@@ -10,7 +10,6 @@ import { collection, query, where, orderBy, onSnapshot, deleteDoc, doc } from 'f
 import { db } from '@/lib/firebase';
 import { formatTimeAgo } from '@/utils/timeUtils';
 import { toast } from 'react-hot-toast';
-import Swal from 'sweetalert2';
 
 interface MyPostsModalProps {
   isOpen: boolean;
@@ -52,20 +51,11 @@ export function MyPostsModal({ isOpen, onClose, onEditPost }: MyPostsModalProps)
   }, [user, isOpen]);
 
   const handleDeletePost = async (postId: string) => {
-    const result = await Swal.fire({
-      title: 'Delete Exchange Post?',
-      text: 'This action cannot be undone. Your exchange request will be permanently removed.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#ef4444',
-      cancelButtonColor: '#6b7280',
-      confirmButtonText: 'Yes, delete it',
-      cancelButtonText: 'Cancel',
-      background: '#1e293b',
-      color: '#ffffff',
-    });
+    const confirmed = window.confirm(
+      'Delete Exchange Post?\n\nThis action cannot be undone. Your exchange request will be permanently removed.'
+    );
 
-    if (result.isConfirmed) {
+    if (confirmed) {
       try {
         await deleteDoc(doc(db, 'posts', postId));
         toast.success('Exchange post deleted successfully');

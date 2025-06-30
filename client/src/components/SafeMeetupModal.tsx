@@ -1,12 +1,17 @@
 import { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { 
   Shield, 
-  X, 
   MapPin, 
   Clock, 
   Star, 
@@ -49,104 +54,109 @@ export function SafeMeetupModal({ isOpen, onClose, onLocationSelect, userLocatio
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Distance calculation function
-  const distance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    const R = 6371; // Earth's radius in km
+  function distance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    const R = 6371; // Radius of the Earth in kilometers
     const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLng/2) * Math.sin(dLng/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
-  };
+    const d = R * c; // Distance in kilometers
+    return d;
+  }
 
-  const generateNearbyLocations = (userLoc: { lat: number; lng: number }) => {
-    // Batangas Area Locations
-    const batangasLocations: SafeLocation[] = [
-      {
-        id: 'b1',
-        name: 'SM City Batangas',
-        type: 'mall',
-        address: 'Pastor M. Recto Ave, Batangas City',
-        coordinates: { lat: 13.7565, lng: 121.0583 },
-        operatingHours: '10:00 AM - 9:00 PM',
-        safety_rating: 4.8,
-        features: ['Security Guards', 'CCTV', 'Food Court', 'ATM'],
-        verified: true
-      },
-      {
-        id: 'b2',
-        name: 'Batangas City Hall',
-        type: 'government',
-        address: 'Rizal Avenue, Batangas City',
-        coordinates: { lat: 13.7567, lng: 121.0584 },
-        operatingHours: '8:00 AM - 5:00 PM (Mon-Fri)',
-        safety_rating: 4.9,
-        features: ['High Security', 'Government Building', 'Public Area'],
-        verified: true
-      },
-      {
-        id: 'b3',
-        name: 'Jollibee Batangas Grand Terminal',
-        type: 'cafe',
-        address: 'Grand Terminal, Batangas City',
-        coordinates: { lat: 13.7575, lng: 121.0590 },
-        operatingHours: '6:00 AM - 11:00 PM',
-        safety_rating: 4.5,
-        features: ['24/7 Security', 'Well-lit Area', 'Public Space'],
-        verified: true
-      },
-      {
-        id: 'b4',
-        name: 'BDO Batangas Main',
-        type: 'bank',
-        address: 'P. Burgos Street, Batangas City',
-        coordinates: { lat: 13.7560, lng: 121.0580 },
-        operatingHours: '9:00 AM - 4:00 PM (Mon-Fri)',
-        safety_rating: 4.9,
-        features: ['Bank Security', 'ATM Area', 'CCTV Monitoring'],
-        verified: true
-      }
-    ];
-
-    // Manila Area Locations
+  // Generate realistic safe locations based on user location
+  const generateNearbyLocations = (userLoc: { lat: number; lng: number }): SafeLocation[] => {
     const manilaLocations: SafeLocation[] = [
+      // Malls
       {
-        id: 'm1',
+        id: 'sm-mall-of-asia',
         name: 'SM Mall of Asia',
         type: 'mall',
-        address: 'Seaside Blvd, Pasay City',
-        coordinates: { lat: 14.5352, lng: 120.9822 },
+        address: 'Bay City, Pasay',
+        coordinates: { lat: 14.5344, lng: 120.9830 },
         operatingHours: '10:00 AM - 10:00 PM',
         safety_rating: 4.8,
-        features: ['24/7 Security', 'CCTV', 'Food Court', 'Well-lit'],
+        features: ['Security Guards', 'CCTV Coverage', 'Well-lit Areas', 'Emergency Services'],
         verified: true
       },
       {
-        id: 'm2',
-        name: 'Ayala Museum',
-        type: 'government',
-        address: 'Makati Avenue, Makati City',
+        id: 'robinsons-manila',
+        name: 'Robinsons Place Manila',
+        type: 'mall',
+        address: 'Pedro Gil St, Malate',
+        coordinates: { lat: 14.5808, lng: 120.9962 },
+        operatingHours: '10:00 AM - 9:00 PM',
+        safety_rating: 4.5,
+        features: ['Security Guards', 'CCTV Coverage', 'Customer Service'],
+        verified: true
+      },
+      // Banks
+      {
+        id: 'bpi-ayala',
+        name: 'BPI Ayala Branch',
+        type: 'bank',
+        address: 'Ayala Ave, Makati',
         coordinates: { lat: 14.5547, lng: 121.0244 },
-        operatingHours: '9:00 AM - 6:00 PM (Tue-Sun)',
-        safety_rating: 4.7,
-        features: ['Museum Security', 'Public Area', 'Well-maintained'],
+        operatingHours: '9:00 AM - 5:00 PM',
+        safety_rating: 4.9,
+        features: ['Armed Security', 'CCTV', 'Metal Detectors', 'Safe Environment'],
         verified: true
       },
+      // Convenience Stores
       {
-        id: 'm3',
-        name: 'Starbucks Greenbelt',
-        type: 'cafe',
-        address: 'Greenbelt 3, Makati City',
-        coordinates: { lat: 14.5516, lng: 121.0227 },
-        operatingHours: '6:00 AM - 12:00 AM',
-        safety_rating: 4.7,
-        features: ['Indoor Seating', 'WiFi', 'Security', 'Public Space'],
+        id: '7eleven-bgc',
+        name: '7-Eleven BGC Central',
+        type: 'convenience_store',
+        address: '5th Ave, BGC',
+        coordinates: { lat: 14.5501, lng: 121.0451 },
+        operatingHours: '24 Hours',
+        safety_rating: 4.2,
+        features: ['24/7 Open', 'Security Cameras', 'Well-lit'],
+        verified: true
+      },
+      // Terminals
+      {
+        id: 'mrt-ayala',
+        name: 'MRT Ayala Station',
+        type: 'terminal',
+        address: 'Ayala Ave, Makati',
+        coordinates: { lat: 14.5498, lng: 121.0262 },
+        operatingHours: '5:00 AM - 10:00 PM',
+        safety_rating: 4.0,
+        features: ['Police Presence', 'CCTV', 'Security Personnel'],
         verified: true
       }
     ];
 
-    // Return locations based on proximity - prioritize closer areas
+    const batangasLocations: SafeLocation[] = [
+      {
+        id: 'sm-batangas',
+        name: 'SM City Batangas',
+        type: 'mall',
+        address: 'Pallocan West, Batangas City',
+        coordinates: { lat: 13.7565, lng: 121.0583 },
+        operatingHours: '10:00 AM - 9:00 PM',
+        safety_rating: 4.6,
+        features: ['Security Guards', 'CCTV Coverage', 'Customer Service'],
+        verified: true
+      },
+      {
+        id: 'bpi-batangas',
+        name: 'BPI Batangas Branch',
+        type: 'bank',
+        address: 'P. Burgos St, Batangas City',
+        coordinates: { lat: 13.7576, lng: 121.0584 },
+        operatingHours: '9:00 AM - 5:00 PM',
+        safety_rating: 4.8,
+        features: ['Armed Security', 'CCTV', 'Safe Environment'],
+        verified: true
+      }
+    ];
+
+    // Check if user is closer to Batangas or Manila
     const isInBatangas = userLoc.lat < 14.2 && userLoc.lat > 13.5;
     
     if (isInBatangas) {
@@ -236,284 +246,192 @@ export function SafeMeetupModal({ isOpen, onClose, onLocationSelect, userLocatio
     { value: 50, label: '50 km' }
   ];
 
-  if (!isOpen) return null;
-
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center p-2 sm:p-4"
-        onClick={onClose}
-      >
-        <motion.div
-          initial={{ scale: 0.95, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.95, opacity: 0 }}
-          className="w-[90vw] max-w-md sm:max-w-lg max-h-[90vh] flex flex-col"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <Card className="glass-effect border-white/20 bg-blue-900/95 flex flex-col h-full">
-            <CardHeader className="flex flex-row items-center justify-between pb-3 px-4 pt-4 flex-shrink-0">
-              <div className="flex items-center space-x-2">
-                <div className="bg-green-500 rounded-full p-1">
-                  <Shield className="h-4 w-4 text-white" />
-                </div>
-                <div>
-                  <CardTitle className="text-white text-lg">Safe Locations</CardTitle>
-                  <p className="text-blue-200 text-xs">Choose verified safe location</p>
-                </div>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onClose}
-                className="text-white hover:bg-white/10 h-8 w-8 p-0"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </CardHeader>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="w-[90vw] max-w-md sm:max-w-2xl glass-effect border-white/20 bg-blue-900/95 max-h-[85vh] flex flex-col p-4">
+        <DialogHeader>
+          <DialogTitle className="text-white text-xl flex items-center">
+            <div className="bg-green-500 rounded-full p-1 mr-2">
+              <Shield className="h-4 w-4 text-white" />
+            </div>
+            Safe Locations
+          </DialogTitle>
+          <DialogDescription className="text-blue-100">
+            Choose verified safe location for your exchange
+          </DialogDescription>
+        </DialogHeader>
 
-            <CardContent className="p-4 flex-1 overflow-hidden flex flex-col min-h-0">
-              {/* Current Location Display */}
-              {currentLocation && (
-                <div className="bg-blue-900/30 border border-blue-400/30 rounded-lg p-3 mb-4 flex-shrink-0">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <MapPin className="h-4 w-4 text-blue-400" />
-                      <div>
-                        <p className="text-white text-xs font-medium">Current Location</p>
-                        <p className="text-blue-200 text-xs">
-                          {currentLocation.lat.toFixed(4)}, {currentLocation.lng.toFixed(4)}
-                        </p>
+        <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
+          {/* Current Location Display */}
+          {currentLocation && (
+            <div className="bg-blue-900/30 border border-blue-400/30 rounded-lg p-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <MapPin className="h-4 w-4 text-blue-400" />
+                  <div>
+                    <p className="text-white text-xs font-medium">Current Location</p>
+                    <p className="text-blue-200 text-xs">
+                      {currentLocation.lat.toFixed(4)}, {currentLocation.lng.toFixed(4)}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  onClick={handleRefreshLocation}
+                  disabled={isRefreshing}
+                  size="sm"
+                  variant="outline"
+                  className="bg-white/10 text-white border-white/30 hover:bg-white/20 text-xs px-2 py-1"
+                >
+                  <RefreshCw className={`h-3 w-3 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
+                  {isRefreshing ? 'Refreshing...' : 'Refresh'}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Filters */}
+          <div className="space-y-3">
+            {/* Search */}
+            <Input
+              placeholder="Search locations..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="bg-white/10 border-white/30 text-white placeholder-blue-200"
+            />
+
+            {/* Filter Row */}
+            <div className="flex flex-wrap gap-2">
+              {/* Distance Filter */}
+              <div className="flex items-center space-x-2">
+                <Sliders className="h-4 w-4 text-blue-400" />
+                <select
+                  value={maxDistance}
+                  onChange={(e) => setMaxDistance(Number(e.target.value))}
+                  className="bg-blue-800/50 text-white border border-white/30 rounded px-2 py-1 text-xs"
+                >
+                  {distanceOptions.map((option) => (
+                    <option key={option.value} value={option.value} className="bg-blue-900">
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Type Filter */}
+              <select
+                value={selectedType}
+                onChange={(e) => setSelectedType(e.target.value)}
+                className="bg-blue-800/50 text-white border border-white/30 rounded px-2 py-1 text-xs"
+              >
+                {locationTypes.map((type) => (
+                  <option key={type.value} value={type.value} className="bg-blue-900">
+                    {type.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Location Results */}
+          {!currentLocation ? (
+            <div className="text-center py-8">
+              <MapPin className="h-12 w-12 text-blue-400 mx-auto mb-4" />
+              <p className="text-white font-medium mb-2">Location Permission Required</p>
+              <p className="text-blue-200 text-sm mb-4">
+                We need your location to show nearby safe locations
+              </p>
+              <Button
+                onClick={requestLocation}
+                className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600"
+              >
+                Enable Location
+              </Button>
+            </div>
+          ) : filteredLocations.length === 0 ? (
+            <div className="text-center py-8">
+              <Navigation className="h-12 w-12 text-blue-400 mx-auto mb-4" />
+              <p className="text-white font-medium mb-2">No Safe Locations Found</p>
+              <p className="text-blue-200 text-sm mb-4">
+                Try adjusting your distance filter or search terms
+              </p>
+              <Button
+                onClick={() => {
+                  setMaxDistance(50);
+                  setSelectedType('all');
+                  setSearchQuery('');
+                }}
+                variant="outline"
+                className="bg-white/10 text-white border-white/30 hover:bg-white/20"
+              >
+                Reset Filters
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredLocations.map((location) => (
+                <Card
+                  key={location.id}
+                  className="glass-dark border-white/10 hover:border-white/30 transition-all duration-200 cursor-pointer"
+                  onClick={() => onLocationSelect(location)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center space-x-3">
+                        <div className={`${getTypeColor(location.type)}`}>
+                          {getTypeIcon(location.type)}
+                        </div>
+                        <div>
+                          <h3 className="text-white font-medium text-sm">{location.name}</h3>
+                          <p className="text-blue-200 text-xs">{location.address}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <Badge
+                          variant="secondary"
+                          className="bg-green-500/20 text-green-400 text-xs"
+                        >
+                          {location.distance?.toFixed(1)} km
+                        </Badge>
                       </div>
                     </div>
-                    <Button
-                      onClick={handleRefreshLocation}
-                      disabled={isRefreshing}
-                      size="sm"
-                      variant="outline"
-                      className="bg-white/10 text-white border-white/30 hover:bg-white/20 text-xs px-2 py-1"
-                    >
-                      <RefreshCw className={`h-3 w-3 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
-                      {isRefreshing ? 'Refreshing...' : 'Refresh'}
-                    </Button>
-                  </div>
-                </div>
-              )}
 
-              {/* Search and Filter */}
-              <div className="space-y-3 mb-4 flex-shrink-0">
-                <Input
-                  placeholder="Search locations..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-white/10 border-white/20 text-white placeholder-blue-200"
-                />
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center space-x-1">
+                        <Clock className="h-3 w-3 text-blue-400" />
+                        <span className="text-blue-200">{location.operatingHours}</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <Star className="h-3 w-3 text-yellow-400 fill-current" />
+                        <span className="text-white">{location.safety_rating}</span>
+                      </div>
+                    </div>
 
-                {/* Distance Filter */}
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-2">
-                    <Sliders className="h-4 w-4 text-blue-400" />
-                    <span className="text-white text-sm">Distance:</span>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {distanceOptions.map((option) => (
-                      <Button
-                        key={option.value}
-                        variant={maxDistance === option.value ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setMaxDistance(option.value)}
-                        className={`transition-all duration-200 ${
-                          maxDistance === option.value
-                            ? 'bg-gradient-to-r from-green-500 to-green-600 text-white border-green-400 shadow-lg shadow-green-500/25'
-                            : 'bg-white/10 text-white border-white/30 hover:bg-white/20 hover:border-white/50 hover:text-white'
-                        }`}
-                      >
-                        {option.label}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-                
-                {/* Location Type Filter */}
-                <div className="flex items-center space-x-4">
-                  <span className="text-white text-sm">Type:</span>
-                  <div className="flex flex-wrap gap-2">
-                    {locationTypes.map((type) => (
-                      <Button
-                        key={type.value}
-                        variant={selectedType === type.value ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setSelectedType(type.value)}
-                        className={`transition-all duration-200 ${
-                          selectedType === type.value
-                            ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-400 shadow-lg shadow-blue-500/25'
-                            : 'bg-white/10 text-white border-white/30 hover:bg-white/20 hover:border-white/50 hover:text-white'
-                        }`}
-                      >
-                        {type.label}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Safety Tips */}
-              <div className="bg-green-900/30 border border-green-400/30 rounded-lg p-2 mb-3 flex-shrink-0">
-                <div className="flex items-start space-x-2">
-                  <Shield className="h-4 w-4 text-green-400 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-green-100 text-xs font-medium">Safety Guidelines</p>
-                    <p className="text-green-200 text-xs">
-                      Meet during operating hours • Stay in public areas • Trust your instincts
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* No Location State */}
-              {!currentLocation && (
-                <div className="text-center py-8">
-                  <div className="bg-yellow-900/30 border border-yellow-400/30 rounded-lg p-6">
-                    <MapPin className="h-12 w-12 text-yellow-400 mx-auto mb-4" />
-                    <h3 className="text-white font-semibold mb-2">Location Access Required</h3>
-                    <p className="text-yellow-200 text-sm mb-4">
-                      We need your location to show nearby safe meetup spots within {maxDistance}km of you.
-                    </p>
-                    <Button
-                      onClick={handleRefreshLocation}
-                      disabled={isRefreshing}
-                      className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white"
-                    >
-                      <Navigation className="h-4 w-4 mr-2" />
-                      {isRefreshing ? 'Getting Location...' : 'Enable Location'}
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {/* No Results State */}
-              {currentLocation && filteredLocations.length === 0 && (
-                <div className="text-center py-8">
-                  <div className="bg-gray-900/30 border border-gray-400/30 rounded-lg p-6">
-                    <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-white font-semibold mb-2">No locations found</h3>
-                    <p className="text-gray-200 text-sm mb-4">
-                      Try increasing your distance to {maxDistance > 20 ? '50km' : '20km'} or changing your location type filter.
-                    </p>
-                    {maxDistance < 50 && (
-                      <Button
-                        onClick={() => setMaxDistance(maxDistance === 5 ? 10 : maxDistance === 10 ? 20 : 50)}
-                        variant="outline"
-                        className="bg-white/10 text-white border-white/30 hover:bg-white/20"
-                      >
-                        Increase Distance to {maxDistance === 5 ? '10km' : maxDistance === 10 ? '20km' : '50km'}
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Locations List */}
-              <div className="flex-1 min-h-0 overflow-y-auto">
-                <div className="space-y-2 pr-2">
-                  {filteredLocations.length > 0 ? (
-                    filteredLocations.map((location) => (
-                      <motion.div
-                        key={location.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="cursor-pointer"
-                        onClick={() => onLocationSelect(location)}
-                      >
-                        <Card className="glass-dark border-white/10 hover:bg-white/5 transition-all duration-200">
-                          <CardContent className="p-3">
-                            <div className="flex items-start justify-between">
-                            <div className="flex items-start space-x-3 flex-1">
-                              <div className={`${getTypeColor(location.type)} mt-1`}>
-                                {getTypeIcon(location.type)}
-                              </div>
-                              <div className="flex-1">
-                                <div className="flex items-center space-x-2 mb-1">
-                                  <h3 className="text-white font-medium">{location.name}</h3>
-                                  {location.verified && (
-                                    <Badge className="bg-green-500 text-white text-xs">
-                                      <Shield className="mr-1 h-3 w-3" />
-                                      Verified
-                                    </Badge>
-                                  )}
-                                </div>
-                                <p className="text-blue-100 text-sm mb-2">{location.address}</p>
-                                
-                                <div className="flex items-center space-x-4 text-xs text-blue-200 mb-2">
-                                  <div className="flex items-center">
-                                    <Clock className="h-3 w-3 mr-1" />
-                                    {location.operatingHours}
-                                  </div>
-                                  <div className="flex items-center">
-                                    <Star className="h-3 w-3 mr-1 text-yellow-400" />
-                                    {location.safety_rating}
-                                  </div>
-                                  {location.distance && (
-                                    <div className="flex items-center">
-                                      <Navigation className="h-3 w-3 mr-1" />
-                                      {location.distance.toFixed(1)}km
-                                    </div>
-                                  )}
-                                </div>
-
-                                <div className="flex flex-wrap gap-1">
-                                  {location.features.slice(0, 3).map((feature, index) => (
-                                    <Badge
-                                      key={index}
-                                      variant="outline"
-                                      className="text-xs text-blue-300 border-blue-400/30"
-                                    >
-                                      {feature}
-                                    </Badge>
-                                  ))}
-                                  {location.features.length > 3 && (
-                                    <Badge
-                                      variant="outline"
-                                      className="text-xs text-blue-300 border-blue-400/30"
-                                    >
-                                      +{location.features.length - 3} more
-                                    </Badge>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                            
-                            <Button
-                              size="sm"
-                              className="bg-blue-500 hover:bg-blue-600 text-white border-0 shadow-lg ml-4"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onLocationSelect(location);
-                              }}
-                            >
-                              Select
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  ))
-                ) : (
-                  <div className="text-center py-8">
-                    <MapPin className="h-12 w-12 text-blue-300 mx-auto mb-3" />
-                    <p className="text-white font-semibold">No locations found</p>
-                    <p className="text-blue-100 text-sm">Try adjusting your search or filters</p>
-                  </div>
-                )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {location.features.slice(0, 3).map((feature, index) => (
+                        <Badge
+                          key={index}
+                          variant="outline"
+                          className="text-xs border-white/20 text-blue-200"
+                        >
+                          {feature}
+                        </Badge>
+                      ))}
+                      {location.features.length > 3 && (
+                        <Badge
+                          variant="outline"
+                          className="text-xs border-white/20 text-blue-200"
+                        >
+                          +{location.features.length - 3} more
+                        </Badge>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
