@@ -246,6 +246,12 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
     if (!exchange || !user || selectedRating === 0) return;
 
     setCompletingExchange(true);
+    console.log('🚀 STARTING EXCHANGE COMPLETION PROCESS');
+    console.log('Exchange data:', exchange);
+    console.log('Current user:', user.uid);
+    console.log('Selected rating:', selectedRating);
+    console.log('Exchange notes:', exchangeNotes);
+
     try {
       // Import all Firebase functions needed
       const { 
@@ -265,130 +271,55 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
       const partnerId = exchange.userA === user.uid ? exchange.userB : exchange.userA;
       const partnerName = exchange.userA === user.uid ? exchange.userBName : exchange.userAName;
       
+      console.log('💫 Exchange details:', {
+        partnerId,
+        partnerName,
+        duration,
+        userA: exchange.userA,
+        userB: exchange.userB,
+        currentUser: user.uid
+      });
+      
+      // STEP 1: BRUTAL FORCE DELETE EVERYTHING RELATED TO THIS EXCHANGE
+      console.log('💀 FORCE DELETING ALL EXCHANGE DATA');
       try {
-        // 1. Delete active exchange documents
-        console.log('🧹 Starting cleanup for matchId:', exchange.id);
-        console.log('🧹 Exchange object:', exchange);
+        // Get ALL active exchanges and delete any that match this exchange ID
+        const allActiveExchanges = await getDocs(collection(db, 'activeExchanges'));
+        console.log('🔍 Found', allActiveExchanges.size, 'total active exchanges');
         
-        const activeExchangeQuery = query(
-          collection(db, 'activeExchanges'),
-          where('matchId', '==', exchange.id)
-        );
-        const activeExchangeDocs = await getDocs(activeExchangeQuery);
-        
-        console.log('🔍 Found', activeExchangeDocs.size, 'active exchange documents to delete');
-        
-        if (activeExchangeDocs.size === 0) {
-          // Try searching by other possible IDs
-          console.log('⚠️ No active exchanges found with matchId, trying other search methods...');
-          
-          // Try searching by document ID
-          const altQuery1 = query(
-            collection(db, 'activeExchanges'),
-            where('id', '==', exchange.id)
-          );
-          const altDocs1 = await getDocs(altQuery1);
-          console.log('🔍 Found', altDocs1.size, 'active exchanges with id field');
-          
-          // Try getting all active exchanges for this user
-          const userExchangesQuery = query(
-            collection(db, 'activeExchanges'),
-            where('userA', '==', user.uid)
-          );
-          const userExchanges1 = await getDocs(userExchangesQuery);
-          
-          const otherUserExchangesQuery = query(
-            collection(db, 'activeExchanges'),
-            where('userB', '==', user.uid)
-          );
-          const userExchanges2 = await getDocs(otherUserExchangesQuery);
-          
-          console.log('🔍 Found', userExchanges1.size + userExchanges2.size, 'total active exchanges for user');
-          
-          // Combine all found documents
-          const allFoundDocs = [...altDocs1.docs, ...userExchanges1.docs, ...userExchanges2.docs];
-          
-          for (const docSnapshot of allFoundDocs) {
-            const data = docSnapshot.data();
-            console.log('📄 Active exchange document:', docSnapshot.id, data);
-            
-            // Delete if it matches our exchange
-            if (data.matchId === exchange.id || data.id === exchange.id) {
-              console.log('🗑️ Deleting matching active exchange:', docSnapshot.id);
-              await deleteDoc(docSnapshot.ref);
-              console.log('✅ Deleted active exchange document:', docSnapshot.id);
-            }
-          }
-        } else {
-          for (const docSnapshot of activeExchangeDocs.docs) {
-            console.log('🗑️ Deleting active exchange:', docSnapshot.id, docSnapshot.data());
-            await deleteDoc(docSnapshot.ref);
-            console.log('✅ Deleted active exchange document:', docSnapshot.id);
+        for (const docSnap of allActiveExchanges.docs) {
+          const data = docSnap.data();
+          if (data.matchId === exchange.id || data.id === exchange.id || 
+              (data.userA === user.uid && data.userB === partnerId) ||
+              (data.userB === user.uid && data.userA === partnerId)) {
+            console.log('💥 DELETING ACTIVE EXCHANGE:', docSnap.id, data);
+            await deleteDoc(docSnap.ref);
           }
         }
         
-        // 2. Delete chat documents 
-        console.log('Looking for chats with matchId:', exchange.id);
-        const chatQuery = query(
-          collection(db, 'chats'),
-          where('matchId', '==', exchange.id)
-        );
-        const chatDocs = await getDocs(chatQuery);
-        
-        console.log('Found', chatDocs.size, 'chat documents to delete');
-        for (const doc of chatDocs.docs) {
-          await deleteDoc(doc.ref);
-          console.log('✅ Deleted chat document:', doc.id);
-        }
-        
-        // 3. Delete message documents for this match
-        console.log('Looking for messages with matchId:', exchange.id);
-        const messageQuery = query(
-          collection(db, 'messages'),
-          where('matchId', '==', exchange.id)
-        );
-        const messageDocs = await getDocs(messageQuery);
-        
-        console.log('Found', messageDocs.size, 'message documents to delete');
-        for (const doc of messageDocs.docs) {
-          await deleteDoc(doc.ref);
-          console.log('✅ Deleted message document:', doc.id);
-        }
-        
-        // 4. Delete related posts
-        if (exchange.postAId && exchange.postAId !== 'quick-match') {
-          try {
-            const postARef = doc(db, 'posts', exchange.postAId);
-            const postADoc = await getDoc(postARef);
-            if (postADoc.exists()) {
-              await deleteDoc(postARef);
-              console.log('✅ Deleted Post A:', exchange.postAId);
-            } else {
-              console.log('Post A already deleted or not found:', exchange.postAId);
-            }
-          } catch (error) {
-            console.log('Error deleting Post A:', error);
+        // Delete all chats for this match
+        const allChats = await getDocs(collection(db, 'chats'));
+        for (const docSnap of allChats.docs) {
+          const data = docSnap.data();
+          if (data.matchId === exchange.id) {
+            console.log('💥 DELETING CHAT:', docSnap.id);
+            await deleteDoc(docSnap.ref);
           }
         }
         
-        if (exchange.postBId && exchange.postBId !== 'quick-match') {
-          try {
-            const postBRef = doc(db, 'posts', exchange.postBId);
-            const postBDoc = await getDoc(postBRef);
-            if (postBDoc.exists()) {
-              await deleteDoc(postBRef);
-              console.log('✅ Deleted Post B:', exchange.postBId);
-            } else {
-              console.log('Post B already deleted or not found:', exchange.postBId);
-            }
-          } catch (error) {
-            console.log('Error deleting Post B:', error);
+        // Delete all messages for this match
+        const allMessages = await getDocs(collection(db, 'messages'));
+        for (const docSnap of allMessages.docs) {
+          const data = docSnap.data();
+          if (data.matchId === exchange.id) {
+            console.log('💥 DELETING MESSAGE:', docSnap.id);
+            await deleteDoc(docSnap.ref);
           }
         }
         
-        console.log('✅ Successfully cleaned up all exchange-related documents');
+        console.log('✅ CLEANUP COMPLETED');
       } catch (error) {
-        console.error('Error during cleanup:', error);
+        console.error('❌ Cleanup failed:', error);
       }
 
       // Create exchange history records for BOTH users
@@ -407,78 +338,63 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
         initiatedBy: exchange.initiatedBy
       };
 
-      // Save exchange history with corrected logic
-      console.log('🔄 Creating exchange history records with corrected logic...');
-      
-      // When you rate Katrina:
-      // - Your history should show what Katrina rated YOU (empty for now, filled when she rates you)
-      // - Katrina's history should show what YOU rated HER (your rating and notes)
+      // STEP 2: CREATE CORRECT EXCHANGE HISTORY
+      console.log('📝 CREATING EXCHANGE HISTORY');
       
       try {
-        // 1. Create/update partner's history record with YOUR rating of THEM
-        const partnerHistoryRecord = {
-          ...baseHistoryData,
-          userId: partnerId, // This goes in Katrina's history
-          partnerUserId: user.uid,
+        // SIMPLE LOGIC: 
+        // Partner's history gets YOUR rating of them
+        // Your history gets PARTNER'S rating of you (when they rate you)
+        
+        // Save YOUR rating in PARTNER'S history
+        const partnerHistoryData = {
+          matchId: exchange.id,
+          userId: partnerId, // This record belongs to Katrina
+          partnerUserId: user.uid, // You are the partner
           partnerName: user.displayName || user.email || 'Exchange Partner',
-          rating: selectedRating, // YOUR rating of Katrina goes in HER history
-          notes: exchangeNotes,   // YOUR notes about Katrina go in HER history
-          ratedBy: user.uid,
-          completedBy: user.uid
+          completedAt: completedAt,
+          duration: duration,
+          rating: selectedRating, // YOUR rating goes in HER history
+          notes: exchangeNotes,   // YOUR notes go in HER history
+          completedBy: user.uid,
+          exchangeDetails: {
+            giveAmount: exchange.exchangeDetails?.giveAmount || 1000,
+            giveType: exchange.exchangeDetails?.giveType || 'cash',
+            needAmount: exchange.exchangeDetails?.needAmount || 1000,
+            needType: exchange.exchangeDetails?.needType || 'coins'
+          }
         };
-
-        // Check if partner already has a history record
-        const partnerExistingQuery = query(
-          collection(db, 'exchangeHistory'),
-          where('matchId', '==', exchange.id),
-          where('userId', '==', partnerId)
-        );
-        const partnerExistingDocs = await getDocs(partnerExistingQuery);
         
-        if (partnerExistingDocs.empty) {
-          await addDoc(collection(db, 'exchangeHistory'), partnerHistoryRecord);
-          console.log('✅ Created new history record for partner with your rating');
-        } else {
-          const partnerDoc = partnerExistingDocs.docs[0];
-          await updateDoc(doc(db, 'exchangeHistory', partnerDoc.id), {
-            rating: selectedRating,
-            notes: exchangeNotes,
-            ratedBy: user.uid,
-            completedBy: user.uid
-          });
-          console.log('✅ Updated partner history record with your rating');
-        }
-
-        // 2. Create/update your own history record (waiting for partner to rate you)
-        const myHistoryRecord = {
-          ...baseHistoryData,
-          userId: user.uid, // This goes in YOUR history
-          partnerUserId: partnerId,
+        console.log('💾 Saving partner history:', partnerHistoryData);
+        await addDoc(collection(db, 'exchangeHistory'), partnerHistoryData);
+        console.log('✅ PARTNER HISTORY SAVED');
+        
+        // Create placeholder in YOUR history (to be filled when partner rates you)
+        const myHistoryData = {
+          matchId: exchange.id,
+          userId: user.uid, // This record belongs to you
+          partnerUserId: partnerId, // Katrina is the partner
           partnerName: partnerName,
-          rating: 0, // Will be filled when Katrina rates YOU
-          notes: '', // Will be filled when Katrina rates YOU
-          ratedBy: null, // Will be set when partner rates you
+          completedAt: completedAt,
+          duration: duration,
+          rating: 0, // Will be filled when Katrina rates you
+          notes: '', // Will be filled when Katrina rates you
+          completedBy: user.uid,
           waitingForPartnerRating: true,
-          completedBy: user.uid
+          exchangeDetails: {
+            giveAmount: exchange.exchangeDetails?.giveAmount || 1000,
+            giveType: exchange.exchangeDetails?.giveType || 'cash',
+            needAmount: exchange.exchangeDetails?.needAmount || 1000,
+            needType: exchange.exchangeDetails?.needType || 'coins'
+          }
         };
-
-        // Check if you already have a history record
-        const myExistingQuery = query(
-          collection(db, 'exchangeHistory'),
-          where('matchId', '==', exchange.id),
-          where('userId', '==', user.uid)
-        );
-        const myExistingDocs = await getDocs(myExistingQuery);
         
-        if (myExistingDocs.empty) {
-          await addDoc(collection(db, 'exchangeHistory'), myHistoryRecord);
-          console.log('✅ Created placeholder history record for yourself');
-        } else {
-          console.log('✅ Your history record already exists');
-        }
-
+        console.log('💾 Saving your placeholder history:', myHistoryData);
+        await addDoc(collection(db, 'exchangeHistory'), myHistoryData);
+        console.log('✅ YOUR PLACEHOLDER HISTORY SAVED');
+        
       } catch (error) {
-        console.error('Error saving exchange history:', error);
+        console.error('❌ Error saving exchange history:', error);
       }
 
       // Delete associated posts
@@ -525,43 +441,66 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
         createdAt: completedAt
       });
 
-      // Update partner's rating with multiplier system
+      // STEP 3: UPDATE PARTNER'S PROFILE RATING
+      console.log('🎯 UPDATING PARTNER RATING');
       try {
-        console.log('🎯 Updating rating for partner:', partnerId, 'with rating:', selectedRating);
+        // Get all users and find the partner
+        const allUsers = await getDocs(collection(db, 'users'));
+        let partnerFound = false;
         
-        // Try users collection first
-        let partnerRef = doc(db, 'users', partnerId);
-        let partnerDoc = await getDoc(partnerRef);
-        
-        // If not found in users, try userProfiles
-        if (!partnerDoc.exists()) {
-          console.log('Partner not found in users, trying userProfiles...');
-          partnerRef = doc(db, 'userProfiles', partnerId);
-          partnerDoc = await getDoc(partnerRef);
+        for (const userDoc of allUsers.docs) {
+          if (userDoc.id === partnerId) {
+            const userData = userDoc.data();
+            const currentRating = userData.averageRating || userData.rating || 3.0;
+            const totalRatings = userData.totalRatings || 0;
+            
+            // Simple average calculation
+            const newRating = ((currentRating * totalRatings) + selectedRating) / (totalRatings + 1);
+            
+            await updateDoc(userDoc.ref, {
+              averageRating: newRating,
+              rating: newRating,
+              totalRatings: totalRatings + 1,
+              completedExchanges: (userData.completedExchanges || 0) + 1
+            });
+            
+            console.log(`✅ UPDATED PARTNER RATING: ${currentRating} -> ${newRating}`);
+            partnerFound = true;
+            break;
+          }
         }
         
-        if (partnerDoc.exists()) {
-          const partnerData = partnerDoc.data();
-          const currentRating = partnerData.averageRating || partnerData.rating || 3.0;
-          const totalRatings = partnerData.totalRatings || 0;
-          
-          const ratingImpact = calculateRatingImpact(selectedRating, currentRating, totalRatings);
-          const newRating = Math.max(1.0, Math.min(5.0, currentRating + ratingImpact));
-          
-          await updateDoc(partnerRef, {
-            averageRating: newRating,
-            rating: newRating, // Also update rating field for compatibility
-            totalRatings: totalRatings + 1,
-            completedExchanges: (partnerData.completedExchanges || 0) + 1,
-            lastRatingAt: completedAt
-          });
-          
-          console.log(`✅ Updated partner rating: ${currentRating} -> ${newRating} (impact: ${ratingImpact})`);
-        } else {
-          console.error('❌ Partner document not found in either collection:', partnerId);
+        if (!partnerFound) {
+          // Try userProfiles collection
+          const allProfiles = await getDocs(collection(db, 'userProfiles'));
+          for (const profileDoc of allProfiles.docs) {
+            if (profileDoc.id === partnerId) {
+              const profileData = profileDoc.data();
+              const currentRating = profileData.averageRating || profileData.rating || 3.0;
+              const totalRatings = profileData.totalRatings || 0;
+              
+              const newRating = ((currentRating * totalRatings) + selectedRating) / (totalRatings + 1);
+              
+              await updateDoc(profileDoc.ref, {
+                averageRating: newRating,
+                rating: newRating,
+                totalRatings: totalRatings + 1,
+                completedExchanges: (profileData.completedExchanges || 0) + 1
+              });
+              
+              console.log(`✅ UPDATED PARTNER PROFILE RATING: ${currentRating} -> ${newRating}`);
+              partnerFound = true;
+              break;
+            }
+          }
         }
+        
+        if (!partnerFound) {
+          console.error('❌ PARTNER NOT FOUND IN ANY COLLECTION:', partnerId);
+        }
+        
       } catch (error) {
-        console.error('Error updating partner rating:', error);
+        console.error('❌ Error updating partner rating:', error);
       }
       
       // Update current user's completed exchanges count
@@ -611,29 +550,19 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
         createdAt: completedAt
       });
 
-      console.log('Exchange completion successful - all operations completed');
-      console.log('Exchange history saved:', {
-        exchangeId: exchange.id,
-        userId: user.uid,
-        partnerName: partnerName,
-        rating: selectedRating,
-        notes: exchangeNotes,
-        participants: [user.uid, partnerId]
-      });
-      console.log('Active exchange should be removed from list after page reload');
-      toastSuccess('Exchange completed and rated successfully!');
+      console.log('🎉 EXCHANGE COMPLETION SUCCESSFUL');
+      console.log('All operations completed successfully');
+      
+      toast.success('Exchange completed! Rating saved and data cleaned up.');
       setShowRatingModal(false);
       setIsExchangeCompleted(true);
-
-      // Close the modal after a brief delay to show the success message
+      onClose();
+      
+      // Force refresh to show updated UI
+      console.log('🔄 Refreshing page to show updated data...');
       setTimeout(() => {
-        console.log('Closing modal and refreshing data...');
-        onClose();
-        // Trigger a data refresh instead of full page reload
-        if (window.location.pathname === '/') {
-          window.location.reload();
-        }
-      }, 1500);
+        window.location.reload();
+      }, 1000);
 
     } catch (error) {
       console.error('Error completing exchange:', error);
