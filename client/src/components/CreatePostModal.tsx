@@ -177,7 +177,7 @@ export function CreatePostModal({ isOpen, onClose, editingPost }: CreatePostModa
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[95vw] max-w-lg max-h-[90vh] overflow-y-auto glass-effect border-white/20 bg-blue-900/95">
+      <DialogContent className="w-[90vw] max-w-sm sm:max-w-lg max-h-[90vh] overflow-y-auto glass-effect border-white/20 bg-blue-900/95 p-4">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-white flex items-center">
             <span className="mr-2 text-2xl">₱</span>

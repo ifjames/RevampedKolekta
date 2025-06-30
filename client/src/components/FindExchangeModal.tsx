@@ -206,7 +206,7 @@ export function FindExchangeModal({ isOpen, onClose, onSelectPost }: FindExchang
     <>
       {/* Main Find Exchange Dialog */}
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-2xl w-[95vw] h-[95vh] sm:h-auto glass-effect border-white/20 max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogContent className="w-[90vw] max-w-md sm:max-w-2xl h-[90vh] sm:h-auto glass-effect border-white/20 bg-blue-900/95 overflow-hidden flex flex-col p-4">
           <DialogHeader className="pb-6 border-b border-white/10 relative">
             <DialogTitle className="text-white text-2xl flex items-center pr-10">
               <Search className="mr-3 h-6 w-6" />

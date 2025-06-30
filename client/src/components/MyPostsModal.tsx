@@ -91,7 +91,7 @@ export function MyPostsModal({ isOpen, onClose, onEditPost }: MyPostsModalProps)
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl w-[95vw] glass-effect border-white/20 bg-blue-900/95 max-h-[80vh] overflow-y-auto">
+      <DialogContent className="w-[90vw] max-w-md sm:max-w-2xl glass-effect border-white/20 bg-blue-900/95 max-h-[85vh] overflow-y-auto p-4">
         <DialogHeader>
           <DialogTitle className="text-white text-xl">My Exchange Posts</DialogTitle>
           <DialogDescription className="text-blue-100">

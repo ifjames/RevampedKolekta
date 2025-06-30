@@ -45,12 +45,12 @@ export function StarRating({
   return (
     <div className={cn(
       'flex items-center',
-      layout === 'vertical' ? 'flex-col space-y-1' : 'flex-row space-x-1',
+      layout === 'vertical' ? 'flex-col space-y-1' : 'space-x-1',
       className
     )}>
       <div className={cn(
         'flex items-center',
-        layout === 'vertical' ? 'flex-col space-y-1' : 'flex-row space-x-1'
+        layout === 'vertical' ? 'flex-col space-y-1' : 'space-x-1'
       )}>
         {stars}
       </div>

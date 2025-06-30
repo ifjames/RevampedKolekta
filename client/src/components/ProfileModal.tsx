@@ -144,7 +144,7 @@ export function ProfileModal({ isOpen, onClose, onLogout, onOpenVerification }: 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[95vw] max-w-md max-h-[90vh] overflow-y-auto glass-effect border-white/20 bg-blue-900/95">
+      <DialogContent className="w-[90vw] max-w-sm sm:max-w-md max-h-[90vh] overflow-y-auto glass-effect border-white/20 bg-blue-900/95 p-4">
         <DialogHeader className="text-center">
           <motion.div
             initial={{ scale: 0 }}
@@ -214,8 +214,8 @@ export function ProfileModal({ isOpen, onClose, onLogout, onOpenVerification }: 
             <CardContent className="p-3 text-center">
               <StarRating 
                 rating={userProfile?.rating || 0} 
-                layout="vertical" 
-                size="md"
+                layout="horizontal" 
+                size="sm"
               />
               <p className="text-blue-100 text-xs mt-2">Rating</p>
             </CardContent>

@@ -180,7 +180,7 @@ export function NotificationSystem({ isOpen, onClose, onExchangeCompleted }: Not
             initial={{ y: -50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -50, opacity: 0 }}
-            className="glass-effect rounded-2xl p-6 max-w-md w-full mx-4 max-h-[70vh] overflow-hidden border-white/20"
+            className="glass-effect rounded-2xl p-4 w-[90vw] max-w-sm sm:max-w-md mx-4 max-h-[80vh] overflow-hidden border-white/20 bg-blue-900/95"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">

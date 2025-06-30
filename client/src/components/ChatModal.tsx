@@ -522,7 +522,7 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
-            className="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-lg h-[95vh] sm:h-[600px] max-h-[600px] flex flex-col"
+            className="bg-gray-900 border border-gray-700 rounded-2xl w-[90vw] max-w-sm sm:max-w-lg h-[90vh] sm:h-[600px] max-h-[600px] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
