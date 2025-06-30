@@ -266,9 +266,19 @@ export function ChatModal({ isOpen, onClose, matchId, partnerName = 'Exchange Pa
           completedBy: user.uid
         });
         
-        // Remove from active exchanges completely
-        const activeExchangeRef = doc(db, 'activeExchanges', exchange.id);
-        await deleteDoc(activeExchangeRef);
+        // Remove from active exchanges completely - find the actual active exchange document
+        const { getDocs, query, where, collection } = await import('firebase/firestore');
+        const activeExchangeQuery = query(
+          collection(db, 'activeExchanges'),
+          where('matchId', '==', exchange.id)
+        );
+        const activeExchangeDocs = await getDocs(activeExchangeQuery);
+        
+        // Delete all matching active exchange documents
+        for (const doc of activeExchangeDocs.docs) {
+          await deleteDoc(doc.ref);
+          console.log('Deleted active exchange document:', doc.id);
+        }
         
         console.log('Updated match and active exchange status to completed');
       } catch (error) {

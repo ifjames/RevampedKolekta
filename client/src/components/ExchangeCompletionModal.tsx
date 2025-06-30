@@ -33,7 +33,7 @@ export function ExchangeCompletionModal({ isOpen, onClose, exchange }: ExchangeC
       const partnerName = exchange.userA === user.uid ? exchange.userBName : exchange.userAName;
 
       // Update match status to completed
-      const { doc, updateDoc, getDoc } = await import('firebase/firestore');
+      const { doc, updateDoc, getDoc, deleteDoc } = await import('firebase/firestore');
       const { db } = await import('@/lib/firebase');
       
       try {
@@ -47,12 +47,19 @@ export function ExchangeCompletionModal({ isOpen, onClose, exchange }: ExchangeC
           completedBy: user.uid
         });
         
-        // Remove from active exchanges
-        const activeExchangeRef = doc(db, 'activeExchanges', exchange.id);
-        await updateDoc(activeExchangeRef, {
-          status: 'completed',
-          completedAt
-        });
+        // Remove from active exchanges completely - find the actual active exchange document
+        const { getDocs, query, where, collection, deleteDoc } = await import('firebase/firestore');
+        const activeExchangeQuery = query(
+          collection(db, 'activeExchanges'),
+          where('matchId', '==', exchange.id)
+        );
+        const activeExchangeDocs = await getDocs(activeExchangeQuery);
+        
+        // Delete all matching active exchange documents
+        for (const doc of activeExchangeDocs.docs) {
+          await deleteDoc(doc.ref);
+          console.log('Deleted active exchange document:', doc.id);
+        }
         
         console.log('Updated match and active exchange status to completed');
       } catch (error) {

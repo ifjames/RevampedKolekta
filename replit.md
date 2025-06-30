@@ -262,6 +262,12 @@ Changelog:
   * Enhanced acceptMatch function to query userProfiles and users collections for accurate names
   * Fixed both userAName and userBName fields in active exchanges to display correct partner information
   * Improved error handling in user name fetching with proper fallback mechanisms
+- June 30, 2025. Fixed active exchange deletion after completion:
+  * Resolved critical bug where completed exchanges remained visible in active exchanges list
+  * Fixed both ChatModal and ExchangeCompletionModal to properly delete active exchange documents
+  * Updated completion logic to query activeExchanges collection by matchId instead of using incorrect document ID
+  * Enhanced error handling for Firebase "not-found" errors during exchange completion
+  * Active exchanges now properly disappear from UI immediately after completion
 ```
 
 ## User Preferences
