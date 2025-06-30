@@ -340,12 +340,45 @@ export function useMatching() {
         const currentUserPost = match.userA === user?.uid ? postA : postB;
         const partnerPost = match.userA === user?.uid ? postB : postA;
         
+        // Fetch actual user names from database instead of relying on post data
+        let userAName = 'Exchange Partner';
+        let userBName = 'Exchange Partner';
+        
+        try {
+          // Fetch userA profile
+          const userAProfileDoc = await getDoc(doc(db, 'userProfiles', match.userA));
+          if (userAProfileDoc.exists()) {
+            userAName = userAProfileDoc.data().name || 'Exchange Partner';
+          } else {
+            // Fallback to users collection
+            const userADoc = await getDoc(doc(db, 'users', match.userA));
+            if (userADoc.exists()) {
+              userAName = userADoc.data().displayName || userADoc.data().name || 'Exchange Partner';
+            }
+          }
+          
+          // Fetch userB profile
+          const userBProfileDoc = await getDoc(doc(db, 'userProfiles', match.userB));
+          if (userBProfileDoc.exists()) {
+            userBName = userBProfileDoc.data().name || 'Exchange Partner';
+          } else {
+            // Fallback to users collection
+            const userBDoc = await getDoc(doc(db, 'users', match.userB));
+            if (userBDoc.exists()) {
+              userBName = userBDoc.data().displayName || userBDoc.data().name || 'Exchange Partner';
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching user names:', error);
+          // Keep default fallback names if error occurs
+        }
+        
         await addDocument('activeExchanges', {
           matchId,
           userA: match.userA,
           userB: match.userB,
-          userAName: postA?.userInfo?.name || 'Exchange Partner',
-          userBName: postB?.userInfo?.name || 'Exchange Partner',
+          userAName,
+          userBName,
           postAId: match.postAId,
           postBId: match.postBId,
           status: 'active',
@@ -353,7 +386,7 @@ export function useMatching() {
           createdAt: new Date(),
           initiatedBy: match.userA,
           partnerUser: match.userA === user?.uid ? match.userB : match.userA,
-          partnerName: match.userA === user?.uid ? (postB?.userInfo?.name || 'Exchange Partner') : (postA?.userInfo?.name || 'Exchange Partner'),
+          partnerName: match.userA === user?.uid ? userBName : userAName,
           // Enhanced exchange details with both posts
           exchangeDetails: {
             // Current user's exchange details

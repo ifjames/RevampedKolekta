@@ -256,6 +256,12 @@ Changelog:
   * Added support for National ID eVerify API integration (everify.gov.ph) for government verification
   * All verification processes now use secure backend APIs instead of client-side validation
   * Improved security with proper phone number normalization and verification code expiration
+- June 30, 2025. Fixed active exchange partner name display issue during migration:
+  * Identified and fixed bug where some users saw "Exchange Partner" instead of actual partner names
+  * Updated matching system to fetch real user names from database instead of relying on post data
+  * Enhanced acceptMatch function to query userProfiles and users collections for accurate names
+  * Fixed both userAName and userBName fields in active exchanges to display correct partner information
+  * Improved error handling in user name fetching with proper fallback mechanisms
 ```
 
 ## User Preferences
