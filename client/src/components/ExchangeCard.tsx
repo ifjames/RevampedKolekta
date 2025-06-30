@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { MapPin, ArrowLeftRight, Handshake, Shield, Map, Loader2 } from 'lucide-react';
+import { MapPin, ArrowLeftRight, Handshake, Shield, Map, Loader2, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +8,7 @@ import { ExchangePost } from '@/types';
 import { formatTimeAgo } from '@/utils/timeUtils';
 import { getUserVerificationStatus } from '@/utils/dataCleanup';
 import { StarRating } from '@/components/ui/StarRating';
+import { UserProfileModal } from '@/components/UserProfileModal';
 
 interface ExchangeCardProps {
   post: ExchangePost;
@@ -18,6 +19,7 @@ interface ExchangeCardProps {
 
 export function ExchangeCard({ post, onMatch, onViewMap, isMatching = false }: ExchangeCardProps) {
   const [isVerified, setIsVerified] = useState(false);
+  const [showUserProfile, setShowUserProfile] = useState(false);
   
   // Check actual verification status from database
   useEffect(() => {
@@ -54,14 +56,23 @@ export function ExchangeCard({ post, onMatch, onViewMap, isMatching = false }: E
                     </Badge>
                   )}
                 </div>
-                <div className="flex items-center space-x-1 mt-1">
+                <div className="flex items-center space-x-2 mt-1">
                   {post.userInfo?.rating !== undefined && (
-                    <StarRating 
-                      rating={post.userInfo.rating} 
-                      layout="horizontal" 
-                      size="sm"
-                    />
+                    <div className="flex items-center space-x-1">
+                      <StarRating 
+                        rating={post.userInfo.rating} 
+                        layout="horizontal" 
+                        size="sm"
+                        showValue={false}
+                      />
+                      <span className="text-white text-xs font-medium">
+                        {post.userInfo.rating.toFixed(1)}
+                      </span>
+                    </div>
                   )}
+                  <span className="text-blue-200 text-xs">
+                    • {post.distance ? `${post.distance.toFixed(1)}km away` : 'Nearby'}
+                  </span>
                 </div>
               </div>
             </div>
@@ -131,6 +142,15 @@ export function ExchangeCard({ post, onMatch, onViewMap, isMatching = false }: E
               </span>
             </div>
             <div className="flex gap-2">
+              <Button
+                onClick={() => setShowUserProfile(true)}
+                size="sm"
+                variant="outline"
+                className="glass-dark text-white border-white/20 hover:bg-white/10"
+              >
+                <User className="mr-1 h-4 w-4" />
+                Profile
+              </Button>
               {onViewMap && (
                 <Button
                   onClick={onViewMap}
@@ -139,7 +159,7 @@ export function ExchangeCard({ post, onMatch, onViewMap, isMatching = false }: E
                   className="glass-dark text-white border-white/20 hover:bg-white/10"
                 >
                   <Map className="mr-1 h-4 w-4" />
-                  View Map
+                  Map
                 </Button>
               )}
               <Button
@@ -164,6 +184,18 @@ export function ExchangeCard({ post, onMatch, onViewMap, isMatching = false }: E
           </div>
         </CardContent>
       </Card>
+
+      {/* User Profile Modal */}
+      <UserProfileModal
+        isOpen={showUserProfile}
+        onClose={() => setShowUserProfile(false)}
+        userInfo={{
+          name: post.userInfo?.name,
+          rating: post.userInfo?.rating,
+          verified: isVerified,
+          completedExchanges: post.userInfo?.completedExchanges
+        }}
+      />
     </motion.div>
   );
 }

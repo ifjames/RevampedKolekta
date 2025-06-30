@@ -1,33 +1,33 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useState } from "react";
+import { motion } from "framer-motion";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { 
-  User, 
-  ExternalLink, 
-  Edit, 
-  Shield, 
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  User,
+  ExternalLink,
+  Edit,
+  Shield,
   LogOut,
   Calendar,
   Mail,
   Phone,
-  Key
-} from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
-import { formatDate } from '@/utils/timeUtils';
-import { showConfirm, toastInfo } from '@/utils/notifications';
-import { VerificationModal } from './VerificationModal';
-import { StarRating } from '@/components/ui/StarRating';
+  Key,
+} from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { formatDate } from "@/utils/timeUtils";
+import { showConfirm, toastInfo } from "@/utils/notifications";
+import { VerificationModal } from "./VerificationModal";
+import { StarRating } from "@/components/ui/StarRating";
 
 interface ProfileModalProps {
   isOpen: boolean;
@@ -36,26 +36,32 @@ interface ProfileModalProps {
   onOpenVerification?: () => void;
 }
 
-export function ProfileModal({ isOpen, onClose, onLogout, onOpenVerification }: ProfileModalProps) {
-  const { user, userProfile, logout, updateUserProfile, changePassword } = useAuth();
+export function ProfileModal({
+  isOpen,
+  onClose,
+  onLogout,
+  onOpenVerification,
+}: ProfileModalProps) {
+  const { user, userProfile, logout, updateUserProfile, changePassword } =
+    useAuth();
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [showVerification, setShowVerification] = useState(false);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [editForm, setEditForm] = useState({
-    name: userProfile?.name || '',
-    phone: userProfile?.phone || ''
+    name: userProfile?.name || "",
+    phone: userProfile?.phone || "",
   });
   const [passwordForm, setPasswordForm] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
   });
 
   const handleLogout = async () => {
     const result = await showConfirm(
-      'Logout?',
-      'Are you sure you want to logout?'
+      "Logout?",
+      "Are you sure you want to logout?",
     );
 
     if (result.isConfirmed) {
@@ -74,8 +80,8 @@ export function ProfileModal({ isOpen, onClose, onLogout, onOpenVerification }: 
 
   const handleEditProfile = () => {
     setEditForm({
-      name: userProfile?.name || '',
-      phone: userProfile?.phone || ''
+      name: userProfile?.name || "",
+      phone: userProfile?.phone || "",
     });
     setIsEditing(true);
   };
@@ -85,10 +91,10 @@ export function ProfileModal({ isOpen, onClose, onLogout, onOpenVerification }: 
     try {
       await updateUserProfile(editForm);
       setIsEditing(false);
-      toastInfo('Profile updated successfully!');
+      toastInfo("Profile updated successfully!");
     } catch (error) {
-      console.error('Profile update error:', error);
-      toastInfo('Failed to update profile');
+      console.error("Profile update error:", error);
+      toastInfo("Failed to update profile");
     } finally {
       setLoading(false);
     }
@@ -97,30 +103,37 @@ export function ProfileModal({ isOpen, onClose, onLogout, onOpenVerification }: 
   const handleCancelEdit = () => {
     setIsEditing(false);
     setEditForm({
-      name: userProfile?.name || '',
-      phone: userProfile?.phone || ''
+      name: userProfile?.name || "",
+      phone: userProfile?.phone || "",
     });
   };
 
   const handleChangePassword = async () => {
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      toastInfo('New passwords do not match');
+      toastInfo("New passwords do not match");
       return;
     }
 
     if (passwordForm.newPassword.length < 6) {
-      toastInfo('New password must be at least 6 characters');
+      toastInfo("New password must be at least 6 characters");
       return;
     }
 
     setLoading(true);
     try {
-      await changePassword(passwordForm.currentPassword, passwordForm.newPassword);
-      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      await changePassword(
+        passwordForm.currentPassword,
+        passwordForm.newPassword,
+      );
+      setPasswordForm({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
       setShowPasswordForm(false);
-      toastInfo('Password changed successfully!');
+      toastInfo("Password changed successfully!");
     } catch (error) {
-      console.error('Password change error:', error);
+      console.error("Password change error:", error);
     } finally {
       setLoading(false);
     }
@@ -128,17 +141,19 @@ export function ProfileModal({ isOpen, onClose, onLogout, onOpenVerification }: 
 
   const handleCancelPasswordChange = () => {
     setShowPasswordForm(false);
-    setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    setPasswordForm({
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    });
   };
-
-
 
   const stats = [
     {
       icon: ExternalLink,
       value: userProfile?.completedExchanges || 0,
-      label: 'Exchanges',
-      color: 'text-green-400',
+      label: "Exchanges",
+      color: "text-green-400",
     },
   ];
 
@@ -156,7 +171,7 @@ export function ProfileModal({ isOpen, onClose, onLogout, onOpenVerification }: 
           </motion.div>
           <div className="flex items-center justify-center space-x-2">
             <DialogTitle className="text-2xl font-bold text-white">
-              {userProfile?.name || user?.displayName || 'User'}
+              {userProfile?.name || user?.displayName || "User"}
             </DialogTitle>
             {userProfile?.verified && (
               <Badge className="bg-green-500 text-white">
@@ -170,7 +185,10 @@ export function ProfileModal({ isOpen, onClose, onLogout, onOpenVerification }: 
           </DialogDescription>
           <div className="flex items-center justify-center mt-2">
             <p className="text-blue-100 text-sm">
-              Member since {userProfile?.createdAt ? formatDate(new Date(userProfile.createdAt)) : 'recently'}
+              Member since{" "}
+              {userProfile?.createdAt
+                ? formatDate(new Date(userProfile.createdAt))
+                : "recently"}
             </p>
           </div>
         </DialogHeader>
@@ -186,18 +204,21 @@ export function ProfileModal({ isOpen, onClose, onLogout, onOpenVerification }: 
             <Mail className="h-4 w-4" />
             <span className="text-sm">{userProfile?.email || user?.email}</span>
           </div>
-          
+
           {userProfile?.phone && (
             <div className="flex items-center space-x-3 text-blue-100">
               <Phone className="h-4 w-4" />
               <span className="text-sm">{userProfile.phone}</span>
             </div>
           )}
-          
+
           <div className="flex items-center space-x-3 text-blue-100">
             <Calendar className="h-4 w-4" />
             <span className="text-sm">
-              Joined {userProfile?.createdAt ? formatDate(userProfile.createdAt) : 'recently'}
+              Joined{" "}
+              {userProfile?.createdAt
+                ? formatDate(userProfile.createdAt)
+                : "recently"}
             </span>
           </div>
         </motion.div>
@@ -212,16 +233,17 @@ export function ProfileModal({ isOpen, onClose, onLogout, onOpenVerification }: 
           {/* Rating Card with Stars */}
           <Card className="glass-dark border-white/10">
             <CardContent className="p-3 text-center">
-              <p className="text-blue-100 text-xs mb-2">Stars</p>
               <div className="flex items-center justify-center space-x-1 mb-2">
-                <StarRating 
-                  rating={userProfile?.rating || 0} 
-                  layout="horizontal" 
+                <StarRating
+                  rating={userProfile?.rating || 0}
+                  layout="horizontal"
                   size="sm"
                   showValue={false}
                 />
               </div>
-              <p className="text-white font-bold text-sm">{(userProfile?.rating || 0).toFixed(1)}</p>
+              <p className="text-white font-bold text-sm">
+                {(userProfile?.rating || 0).toFixed(1)}
+              </p>
               <p className="text-blue-100 text-xs">Rating</p>
             </CardContent>
           </Card>
@@ -248,21 +270,29 @@ export function ProfileModal({ isOpen, onClose, onLogout, onOpenVerification }: 
           {isEditing ? (
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-white">Name</Label>
+                <Label htmlFor="name" className="text-white">
+                  Name
+                </Label>
                 <Input
                   id="name"
                   value={editForm.name}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                  onChange={(e) =>
+                    setEditForm((prev) => ({ ...prev, name: e.target.value }))
+                  }
                   className="glass-dark text-white border-white/20"
                   placeholder="Your name"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="phone" className="text-white">Phone</Label>
+                <Label htmlFor="phone" className="text-white">
+                  Phone
+                </Label>
                 <Input
                   id="phone"
                   value={editForm.phone}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
+                  onChange={(e) =>
+                    setEditForm((prev) => ({ ...prev, phone: e.target.value }))
+                  }
                   className="glass-dark text-white border-white/20"
                   placeholder="Your phone number"
                 />
@@ -288,34 +318,55 @@ export function ProfileModal({ isOpen, onClose, onLogout, onOpenVerification }: 
           ) : showPasswordForm ? (
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="currentPassword" className="text-white">Current Password</Label>
+                <Label htmlFor="currentPassword" className="text-white">
+                  Current Password
+                </Label>
                 <Input
                   id="currentPassword"
                   type="password"
                   value={passwordForm.currentPassword}
-                  onChange={(e) => setPasswordForm(prev => ({ ...prev, currentPassword: e.target.value }))}
+                  onChange={(e) =>
+                    setPasswordForm((prev) => ({
+                      ...prev,
+                      currentPassword: e.target.value,
+                    }))
+                  }
                   className="glass-dark text-white border-white/20"
                   placeholder="Enter current password"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="newPassword" className="text-white">New Password</Label>
+                <Label htmlFor="newPassword" className="text-white">
+                  New Password
+                </Label>
                 <Input
                   id="newPassword"
                   type="password"
                   value={passwordForm.newPassword}
-                  onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
+                  onChange={(e) =>
+                    setPasswordForm((prev) => ({
+                      ...prev,
+                      newPassword: e.target.value,
+                    }))
+                  }
                   className="glass-dark text-white border-white/20"
                   placeholder="Enter new password"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-white">Confirm New Password</Label>
+                <Label htmlFor="confirmPassword" className="text-white">
+                  Confirm New Password
+                </Label>
                 <Input
                   id="confirmPassword"
                   type="password"
                   value={passwordForm.confirmPassword}
-                  onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                  onChange={(e) =>
+                    setPasswordForm((prev) => ({
+                      ...prev,
+                      confirmPassword: e.target.value,
+                    }))
+                  }
                   className="glass-dark text-white border-white/20"
                   placeholder="Confirm new password"
                 />
@@ -348,7 +399,7 @@ export function ProfileModal({ isOpen, onClose, onLogout, onOpenVerification }: 
                 <Edit className="mr-2 h-4 w-4" />
                 Edit Profile
               </Button>
-              
+
               <Button
                 onClick={() => {
                   if (onOpenVerification) {
@@ -375,7 +426,7 @@ export function ProfileModal({ isOpen, onClose, onLogout, onOpenVerification }: 
               </Button>
             </>
           )}
-          
+
           <Button
             onClick={handleLogout}
             disabled={loading}

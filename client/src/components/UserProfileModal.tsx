@@ -75,19 +75,19 @@ export function UserProfileModal({ isOpen, onClose, userInfo }: UserProfileModal
 
           {/* Rating */}
           <Card className="glass-dark border-white/10">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-white font-medium">Rating</span>
-                <span className={`font-bold ${getRatingColor(userInfo.rating || 0)}`}>
-                  {(userInfo.rating || 0).toFixed(1)}/5.0
-                </span>
+            <CardContent className="p-4 text-center">
+              <p className="text-blue-100 text-xs mb-2">Stars</p>
+              <div className="flex items-center justify-center space-x-1 mb-2">
+                <StarRating 
+                  rating={userInfo.rating || 0} 
+                  layout="horizontal" 
+                  size="md"
+                  showValue={false}
+                />
               </div>
-              <StarRating 
-                rating={userInfo.rating || 0} 
-                layout="horizontal" 
-                size="md"
-              />
-              <div className="text-blue-200 text-xs mt-1">
+              <p className="text-white font-bold text-lg">{(userInfo.rating || 0).toFixed(1)}</p>
+              <p className="text-blue-100 text-xs mb-2">Rating</p>
+              <div className="text-blue-200 text-xs">
                 {(userInfo.rating || 0) >= 4.5 ? 'Excellent' : 
                  (userInfo.rating || 0) >= 3.5 ? 'Good' : 
                  (userInfo.rating || 0) >= 2.5 ? 'Fair' : 'Needs Improvement'}
