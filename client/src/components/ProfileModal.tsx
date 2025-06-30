@@ -212,12 +212,17 @@ export function ProfileModal({ isOpen, onClose, onLogout, onOpenVerification }: 
           {/* Rating Card with Stars */}
           <Card className="glass-dark border-white/10">
             <CardContent className="p-3 text-center">
-              <StarRating 
-                rating={userProfile?.rating || 0} 
-                layout="horizontal" 
-                size="sm"
-              />
-              <p className="text-blue-100 text-xs mt-2">Rating</p>
+              <p className="text-blue-100 text-xs mb-2">Stars</p>
+              <div className="flex items-center justify-center space-x-1 mb-2">
+                <StarRating 
+                  rating={userProfile?.rating || 0} 
+                  layout="horizontal" 
+                  size="sm"
+                  showValue={false}
+                />
+              </div>
+              <p className="text-white font-bold text-sm">{(userProfile?.rating || 0).toFixed(1)}</p>
+              <p className="text-blue-100 text-xs">Rating</p>
             </CardContent>
           </Card>
 
