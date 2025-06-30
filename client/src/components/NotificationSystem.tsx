@@ -91,13 +91,19 @@ export function NotificationSystem({ isOpen, onClose, onExchangeCompleted }: Not
 
   const handleAcceptMatch = async (matchId: string, notificationId: string) => {
     try {
+      console.log('Accepting match:', matchId);
       await acceptMatch(matchId);
       await markAsRead(notificationId);
+      
+      // Force close notification modal to refresh dashboard
+      onClose();
+      
       toast({
         title: "Match Accepted!",
         description: "You can now chat with your exchange partner."
       });
     } catch (error) {
+      console.error('Error accepting match:', error);
       toast({
         title: "Error", 
         description: "Failed to accept match request"
@@ -107,13 +113,19 @@ export function NotificationSystem({ isOpen, onClose, onExchangeCompleted }: Not
 
   const handleDeclineMatch = async (matchId: string, notificationId: string) => {
     try {
+      console.log('Declining match:', matchId);
       await declineMatch(matchId);
       await markAsRead(notificationId);
+      
+      // Force close notification modal to refresh dashboard
+      onClose();
+      
       toast({
         title: "Match Declined",
         description: "The match request has been declined."
       });
     } catch (error) {
+      console.error('Error declining match:', error);
       toast({
         title: "Error",
         description: "Failed to decline match request"

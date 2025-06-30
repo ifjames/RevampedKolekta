@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, query, where, onSnapshot, orderBy, limit, getDocs } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, orderBy, limit, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocation } from '@/contexts/LocationContext';
@@ -263,6 +263,58 @@ export function useMatching() {
 
       const match = matchRequests.find(m => m.id === matchId);
       if (match) {
+        // Fetch post details from Firebase
+        let postA: ExchangePost | null = null;
+        let postB: ExchangePost | null = null;
+        
+        try {
+          const postADoc = await getDoc(doc(db, 'posts', match.postAId));
+          if (postADoc.exists()) {
+            const postAData = postADoc.data();
+            postA = {
+              id: postADoc.id,
+              ...postAData,
+              timestamp: postAData.timestamp?.toDate() || new Date()
+            } as ExchangePost;
+          }
+          
+          const postBDoc = await getDoc(doc(db, 'posts', match.postBId));
+          if (postBDoc.exists()) {
+            const postBData = postBDoc.data();
+            postB = {
+              id: postBDoc.id,
+              ...postBData,
+              timestamp: postBData.timestamp?.toDate() || new Date()
+            } as ExchangePost;
+          }
+        } catch (error) {
+          console.error('Error fetching post details:', error);
+        }
+        
+        // Create active exchange document for Dashboard display
+        await addDocument('activeExchanges', {
+          matchId,
+          userA: match.userA,
+          userB: match.userB,
+          userAName: postA?.userInfo?.name || 'Exchange Partner',
+          userBName: postB?.userInfo?.name || 'Exchange Partner',
+          postAId: match.postAId,
+          postBId: match.postBId,
+          status: 'active',
+          participants: [match.userA, match.userB],
+          createdAt: new Date(),
+          initiatedBy: match.userA,
+          partnerUser: match.userA === user?.uid ? match.userB : match.userA,
+          partnerName: match.userA === user?.uid ? (postB?.userInfo?.name || 'Exchange Partner') : (postA?.userInfo?.name || 'Exchange Partner'),
+          exchangeDetails: {
+            giveAmount: postA?.giveAmount || 0,
+            giveType: postA?.giveType || 'cash',
+            needAmount: postA?.needAmount || 0,
+            needType: postA?.needType || 'cash',
+            location: postA?.location
+          }
+        });
+
         // Create notification for requester
         await addDocument('notifications', {
           userId: match.userA,
